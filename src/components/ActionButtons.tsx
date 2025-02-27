@@ -1,5 +1,5 @@
 
-import { BookOpenText, MessageSquare, Grid, Baby, Child } from "lucide-react";
+import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
 
 const ActionButtons = () => {
   const actions = [
@@ -7,7 +7,7 @@ const ActionButtons = () => {
     { icon: <MessageSquare className="h-4 w-4 text-blue-400" />, label: "Criar Pregação Expositiva" },
     { icon: <Grid className="h-4 w-4 text-green-400" />, label: "Estudo para Célula" },
     { icon: <Baby className="h-4 w-4 text-yellow-400" />, label: "Explicar para Crianças" },
-    { icon: <Child className="h-4 w-4 text-red-400" />, label: "Atividade Infantil" },
+    { icon: <User className="h-4 w-4 text-red-400" />, label: "Atividade Infantil" },
   ];
 
   return (
