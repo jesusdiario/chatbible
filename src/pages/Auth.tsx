@@ -87,6 +87,13 @@ const Auth = () => {
     <div className="h-screen flex items-center justify-center bg-chatgpt-main">
       <div className="w-full max-w-md p-8 bg-chatgpt-sidebar rounded-lg shadow-lg border border-chatgpt-border/30">
         <div className="mb-6 text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/b8b153b5-ce9c-493a-9d90-9da4e80c11ff.png" 
+              alt="BibleGPT Logo" 
+              className="w-[70px] h-[70px]" 
+            />
+          </div>
           <h1 className="text-2xl font-bold text-white">BibleGPT</h1>
           <p className="text-gray-400">Sua assistente de estudos bíblicos</p>
         </div>
