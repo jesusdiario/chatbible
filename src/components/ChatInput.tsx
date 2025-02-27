@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { ArrowUp, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SubscriptionModal from "@/components/SubscriptionModal";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -13,6 +14,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [isLimited, setIsLimited] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const { toast } = useToast();
   
   // Configurações de limite
@@ -81,14 +83,19 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
     return `${days}d ${hours}h`;
   };
 
+  const handleSubscriptionPrompt = () => {
+    setShowSubscriptionModal(true);
+  };
+
   const handleSubmit = () => {
-    if (message.trim() && !isLoading && !isLimited) {
+    if (message.trim() && !isLoading) {
       // Verificar se o usuário atingiu o limite de mensagens
-      if (messageCount >= MESSAGE_LIMIT) {
+      if (messageCount >= MESSAGE_LIMIT || isLimited) {
         setIsLimited(true);
+        handleSubscriptionPrompt();
         toast({
           title: "Limite de mensagens atingido",
-          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens por mês. Aguarde ${formatTimeRemaining(timeUntilReset)} para enviar mais mensagens.`,
+          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens por mês. Considere fazer upgrade para o plano premium.`,
           variant: "destructive"
         });
         return;
@@ -107,6 +114,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
       // Verificar se atingiu o limite após esta mensagem
       if (newCount >= MESSAGE_LIMIT) {
         setIsLimited(true);
+        handleSubscriptionPrompt(); // Abrir modal de assinatura quando atingir o limite
       }
       
       // Enviar a mensagem
@@ -125,10 +133,13 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
   return (
     <div className="relative flex w-full flex-col items-center">
       {isLimited && (
-        <div className="w-full mb-2 px-3 py-2 text-sm bg-amber-900/30 text-amber-200 rounded-md flex items-center">
+        <div 
+          className="w-full mb-2 px-3 py-2 text-sm bg-amber-900/30 text-amber-200 rounded-md flex items-center cursor-pointer hover:bg-amber-900/40"
+          onClick={handleSubscriptionPrompt}
+        >
           <AlertCircle className="h-4 w-4 mr-2" />
           <span>
-            Limite de mensagens atingido. Restante: {formatTimeRemaining(timeUntilReset)}
+            Limite de mensagens atingido. Clique aqui para fazer upgrade.
           </span>
         </div>
       )}
@@ -155,9 +166,18 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           )}
         </button>
       </div>
-      <div className="w-full text-xs text-gray-500 mt-1 text-right">
+      <div 
+        className="w-full text-xs text-gray-500 mt-1 text-right cursor-pointer hover:underline"
+        onClick={isLimited ? handleSubscriptionPrompt : undefined}
+      >
         {messageCount}/{MESSAGE_LIMIT} mensagens enviadas
+        {isLimited && " - Clique para fazer upgrade"}
       </div>
+      
+      <SubscriptionModal 
+        isOpen={showSubscriptionModal} 
+        onClose={() => setShowSubscriptionModal(false)} 
+      />
     </div>
   );
 };
