@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
-
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -16,23 +14,23 @@ const Auth = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (isLogin) {
         // Login
-        const { error } = await supabase.auth.signInWithPassword({
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
           password
         });
-
         if (error) throw error;
-        
         navigate("/");
       } else {
         // Cadastro
@@ -45,8 +43,9 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-
-        const { error } = await supabase.auth.signUp({
+        const {
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -55,14 +54,11 @@ const Auth = () => {
             }
           }
         });
-
         if (error) throw error;
-
         toast({
           title: "Conta criada com sucesso!",
           description: "Você já pode fazer login com suas credenciais."
         });
-        
         setIsLogin(true);
       }
     } catch (error: any) {
@@ -75,16 +71,11 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
   return <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img 
-              src="/lovable-uploads/5dc8a9a6-6f14-4883-b9e9-30341e4efc9c.png" 
-              alt="Logo" 
-              className="w-[90px] h-[90px]"
-            />
+            <img src="/lovable-uploads/5dc8a9a6-6f14-4883-b9e9-30341e4efc9c.png" alt="Logo" className="w-[90px] h-[90px]" />
           </div>
           <h1 className="text-3xl font-bold text-white">BibleGPT</h1>
           <p className="text-gray-400 mt-2">Seu assistente de estudos bíblicos</p>
@@ -118,7 +109,7 @@ const Auth = () => {
                 </Label>
               </div>}
             
-            <Button type="submit" className="w-full" disabled={loading || !isLogin && !termsAccepted}>
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-slate-50 text-slate-950">
               {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
@@ -132,5 +123,4 @@ const Auth = () => {
       </div>
     </div>;
 };
-
 export default Auth;
