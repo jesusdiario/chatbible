@@ -35,7 +35,7 @@ const Sidebar = ({
   return (
     <>
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 text-white transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 text-white transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-slate-700">
@@ -45,7 +45,7 @@ const Sidebar = ({
                 variant="ghost" 
                 size="icon" 
                 onClick={onToggle} 
-                className="text-white hover:bg-slate-700"
+                className="text-white hover:bg-slate-700 md:hidden"
               >
                 <X className="h-5 w-5" />
               </Button>
@@ -82,11 +82,11 @@ const Sidebar = ({
         </div>
       </div>
 
-      {/* Botão de menu flutuante quando a barra lateral estiver fechada */}
+      {/* Botão de menu flutuante quando a barra lateral estiver fechada em dispositivos móveis */}
       {!isOpen && (
         <button
           onClick={onToggle}
-          className="fixed bottom-4 left-4 z-50 p-3 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-colors"
+          className="fixed bottom-4 left-4 z-50 md:hidden p-3 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-colors"
         >
           <Menu className="h-6 w-6" />
         </button>

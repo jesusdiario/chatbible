@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
@@ -261,7 +260,7 @@ const Index = () => {
         chatHistory={chatHistory} 
       />
       
-      <main className="flex-1">
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : ''}`}>
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
           onToggleSidebar={toggleSidebar}
