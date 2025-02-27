@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { Settings, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChatHistory } from '@/types/chat';
@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router-dom';
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  onApiKeyChange: (apiKey: string) => void;
   onChatSelect: (chatId: string) => void;
   chatHistory: ChatHistory[];
 }
@@ -19,34 +18,11 @@ interface SidebarProps {
 const Sidebar = ({
   isOpen,
   onToggle,
-  onApiKeyChange,
   onChatSelect,
   chatHistory
 }: SidebarProps) => {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
-  const handleApiKeySave = () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Erro",
-        description: "A chave de API não pode estar vazia",
-        variant: "destructive"
-      });
-      return;
-    }
-    onApiKeyChange(apiKey);
-    setIsSettingsOpen(false);
-  };
 
   const handleLogout = async () => {
     try {
@@ -124,13 +100,6 @@ const Sidebar = ({
           <div className="p-4 border-t border-slate-700">
             <div className="flex flex-col space-y-2">
               <button
-                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-700 transition-colors text-sm"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Configurações</span>
-              </button>
-              <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm"
               >
@@ -141,39 +110,6 @@ const Sidebar = ({
           </div>
         </div>
       </div>
-
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-          <div className="bg-white text-black p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Configurações</h2>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="api-key" className="block text-sm font-medium text-gray-700 mb-1">
-                  Chave de API da OpenAI
-                </label>
-                <Input
-                  id="api-key"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Insira sua chave de API"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Obtenha sua chave em: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600">platform.openai.com/api-keys</a>
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleApiKeySave}>
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

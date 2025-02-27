@@ -23,11 +23,13 @@ interface ChatData {
   lastAccessed: Date;
 }
 
+// Constante para chave API (fornecida pela plataforma)
+const PLATFORM_API_KEY = "sk-**************************************"; // Esta seria substituída pela chave real fornecida pela plataforma
+
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [chatsData, setChatsData] = useState<Record<string, ChatData>>({});
@@ -58,7 +60,6 @@ const Index = () => {
     
     const savedHistory = localStorage.getItem(`chatHistory-${userId}`);
     const savedChatsData = localStorage.getItem(`chatsData-${userId}`);
-    const savedApiKey = localStorage.getItem(`openai_api_key-${userId}`);
     
     if (savedHistory) {
       const history = JSON.parse(savedHistory, (key, value) => {
@@ -74,10 +75,6 @@ const Index = () => {
         return value;
       });
       setChatsData(data);
-    }
-    
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
     }
   }, [userId]);
 
@@ -187,14 +184,6 @@ const Index = () => {
       });
       return;
     }
-    if (!apiKey) {
-      toast({
-        title: "Erro",
-        description: "Por favor, adicione sua chave de API da OpenAI nas configurações",
-        variant: "destructive"
-      });
-      return;
-    }
 
     // Criar um novo ID de chat se não existir
     const chatId = currentChatId || uuidv4();
@@ -217,7 +206,7 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${PLATFORM_API_KEY}`
         },
         body: JSON.stringify({
           model: 'gpt-4o',
@@ -253,17 +242,6 @@ const Index = () => {
     }
   };
   
-  const handleApiKeyChange = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    if (userId) {
-      localStorage.setItem(`openai_api_key-${userId}`, newApiKey);
-    }
-    toast({
-      title: "Sucesso",
-      description: "Chave de API da OpenAI salva com sucesso"
-    });
-  };
-  
   const handleChatSelect = (chatId: string) => {
     loadChat(chatId);
     // Fechar o sidebar em dispositivos móveis após selecionar um chat
@@ -277,7 +255,6 @@ const Index = () => {
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-        onApiKeyChange={handleApiKeyChange} 
         onChatSelect={handleChatSelect} 
         chatHistory={chatHistory} 
       />
