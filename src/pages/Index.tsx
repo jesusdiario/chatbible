@@ -250,11 +250,15 @@ const Index = () => {
     }
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar 
         isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+        onToggle={toggleSidebar} 
         onChatSelect={handleChatSelect} 
         chatHistory={chatHistory} 
       />
