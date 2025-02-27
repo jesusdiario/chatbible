@@ -1,11 +1,9 @@
-
 import { Menu, Globe, ChevronDown, Key, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
-
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -13,7 +11,6 @@ interface SidebarProps {
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
 }
-
 const Sidebar = ({
   isOpen,
   onToggle,
@@ -23,7 +20,6 @@ const Sidebar = ({
 }: SidebarProps) => {
   const [apiKey, setApiKey] = useState("");
   const navigate = useNavigate();
-
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
@@ -37,18 +33,14 @@ const Sidebar = ({
       setApiKey(savedApiKey);
     }
   }, []);
-
   const timeframes = categorizeChatHistory(chatHistory);
-
   const goToHome = () => {
     navigate('/');
     if (onChatSelect) {
       onChatSelect('new');
     }
   };
-
-  return (
-    <div className={cn("fixed top-0 left-0 z-40 h-screen bg-chatgpt-sidebar transition-all duration-300", isOpen ? "w-64" : "w-0")}>
+  return <div className={cn("fixed top-0 left-0 z-40 h-screen bg-chatgpt-sidebar transition-all duration-300", isOpen ? "w-64" : "w-0")}>
       <nav className="flex h-full w-full flex-col px-3" aria-label="Histórico de Conversas">
         <div className="flex justify-between flex h-[60px] items-center">
           <button onClick={onToggle} className="h-10 rounded-lg px-2 text-token-text-secondary hover:bg-token-sidebar-surface-secondary">
@@ -62,13 +54,9 @@ const Sidebar = ({
         </div>
 
         <div className="flex-col flex-1 transition-opacity duration-500 relative -mr-2 pr-2 overflow-y-auto">
-          {isOpen && (
-            <div className="bg-token-sidebar-surface-primary pt-0">
+          {isOpen && <div className="bg-token-sidebar-surface-primary pt-0">
               <div className="flex flex-col gap-2 px-2 py-2">
-                <div 
-                  className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer"
-                  onClick={() => onChatSelect && onChatSelect('new')}
-                >
+                <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" onClick={() => onChatSelect && onChatSelect('new')}>
                   <div className="h-6 w-6 flex items-center justify-center">
                     <PlusCircle className="h-4 w-4" />
                   </div>
@@ -82,40 +70,19 @@ const Sidebar = ({
                 </div>
               </div>
 
-              {timeframes.length > 0 && (
-                <div className="mt-4 flex flex-col gap-4">
-                  {timeframes.map(timeframe => (
-                    <div key={timeframe.title}>
+              {timeframes.length > 0 && <div className="mt-4 flex flex-col gap-4">
+                  {timeframes.map(timeframe => <div key={timeframe.title}>
                       <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                      {timeframe.items.map(item => (
-                        <div
-                          key={item.id}
-                          className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer"
-                          onClick={() => onChatSelect?.(item.id)}
-                        >
+                      {timeframe.items.map(item => <div key={item.id} className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" onClick={() => onChatSelect?.(item.id)}>
                           <span className="text-sm truncate">{item.title}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                        </div>)}
+                    </div>)}
+                </div>}
+            </div>}
         </div>
 
         {isOpen && <div className="flex flex-col py-2 border-t border-white/20">
-          <div className="group flex flex-col gap-2 p-2.5 text-sm">
-            <label htmlFor="apiKey" className="text-xs text-gray-500">Chave de API da OpenAI</label>
-            <Input
-              id="apiKey"
-              type="password"
-              value={apiKey}
-              onChange={handleApiKeyChange}
-              placeholder="sk-..."
-              className="h-8 bg-transparent border-gray-700"
-            />
-          </div>
+          
           <button className="group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left w-full min-w-[200px]">
             <span className="flex w-full flex-row flex-wrap-reverse justify-between">
               <div className="flex items-center gap-2">
@@ -133,8 +100,6 @@ const Sidebar = ({
           </button>
         </div>}
       </nav>
-    </div>
-  );
+    </div>;
 };
-
 export default Sidebar;
