@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Bible } from "lucide-react";
+import { Eye, EyeOff, BookOpen } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,7 +20,6 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Verificar se o usuário já está autenticado
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) {
       navigate("/");
@@ -53,7 +51,6 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // Login
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -68,7 +65,6 @@ const Auth = () => {
         
         navigate("/");
       } else {
-        // Registro
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -106,7 +102,7 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Bible className="h-8 w-8 text-primary" />
+            <BookOpen className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-white">BibleGPT</h1>
           <p className="text-slate-400 mt-2">
