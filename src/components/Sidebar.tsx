@@ -1,5 +1,5 @@
 
-import { Menu, Globe, ChevronDown, Key } from "lucide-react";
+import { Menu, Globe, ChevronDown, Key, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -10,34 +10,31 @@ interface SidebarProps {
   onToggle: () => void;
   onApiKeyChange: (apiKey: string) => void;
   onChatSelect?: (chatId: string) => void;
+  chatHistory?: ChatHistory[];
 }
 
 const Sidebar = ({
   isOpen,
   onToggle,
   onApiKeyChange,
-  onChatSelect
+  onChatSelect,
+  chatHistory = []
 }: SidebarProps) => {
   const [apiKey, setApiKey] = useState("");
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
-
-  useEffect(() => {
-    // Carregar histórico do localStorage ao montar o componente
-    const savedHistory = localStorage.getItem('chatHistory');
-    if (savedHistory) {
-      const history = JSON.parse(savedHistory, (key, value) => {
-        if (key === 'lastAccessed') return new Date(value);
-        return value;
-      });
-      setChatHistory(history);
-    }
-  }, []);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
     onApiKeyChange(newApiKey);
   };
+
+  // Carregar a chave API do localStorage
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const timeframes = categorizeChatHistory(chatHistory);
 
@@ -59,41 +56,57 @@ const Sidebar = ({
           {isOpen && (
             <div className="bg-token-sidebar-surface-primary pt-0">
               <div className="flex flex-col gap-2 px-2 py-2">
+                <div 
+                  className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer"
+                  onClick={() => onChatSelect && onChatSelect('new')}
+                >
+                  <div className="h-6 w-6 flex items-center justify-center">
+                    <PlusCircle className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Nova conversa</span>
+                </div>
                 <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
                   <div className="h-6 w-6 flex items-center justify-center">
                     <Globe className="h-4 w-4" />
                   </div>
                   <span className="text-sm">BibleGPT</span>
                 </div>
-                <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
-                  <div className="h-6 w-6 flex items-center justify-center">
-                    <Globe className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">Explorar GPTs</span>
-                </div>
               </div>
 
-              <div className="mt-4 flex flex-col gap-4">
-                {timeframes.map(timeframe => (
-                  <div key={timeframe.title}>
-                    <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                    {timeframe.items.map(item => (
-                      <div
-                        key={item.id}
-                        className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer"
-                        onClick={() => onChatSelect?.(item.id)}
-                      >
-                        <span className="text-sm">{item.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+              {timeframes.length > 0 && (
+                <div className="mt-4 flex flex-col gap-4">
+                  {timeframes.map(timeframe => (
+                    <div key={timeframe.title}>
+                      <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
+                      {timeframe.items.map(item => (
+                        <div
+                          key={item.id}
+                          className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer"
+                          onClick={() => onChatSelect?.(item.id)}
+                        >
+                          <span className="text-sm truncate">{item.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {isOpen && <div className="flex flex-col py-2 border-t border-white/20">
+          <div className="group flex flex-col gap-2 p-2.5 text-sm">
+            <label htmlFor="apiKey" className="text-xs text-gray-500">Chave de API da OpenAI</label>
+            <Input
+              id="apiKey"
+              type="password"
+              value={apiKey}
+              onChange={handleApiKeyChange}
+              placeholder="sk-..."
+              className="h-8 bg-transparent border-gray-700"
+            />
+          </div>
           <button className="group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left w-full min-w-[200px]">
             <span className="flex w-full flex-row flex-wrap-reverse justify-between">
               <div className="flex items-center gap-2">
