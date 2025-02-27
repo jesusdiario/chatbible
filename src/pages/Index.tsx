@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
@@ -8,8 +7,6 @@ import ActionButtons, { ChatContext } from '@/components/ActionButtons';
 import MessageList from '@/components/MessageList';
 import { ChatHistory } from '@/types/chat';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-
 type Message = {
   role: 'user' | 'assistant';
   content: string;
@@ -22,45 +19,22 @@ interface ChatData {
   messages: Message[];
   lastAccessed: Date;
 }
-
-// Constante para chave API (fornecida pela plataforma)
-const PLATFORM_API_KEY = "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"; 
-
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState<string>('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');
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [chatsData, setChatsData] = useState<Record<string, ChatData>>({});
-  const [userId, setUserId] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  // Verificar e obter o usuário atual
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUserId(data.session?.user?.id || null);
-    };
-    
-    checkUser();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id || null);
-    });
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+  const {
+    toast
+  } = useToast();
 
   // Carregar histórico e dados dos chats do localStorage
   useEffect(() => {
-    if (!userId) return;
-    
-    const savedHistory = localStorage.getItem(`chatHistory-${userId}`);
-    const savedChatsData = localStorage.getItem(`chatsData-${userId}`);
-    
+    const savedHistory = localStorage.getItem('chatHistory');
+    const savedChatsData = localStorage.getItem('chatsData');
     if (savedHistory) {
       const history = JSON.parse(savedHistory, (key, value) => {
         if (key === 'lastAccessed') return new Date(value);
@@ -68,7 +42,6 @@ const Index = () => {
       });
       setChatHistory(history);
     }
-    
     if (savedChatsData) {
       const data = JSON.parse(savedChatsData, (key, value) => {
         if (key === 'lastAccessed') return new Date(value);
@@ -76,19 +49,17 @@ const Index = () => {
       });
       setChatsData(data);
     }
-  }, [userId]);
+  }, []);
 
   // Salvar histórico e dados dos chats no localStorage quando eles mudarem
   useEffect(() => {
-    if (!userId) return;
-    
     if (chatHistory.length > 0) {
-      localStorage.setItem(`chatHistory-${userId}`, JSON.stringify(chatHistory));
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
     }
     if (Object.keys(chatsData).length > 0) {
-      localStorage.setItem(`chatsData-${userId}`, JSON.stringify(chatsData));
+      localStorage.setItem('chatsData', JSON.stringify(chatsData));
     }
-  }, [chatHistory, chatsData, userId]);
+  }, [chatHistory, chatsData]);
 
   // Função para iniciar um novo chat
   const startNewChat = () => {
@@ -98,7 +69,7 @@ const Index = () => {
 
   // Função para salvar o chat atual
   const saveCurrentChat = (chatId: string, messageList: Message[]) => {
-    if (messageList.length === 0 || !userId) return;
+    if (messageList.length === 0) return;
 
     // Extrair título da primeira mensagem do usuário
     const firstUserMessage = messageList.find(msg => msg.role === 'user');
@@ -174,12 +145,19 @@ const Index = () => {
       });
     }
   };
-  
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) {
       toast({
         title: "Erro",
         description: "Por favor, digite uma mensagem",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!apiKey) {
+      toast({
+        title: "Erro",
+        description: "Por favor, adicione sua chave de API da OpenAI nas configurações",
         variant: "destructive"
       });
       return;
@@ -206,7 +184,7 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PLATFORM_API_KEY}`
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: 'gpt-4o',
@@ -241,7 +219,14 @@ const Index = () => {
       setIsLoading(false);
     }
   };
-  
+  const handleApiKeyChange = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+    toast({
+      title: "Sucesso",
+      description: "Chave de API da OpenAI salva com sucesso"
+    });
+  };
   const handleChatSelect = (chatId: string) => {
     loadChat(chatId);
     // Fechar o sidebar em dispositivos móveis após selecionar um chat
@@ -250,50 +235,42 @@ const Index = () => {
     }
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  return (
-    <div className="flex h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={toggleSidebar} 
-        onChatSelect={handleChatSelect} 
-        chatHistory={chatHistory} 
-      />
+  // Carregar a chave da API do localStorage ao iniciar
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    } else {
+      // Se não existir no localStorage, salva a chave padrão
+      localStorage.setItem('openai_api_key', apiKey);
+    }
+  }, []);
+  return <div className="flex h-screen">
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} onApiKeyChange={handleApiKeyChange} onChatSelect={handleChatSelect} chatHistory={chatHistory} />
       
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onNewChat={startNewChat} />
         
         <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
-          {messages.length === 0 ? (
-            <div className="w-full max-w-3xl px-4 space-y-4">
+          {messages.length === 0 ? <div className="w-full max-w-3xl px-4 space-y-4">
               <div>
                 <h1 className="mb-8 text-4xl font-semibold text-center">Como podemos ajudar?</h1>
                 <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
               <ChatContext.Provider value={{
-                sendMessage: handleSendMessage
-              }}>
+            sendMessage: handleSendMessage
+          }}>
                 <ActionButtons />
               </ChatContext.Provider>
-            </div>
-          ) : (
-            <>
+            </div> : <>
               <MessageList messages={messages} />
               <div className="w-full max-w-3xl mx-auto px-4 py-2">
                 <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
-              <div className="text-xs text-center text-gray-500 py-2">
-                O BibleGPT pode cometer erros. Verifique informações importantes.
-              </div>
-            </>
-          )}
+              <div className="text-xs text-center text-gray-500 py-2">O BibleGPT pode cometer erros. Verifique informações importantes.</div>
+            </>}
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
