@@ -84,23 +84,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-slate-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+    <div className="h-screen flex items-center justify-center bg-chatgpt-main">
+      <div className="w-full max-w-md p-8 bg-chatgpt-sidebar rounded-lg shadow-lg border border-chatgpt-border/30">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold">BibleGPT</h1>
-          <p className="text-gray-600">Sua assistente de estudos bíblicos</p>
+          <h1 className="text-2xl font-bold text-white">BibleGPT</h1>
+          <p className="text-gray-400">Sua assistente de estudos bíblicos</p>
         </div>
         
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Criar Conta</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-4 bg-chatgpt-hover">
+            <TabsTrigger value="login" className="data-[state=active]:bg-chatgpt-border/40">Login</TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-chatgpt-border/40">Criar Conta</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-login">Email</Label>
+                <Label htmlFor="email-login" className="text-gray-300">Email</Label>
                 <Input
                   id="email-login"
                   type="email"
@@ -108,11 +108,12 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-chatgpt-hover border-chatgpt-border text-white placeholder:text-gray-500"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password-login">Senha</Label>
+                <Label htmlFor="password-login" className="text-gray-300">Senha</Label>
                 <Input
                   id="password-login"
                   type="password"
@@ -120,10 +121,11 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-chatgpt-hover border-chatgpt-border text-white placeholder:text-gray-500"
                 />
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-chatgpt-border hover:bg-chatgpt-border/80" disabled={loading}>
                 {loading ? 'Processando...' : 'Entrar'}
               </Button>
             </form>
@@ -132,7 +134,7 @@ const Auth = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-signup">Email</Label>
+                <Label htmlFor="email-signup" className="text-gray-300">Email</Label>
                 <Input
                   id="email-signup"
                   type="email"
@@ -140,11 +142,12 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-chatgpt-hover border-chatgpt-border text-white placeholder:text-gray-500"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password-signup">Senha</Label>
+                <Label htmlFor="password-signup" className="text-gray-300">Senha</Label>
                 <Input
                   id="password-signup"
                   type="password"
@@ -152,6 +155,7 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-chatgpt-hover border-chatgpt-border text-white placeholder:text-gray-500"
                 />
                 <p className="text-xs text-gray-500">A senha deve ter pelo menos 6 caracteres</p>
               </div>
@@ -161,13 +165,14 @@ const Auth = () => {
                   id="terms" 
                   checked={termsAccepted}
                   onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                  className="border-chatgpt-border data-[state=checked]:bg-chatgpt-border data-[state=checked]:text-white"
                 />
-                <Label htmlFor="terms" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Eu concordo com os <a href="#" className="text-blue-600 hover:underline">Termos de Uso</a> e <a href="#" className="text-blue-600 hover:underline">Políticas de Privacidade</a>
+                <Label htmlFor="terms" className="text-sm text-gray-300 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Eu concordo com os <a href="#" className="text-blue-400 hover:underline">Termos de Uso</a> e <a href="#" className="text-blue-400 hover:underline">Políticas de Privacidade</a>
                 </Label>
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-chatgpt-border hover:bg-chatgpt-border/80" disabled={loading}>
                 {loading ? 'Processando...' : 'Criar Conta Gratuita'}
               </Button>
             </form>
