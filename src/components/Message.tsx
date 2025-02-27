@@ -21,7 +21,6 @@ const Message = ({ role, content }: MessageProps) => {
             ) : (
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
-                className="markdown-content"
                 components={{
                   h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-4" {...props} />,
                   h2: ({node, ...props}) => <h2 className="text-xl font-bold my-3" {...props} />,
@@ -30,10 +29,20 @@ const Message = ({ role, content }: MessageProps) => {
                   strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
                   em: ({node, ...props}) => <em className="italic" {...props} />,
                   blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-400 pl-4 italic my-2" {...props} />,
-                  code: ({node, inline, ...props}) => 
-                    inline 
-                      ? <code className="bg-gray-800 px-1 py-0.5 rounded text-sm" {...props} />
-                      : <pre className="bg-gray-800 p-4 rounded-md overflow-x-auto my-4"><code {...props} /></pre>,
+                  code: ({node, className, children, ...props}) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    return !className ? (
+                      <code className="bg-gray-800 px-1 py-0.5 rounded text-sm" {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <pre className="bg-gray-800 p-4 rounded-md overflow-x-auto my-4">
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      </pre>
+                    );
+                  },
                   ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
                   ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
                   li: ({node, ...props}) => <li className="my-1" {...props} />
