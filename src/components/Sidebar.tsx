@@ -16,13 +16,24 @@ const Sidebar = ({
   const [apiKey, setApiKey] = useState("");
   const timeframes = [{
     title: "Ontem",
-    items: ["Guia de Uso do Tailwind CSS"]
+    items: ["O que significa Gênesis 1:1?", "Como interpretar os Salmos?"]
   }, {
     title: "Últimos 7 Dias",
-    items: ["Níveis de Likeable e Inception", "Ideias Virais de Quadros no Figma", "Status de RAG no Dev de Software", "Imagem de Entrada para API do ChatGPT"]
+    items: [
+      "Explicação sobre o Sermão da Montanha",
+      "O que é o Fruto do Espírito?",
+      "Significado dos 10 mandamentos",
+      "Como Jesus escolheu seus discípulos?"
+    ]
   }, {
     title: "Últimos 30 Dias",
-    items: ["Foco no Viral Lovable", "Criar Clone do Twitter", "Diretrizes de Postagem no Reddit", "Revitalizando Recursos Sociais", "Logo de Votação com IA nos EUA"]
+    items: [
+      "Por que Davi era um homem segundo o coração de Deus?",
+      "O que significa ser nascido de novo?",
+      "Interpretação do Apocalipse",
+      "História do Êxodo explicada",
+      "Como aplicar Provérbios na vida moderna?"
+    ]
   }];
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
