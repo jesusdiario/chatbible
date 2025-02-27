@@ -1,48 +1,36 @@
-
 import { Menu, CreditCard, User, Key, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-
 interface ChatHeaderProps {
   isSidebarOpen: boolean;
   onNewChat?: () => void;
   onToggleSidebar?: () => void;
 }
-
 const ChatHeader = ({
   isSidebarOpen,
   onNewChat,
   onToggleSidebar
 }: ChatHeaderProps) => {
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
-
   const handleChangePassword = () => {
     toast({
       title: "Alterar senha",
-      description: "Um email foi enviado com instruções para alterar sua senha.",
+      description: "Um email foi enviado com instruções para alterar sua senha."
     });
   };
-
   const handleCancelSubscription = () => {
     toast({
       title: "Cancelar assinatura",
-      description: "Em um ambiente de produção, você seria redirecionado para cancelar sua assinatura.",
+      description: "Em um ambiente de produção, você seria redirecionado para cancelar sua assinatura."
     });
   };
-
   const handleDeleteAccount = () => {
     toast({
       title: "Excluir conta",
@@ -50,17 +38,10 @@ const ChatHeader = ({
       variant: "destructive"
     });
   };
-
-  return (
-    <header className="fixed top-0 z-30 w-full border-b border-gray-200">
+  return <header className="fixed top-0 z-30 w-full border-b border-gray-200">
       <div className="flex h-[60px] items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          {!isSidebarOpen && (
-            <Menu 
-              className="h-5 w-5 cursor-pointer" 
-              onClick={onToggleSidebar}
-            />
-          )}
+          {!isSidebarOpen && <Menu className="h-5 w-5 cursor-pointer" onClick={onToggleSidebar} />}
           <div className="text-xl font-semibold px-[50px]">BibleGPT</div>
         </div>
         <div className="flex items-center gap-2">
@@ -70,7 +51,7 @@ const ChatHeader = ({
                 <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-stone-950">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleChangePassword}>
@@ -94,8 +75,6 @@ const ChatHeader = ({
           </DropdownMenu>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default ChatHeader;
