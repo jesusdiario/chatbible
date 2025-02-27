@@ -24,7 +24,7 @@ interface ChatData {
 }
 
 // Constante para chave API (fornecida pela plataforma)
-const PLATFORM_API_KEY = "sk-**************************************"; // Esta seria substituída pela chave real fornecida pela plataforma
+const PLATFORM_API_KEY = "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"; 
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
