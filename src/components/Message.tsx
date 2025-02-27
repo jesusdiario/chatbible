@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
 import ReactMarkdown from 'react-markdown';
@@ -11,48 +11,6 @@ type MessageProps = {
 };
 
 const Message = ({ role, content }: MessageProps) => {
-  const [displayedContent, setDisplayedContent] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messageEndRef = useRef<HTMLDivElement>(null);
-  
-  // Velocidade de digitação (ms por caractere)
-  const typingSpeed = 20;
-  
-  useEffect(() => {
-    // Somente aplicar o efeito de digitação para mensagens do assistente
-    if (role === 'assistant') {
-      setIsTyping(true);
-      setDisplayedContent('');
-      
-      let currentIndex = 0;
-      const contentLength = content.length;
-      
-      // Função para adicionar um caractere por vez
-      const typeNextCharacter = () => {
-        if (currentIndex < contentLength) {
-          setDisplayedContent(prev => prev + content[currentIndex]);
-          currentIndex++;
-          setTimeout(typeNextCharacter, typingSpeed);
-        } else {
-          setIsTyping(false);
-        }
-      };
-      
-      // Iniciar o efeito de digitação
-      typeNextCharacter();
-    } else {
-      // Para mensagens do usuário, mostrar conteúdo completo imediatamente
-      setDisplayedContent(content);
-    }
-  }, [content, role]);
-  
-  // Efeito para rolagem automática durante a digitação
-  useEffect(() => {
-    if (isTyping && messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
-  }, [displayedContent, isTyping]);
-
   return (
     <div className="py-6">
       <div className={`flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -91,21 +49,11 @@ const Message = ({ role, content }: MessageProps) => {
                   li: ({node, ...props}) => <li className="my-1" {...props} />
                 }}
               >
-                {displayedContent}
+                {content}
               </ReactMarkdown>
             )}
           </div>
-          {/* Indicador de digitação visível apenas enquanto estiver digitando */}
-          {role === 'assistant' && isTyping && (
-            <div className="text-sm text-gray-400 animate-pulse">
-              Digitando...
-            </div>
-          )}
-          {/* Elemento de referência para rolagem automática */}
-          <div ref={messageEndRef} />
-          
-          {/* Mostrar as ações apenas quando terminar de digitar */}
-          {role === 'assistant' && !isTyping && <MessageActions content={content} />}
+          {role === 'assistant' && <MessageActions content={content} />}
         </div>
       </div>
     </div>
