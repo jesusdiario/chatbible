@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
 import ChatHeader from '@/components/ChatHeader';
 import ChatInput from '@/components/ChatInput';
-import ActionButtons from '@/components/ActionButtons';
+import ActionButtons, { ChatContext } from '@/components/ActionButtons';
 import MessageList from '@/components/MessageList';
 
 type Message = {
@@ -124,7 +124,9 @@ const Index = () => {
                 <h1 className="mb-8 text-4xl font-semibold text-center">Como podemos ajudar?</h1>
                 <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
-              <ActionButtons />
+              <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
+                <ActionButtons />
+              </ChatContext.Provider>
             </div>
           ) : (
             <>
