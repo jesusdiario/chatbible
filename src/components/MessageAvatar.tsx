@@ -6,7 +6,7 @@ const MessageAvatar = ({ isAssistant }: { isAssistant: boolean }) => {
         <img 
           src="/lovable-uploads/fb2119a5-5937-4cb3-9f11-bea6e009930f.png" 
           alt="Leão com coroa" 
-          className="h-2/3 w-2/3"
+          className="h-[25px] w-[25px]"
         />
       </div>
     );
