@@ -1,12 +1,9 @@
-
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 interface ChatHeaderProps {
   isSidebarOpen: boolean;
   onNewChat?: () => void;
 }
-
 const ChatHeader = ({
   isSidebarOpen,
   onNewChat
@@ -15,7 +12,7 @@ const ChatHeader = ({
       <div className="flex h-[60px] items-center justify-between px-4">
         <div className="flex items-center gap-2">
           {!isSidebarOpen && <Menu className="h-5 w-5 cursor-pointer" />}
-          <div className="text-xl font-semibold">BibleGPT</div>
+          <div className="text-xl font-semibold px-[50px]">BibleGPT</div>
         </div>
         <div>
           <Button variant="outline" className="hidden sm:inline-flex" onClick={onNewChat}>
@@ -25,5 +22,4 @@ const ChatHeader = ({
       </div>
     </header>;
 };
-
 export default ChatHeader;
