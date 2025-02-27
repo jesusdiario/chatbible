@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, BookOpen } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -79,8 +79,12 @@ const Auth = () => {
   return <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <BookOpen className="h-8 w-8 text-primary" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/5dc8a9a6-6f14-4883-b9e9-30341e4efc9c.png" 
+              alt="Logo" 
+              className="w-[90px] h-[90px]"
+            />
           </div>
           <h1 className="text-3xl font-bold text-white">BibleGPT</h1>
           <p className="text-gray-400 mt-2">Seu assistente de estudos bíblicos</p>
