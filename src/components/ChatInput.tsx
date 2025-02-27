@@ -1,6 +1,7 @@
 
-import { useState } from "react";
-import { ArrowUp, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowUp, Loader2, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -9,9 +10,106 @@ interface ChatInputProps {
 
 const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  const [messageCount, setMessageCount] = useState(0);
+  const [timeUntilReset, setTimeUntilReset] = useState(0);
+  const [isLimited, setIsLimited] = useState(false);
+  const { toast } = useToast();
+  
+  // Configurações de limite
+  const MESSAGE_LIMIT = 10; // Número máximo de mensagens permitidas
+  const RESET_TIME = 60 * 60 * 1000; // Tempo de reset em milissegundos (1 hora)
+  
+  useEffect(() => {
+    // Carregar o contador de mensagens e o timestamp do último reset do localStorage
+    const loadMessageLimit = () => {
+      const storedCount = localStorage.getItem('messageCount');
+      const storedTimestamp = localStorage.getItem('lastResetTime');
+      
+      if (storedCount && storedTimestamp) {
+        const count = parseInt(storedCount);
+        const timestamp = parseInt(storedTimestamp);
+        const currentTime = Date.now();
+        const timeElapsed = currentTime - timestamp;
+        
+        // Se já passou o tempo de reset, zerar o contador
+        if (timeElapsed >= RESET_TIME) {
+          setMessageCount(0);
+          localStorage.setItem('messageCount', '0');
+          localStorage.setItem('lastResetTime', currentTime.toString());
+        } else {
+          // Caso contrário, atualizar o contador e o tempo restante
+          setMessageCount(count);
+          setTimeUntilReset(RESET_TIME - timeElapsed);
+          
+          // Verificar se o usuário atingiu o limite
+          if (count >= MESSAGE_LIMIT) {
+            setIsLimited(true);
+          }
+        }
+      } else {
+        // Inicializar os valores se não existirem
+        localStorage.setItem('messageCount', '0');
+        localStorage.setItem('lastResetTime', Date.now().toString());
+      }
+    };
+    
+    loadMessageLimit();
+    
+    // Atualizar o temporizador a cada segundo
+    const intervalId = setInterval(() => {
+      if (timeUntilReset > 0) {
+        setTimeUntilReset(prev => {
+          const newTime = prev - 1000;
+          if (newTime <= 0) {
+            setIsLimited(false);
+            setMessageCount(0);
+            localStorage.setItem('messageCount', '0');
+            localStorage.setItem('lastResetTime', Date.now().toString());
+            return 0;
+          }
+          return newTime;
+        });
+      }
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+  
+  const formatTimeRemaining = (milliseconds: number) => {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
+  };
 
   const handleSubmit = () => {
-    if (message.trim() && !isLoading) {
+    if (message.trim() && !isLoading && !isLimited) {
+      // Verificar se o usuário atingiu o limite de mensagens
+      if (messageCount >= MESSAGE_LIMIT) {
+        setIsLimited(true);
+        toast({
+          title: "Limite de mensagens atingido",
+          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens. Aguarde ${formatTimeRemaining(timeUntilReset)} para enviar mais mensagens.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Incrementar o contador de mensagens
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      localStorage.setItem('messageCount', newCount.toString());
+      
+      // Se esta for a primeira mensagem, armazenar o timestamp
+      if (messageCount === 0) {
+        localStorage.setItem('lastResetTime', Date.now().toString());
+      }
+      
+      // Verificar se atingiu o limite após esta mensagem
+      if (newCount >= MESSAGE_LIMIT) {
+        setIsLimited(true);
+      }
+      
+      // Enviar a mensagem
       onSend(message);
       setMessage("");
     }
@@ -26,6 +124,14 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
 
   return (
     <div className="relative flex w-full flex-col items-center">
+      {isLimited && (
+        <div className="w-full mb-2 px-3 py-2 text-sm bg-amber-900/30 text-amber-200 rounded-md flex items-center">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <span>
+            Limite de mensagens atingido. Restante: {formatTimeRemaining(timeUntilReset)}
+          </span>
+        </div>
+      )}
       <div className="relative w-full">
         <textarea
           rows={1}
@@ -35,11 +141,11 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           placeholder="Sua dúvida bíblica"
           className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
-          disabled={isLoading}
+          disabled={isLoading || isLimited}
         />
         <button 
           onClick={handleSubmit}
-          disabled={isLoading || !message.trim()}
+          disabled={isLoading || !message.trim() || isLimited}
           className="absolute right-3 top-[50%] -translate-y-[50%] p-1.5 bg-white rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
@@ -48,6 +154,9 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
             <ArrowUp className="h-4 w-4 text-black" />
           )}
         </button>
+      </div>
+      <div className="w-full text-xs text-gray-500 mt-1 text-right">
+        {messageCount}/{MESSAGE_LIMIT} mensagens enviadas
       </div>
     </div>
   );
