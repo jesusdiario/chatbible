@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -7,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, BookOpen } from "lucide-react";
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -14,23 +16,23 @@ const Auth = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       if (isLogin) {
         // Login
-        const {
-          error
-        } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
+
         if (error) throw error;
+        
         navigate("/");
       } else {
         // Cadastro
@@ -43,9 +45,8 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        const {
-          error
-        } = await supabase.auth.signUp({
+
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -54,11 +55,14 @@ const Auth = () => {
             }
           }
         });
+
         if (error) throw error;
+
         toast({
           title: "Conta criada com sucesso!",
           description: "Você já pode fazer login com suas credenciais."
         });
+        
         setIsLogin(true);
       }
     } catch (error: any) {
@@ -71,7 +75,8 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800 p-4 bg-zinc-950">
+
+  return <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -123,4 +128,5 @@ const Auth = () => {
       </div>
     </div>;
 };
+
 export default Auth;
