@@ -15,6 +15,8 @@ interface MessageCount {
   user_id: string;
   count: number;
   last_reset_time: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
@@ -46,24 +48,27 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
         const userId = session.user.id;
         
         // Buscar o contador de mensagens do usuário
-        const { data, error } = await supabase
+        const { data: messageCountData, error: fetchError } = await supabase
           .from('message_counts')
           .select('*')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
         
-        if (error && error.code !== 'PGRST116') {
-          // PGRST116 significa que nenhum registro foi encontrado
-          console.error("Erro ao buscar contador de mensagens:", error);
+        if (fetchError) {
+          console.error("Erro ao buscar contador de mensagens:", fetchError);
           setLoading(false);
           return;
         }
         
         // Se não existir um registro, criar um novo
-        if (!data) {
+        if (!messageCountData) {
           const { data: newData, error: insertError } = await supabase
             .from('message_counts')
-            .insert([{ user_id: userId, count: 0, last_reset_time: new Date().toISOString() }])
+            .insert([{ 
+              user_id: userId, 
+              count: 0, 
+              last_reset_time: new Date().toISOString() 
+            }])
             .select()
             .single();
           
@@ -73,10 +78,13 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
             return;
           }
           
-          setMessageCount(0);
+          if (newData) {
+            setMessageCount(0);
+            setTimeUntilReset(RESET_TIME);
+          }
         } else {
           // Verificar se é hora de resetar o contador
-          const lastResetTime = new Date(data.last_reset_time).getTime();
+          const lastResetTime = new Date(messageCountData.last_reset_time).getTime();
           const currentTime = Date.now();
           const timeElapsed = currentTime - lastResetTime;
           
@@ -99,7 +107,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
             setTimeUntilReset(RESET_TIME);
           } else {
             // Atualizar o contador e o tempo restante
-            setMessageCount(data.count);
+            setMessageCount(messageCountData.count);
             setTimeUntilReset(RESET_TIME - timeElapsed);
           }
         }
