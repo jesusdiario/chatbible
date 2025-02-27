@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { LogOut, X, Menu } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChatHistory } from '@/types/chat';
@@ -24,6 +24,23 @@ const Sidebar = ({
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso"
+      });
+      navigate('/auth');
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer logout",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -41,14 +58,14 @@ const Sidebar = ({
           <div className="p-4 border-b border-slate-700">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">BibleGPT</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={onToggle} 
-                className="text-white hover:bg-slate-700 md:hidden"
+              <button
+                onClick={onToggle}
+                className="md:hidden text-white hover:text-slate-300"
               >
-                <X className="h-5 w-5" />
-              </Button>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -79,18 +96,20 @@ const Sidebar = ({
               </div>
             )}
           </div>
+
+          <div className="p-4 border-t border-slate-700">
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sair</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Botão de menu flutuante quando a barra lateral estiver fechada em dispositivos móveis */}
-      {!isOpen && (
-        <button
-          onClick={onToggle}
-          className="fixed bottom-4 left-4 z-50 md:hidden p-3 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-colors"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-      )}
     </>
   );
 };

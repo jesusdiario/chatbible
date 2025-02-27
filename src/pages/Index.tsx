@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
@@ -244,7 +245,9 @@ const Index = () => {
   const handleChatSelect = (chatId: string) => {
     loadChat(chatId);
     // Fechar o sidebar em dispositivos móveis após selecionar um chat
-    setIsSidebarOpen(false);
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -260,12 +263,8 @@ const Index = () => {
         chatHistory={chatHistory} 
       />
       
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : ''}`}>
-        <ChatHeader 
-          isSidebarOpen={isSidebarOpen} 
-          onToggleSidebar={toggleSidebar}
-          onNewChat={startNewChat} 
-        />
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <ChatHeader isSidebarOpen={isSidebarOpen} onNewChat={startNewChat} />
         
         <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
           {messages.length === 0 ? (

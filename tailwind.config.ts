@@ -69,30 +69,30 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            color: 'var(--foreground)',
+            color: '#fff',
             a: {
-              color: 'hsl(var(--primary))',
+              color: '#3182ce',
               '&:hover': {
-                color: 'hsl(var(--primary-foreground))',
+                color: '#2c5282',
               },
             },
             h1: {
-              color: 'var(--foreground)',
+              color: '#fff',
             },
             h2: {
-              color: 'var(--foreground)',
+              color: '#fff',
             },
             h3: {
-              color: 'var(--foreground)',
+              color: '#fff',
             },
             strong: {
-              color: 'var(--foreground)',
+              color: '#fff',
             },
             code: {
-              color: 'var(--foreground)',
+              color: '#fff',
             },
             pre: {
-              backgroundColor: 'hsl(var(--muted))',
+              backgroundColor: '#1a202c',
             },
           },
         },
