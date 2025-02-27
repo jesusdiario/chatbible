@@ -264,7 +264,11 @@ const Index = () => {
       />
       
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <ChatHeader isSidebarOpen={isSidebarOpen} onNewChat={startNewChat} />
+        <ChatHeader 
+          isSidebarOpen={isSidebarOpen} 
+          onToggleSidebar={toggleSidebar}
+          onNewChat={startNewChat} 
+        />
         
         <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
           {messages.length === 0 ? (
