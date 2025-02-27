@@ -245,9 +245,7 @@ const Index = () => {
   const handleChatSelect = (chatId: string) => {
     loadChat(chatId);
     // Fechar o sidebar em dispositivos móveis após selecionar um chat
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false);
-    }
+    setIsSidebarOpen(false);
   };
 
   const toggleSidebar = () => {
@@ -263,7 +261,7 @@ const Index = () => {
         chatHistory={chatHistory} 
       />
       
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <main className="flex-1">
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
           onToggleSidebar={toggleSidebar}
