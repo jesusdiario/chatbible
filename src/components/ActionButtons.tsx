@@ -1,6 +1,6 @@
 
+import React, { useContext } from "react";
 import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
-import { useContext } from "react";
 
 // Criando um contexto para expor a função de envio de mensagem
 export interface ChatContext {
@@ -23,7 +23,8 @@ const ActionButtons = () => {
     { 
       icon: <BookOpenText className="h-4 w-4 text-purple-400" />, 
       label: "Exegese de Capítulo",
-      prompt: "Faça uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje."
+      // Este prompt agora informa que o usuário quer usar o WordzGPT para análise bíblica
+      prompt: "Por favor, use o WordzGPT (g-Y251NC6Ef-wordzgpt) para fazer uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje."
     },
     { 
       icon: <MessageSquare className="h-4 w-4 text-blue-400" />, 
