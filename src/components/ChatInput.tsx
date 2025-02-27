@@ -17,7 +17,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
   
   // Configurações de limite
   const MESSAGE_LIMIT = 10; // Número máximo de mensagens permitidas
-  const RESET_TIME = 60 * 60 * 1000; // Tempo de reset em milissegundos (1 hora)
+  const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // Tempo de reset em milissegundos (30 dias)
   
   useEffect(() => {
     // Carregar o contador de mensagens e o timestamp do último reset do localStorage
@@ -55,11 +55,11 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
     
     loadMessageLimit();
     
-    // Atualizar o temporizador a cada segundo
+    // Atualizar o temporizador a cada minuto (não precisamos atualizar por segundo para um período tão longo)
     const intervalId = setInterval(() => {
       if (timeUntilReset > 0) {
         setTimeUntilReset(prev => {
-          const newTime = prev - 1000;
+          const newTime = prev - 60000; // Atualiza a cada minuto
           if (newTime <= 0) {
             setIsLimited(false);
             setMessageCount(0);
@@ -70,15 +70,15 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           return newTime;
         });
       }
-    }, 1000);
+    }, 60000); // Atualiza a cada minuto
     
     return () => clearInterval(intervalId);
   }, []);
   
   const formatTimeRemaining = (milliseconds: number) => {
-    const minutes = Math.floor(milliseconds / 60000);
-    const seconds = Math.floor((milliseconds % 60000) / 1000);
-    return `${minutes}m ${seconds}s`;
+    const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    return `${days}d ${hours}h`;
   };
 
   const handleSubmit = () => {
@@ -88,7 +88,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
         setIsLimited(true);
         toast({
           title: "Limite de mensagens atingido",
-          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens. Aguarde ${formatTimeRemaining(timeUntilReset)} para enviar mais mensagens.`,
+          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens por mês. Aguarde ${formatTimeRemaining(timeUntilReset)} para enviar mais mensagens.`,
           variant: "destructive"
         });
         return;
