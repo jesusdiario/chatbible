@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 
@@ -31,7 +32,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Message Claude"
+          placeholder="Sua dúvida bíblica"
           className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
           disabled={isLoading}
