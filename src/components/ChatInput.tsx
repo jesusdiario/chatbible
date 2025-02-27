@@ -57,11 +57,11 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
     
     loadMessageLimit();
     
-    // Atualizar o temporizador a cada minuto (não precisamos atualizar por segundo para um período tão longo)
+    // Atualizar o temporizador a cada minuto
     const intervalId = setInterval(() => {
       if (timeUntilReset > 0) {
         setTimeUntilReset(prev => {
-          const newTime = prev - 60000; // Atualiza a cada minuto
+          const newTime = prev - 60000;
           if (newTime <= 0) {
             setIsLimited(false);
             setMessageCount(0);
@@ -72,54 +72,18 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           return newTime;
         });
       }
-    }, 60000); // Atualiza a cada minuto
+    }, 60000);
     
     return () => clearInterval(intervalId);
   }, []);
-  
-  const formatTimeRemaining = (milliseconds: number) => {
-    const days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    return `${days}d ${hours}h`;
-  };
-
-  const handleSubscriptionPrompt = () => {
-    setShowSubscriptionModal(true);
-  };
 
   const handleSubmit = () => {
     if (message.trim() && !isLoading) {
-      // Verificar se o usuário atingiu o limite de mensagens
-      if (messageCount >= MESSAGE_LIMIT || isLimited) {
-        setIsLimited(true);
-        handleSubscriptionPrompt();
-        toast({
-          title: "Limite de mensagens atingido",
-          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens por mês. Considere fazer upgrade para o plano premium.`,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Incrementar o contador de mensagens
-      const newCount = messageCount + 1;
-      setMessageCount(newCount);
-      localStorage.setItem('messageCount', newCount.toString());
-      
-      // Se esta for a primeira mensagem, armazenar o timestamp
-      if (messageCount === 0) {
-        localStorage.setItem('lastResetTime', Date.now().toString());
-      }
-      
-      // Verificar se atingiu o limite após esta mensagem
-      if (newCount >= MESSAGE_LIMIT) {
-        setIsLimited(true);
-        handleSubscriptionPrompt(); // Abrir modal de assinatura quando atingir o limite
-      }
-      
-      // Enviar a mensagem
-      onSend(message);
-      setMessage("");
+      setShowSubscriptionModal(true);
+      toast({
+        title: "Faça upgrade do plano",
+        description: "Faça upgrade para o plano premium para enviar mensagens.",
+      });
     }
   };
 
@@ -132,17 +96,6 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
 
   return (
     <div className="relative flex w-full flex-col items-center">
-      {isLimited && (
-        <div 
-          className="w-full mb-2 px-3 py-2 text-sm bg-amber-900/30 text-amber-200 rounded-md flex items-center cursor-pointer hover:bg-amber-900/40"
-          onClick={handleSubscriptionPrompt}
-        >
-          <AlertCircle className="h-4 w-4 mr-2" />
-          <span>
-            Limite de mensagens atingido. Clique aqui para fazer upgrade.
-          </span>
-        </div>
-      )}
       <div className="relative w-full">
         <textarea
           rows={1}
@@ -152,11 +105,11 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           placeholder="Sua dúvida bíblica"
           className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
-          disabled={isLoading || isLimited}
+          disabled={isLoading}
         />
         <button 
           onClick={handleSubmit}
-          disabled={isLoading || !message.trim() || isLimited}
+          disabled={isLoading || !message.trim()}
           className="absolute right-3 top-[50%] -translate-y-[50%] p-1.5 bg-white rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
@@ -165,13 +118,6 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
             <ArrowUp className="h-4 w-4 text-black" />
           )}
         </button>
-      </div>
-      <div 
-        className="w-full text-xs text-gray-500 mt-1 text-right cursor-pointer hover:underline"
-        onClick={isLimited ? handleSubscriptionPrompt : undefined}
-      >
-        {messageCount}/{MESSAGE_LIMIT} mensagens enviadas
-        {isLimited && " - Clique para fazer upgrade"}
       </div>
       
       <SubscriptionModal 
