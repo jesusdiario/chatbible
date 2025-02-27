@@ -81,7 +81,7 @@ const Auth = () => {
           <p className="text-gray-400 mt-2">Seu assistente de estudos bíblicos</p>
         </div>
 
-        <div className="bg-slate-800 rounded-lg shadow-xl p-6 border border-slate-700">
+        <div className="rounded-lg shadow-xl p-6 border border-slate-700 bg-black">
           <h2 className="text-xl font-semibold text-white mb-6">
             {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
@@ -89,13 +89,13 @@ const Auth = () => {
           <form onSubmit={handleAuth} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">E-mail</Label>
-              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="bg-slate-700 border-slate-600 text-white" />
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="border-slate-600 text-white bg-stone-950" />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Senha</Label>
               <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="bg-slate-700 border-slate-600 text-white pr-10" />
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="border-slate-600 text-white pr-10 bg-zinc-950" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -109,7 +109,7 @@ const Auth = () => {
                 </Label>
               </div>}
             
-            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-slate-50 text-slate-950">
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-slate-50 text-indigo-800">
               {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
