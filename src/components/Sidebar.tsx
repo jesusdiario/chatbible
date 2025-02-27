@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, X, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChatHistory } from '@/types/chat';
@@ -58,14 +58,14 @@ const Sidebar = ({
           <div className="p-4 border-b border-slate-700">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">BibleGPT</h2>
-              <button
-                onClick={onToggle}
-                className="md:hidden text-white hover:text-slate-300"
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onToggle} 
+                className="text-white hover:bg-slate-700"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </div>
 
@@ -110,6 +110,16 @@ const Sidebar = ({
           </div>
         </div>
       </div>
+
+      {/* Botão de menu flutuante quando a barra lateral estiver fechada em dispositivos móveis */}
+      {!isOpen && (
+        <button
+          onClick={onToggle}
+          className="fixed bottom-4 left-4 z-50 md:hidden p-3 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-colors"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      )}
     </>
   );
 };
