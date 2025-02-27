@@ -52,7 +52,7 @@ const Message = ({ role, content }: MessageProps) => {
               </ReactMarkdown>
             )}
           </div>
-          {role === 'assistant' && <MessageActions content={content} />}
+          {role === 'assistant' && <MessageActions />}
         </div>
       </div>
     </div>
