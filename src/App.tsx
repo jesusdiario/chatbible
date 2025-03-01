@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import AssistantPage from "./pages/AssistantPage";
 
 const queryClient = new QueryClient();
 
@@ -49,11 +48,6 @@ const App = () => {
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/assistant/:assistantId" element={
-              <ProtectedRoute>
-                <AssistantPage />
               </ProtectedRoute>
             } />
           </Routes>
