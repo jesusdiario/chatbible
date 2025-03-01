@@ -68,6 +68,12 @@ const SermonOutline = () => {
               O assistente não está disponível ou a chave API não tem permissão para acessá-lo.
             </div>
           )}
+          
+          {isLoading && messages.length > 0 && (
+            <div className="text-center p-2 my-2 bg-blue-50 text-blue-500 rounded-md">
+              Processando sua solicitação... Isso pode levar alguns segundos.
+            </div>
+          )}
         </div>
       </main>
     </div>
