@@ -1,6 +1,7 @@
 
 import React, { useContext } from "react";
 import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Criando um contexto para expor a função de envio de mensagem
 export interface ChatContext {
@@ -12,9 +13,14 @@ export const ChatContext = React.createContext<ChatContext>({});
 
 const ActionButtons = () => {
   const { sendMessage } = useContext(ChatContext);
+  const navigate = useNavigate();
 
-  const handleButtonClick = (prompt: string) => {
-    if (sendMessage) {
+  const handleButtonClick = (prompt: string, assistantId?: string) => {
+    if (assistantId) {
+      // Se temos um ID de assistente, navegar para a página específica
+      navigate(`/assistant/${assistantId}`);
+    } else if (sendMessage) {
+      // Caso contrário, enviar a mensagem normalmente
       sendMessage(prompt);
     }
   };
@@ -23,8 +29,8 @@ const ActionButtons = () => {
     { 
       icon: <BookOpenText className="h-4 w-4 text-purple-400" />, 
       label: "Exegese de Capítulo",
-      // Este prompt agora informa que o usuário quer usar o WordzGPT para análise bíblica
-      prompt: "Por favor, use o WordzGPT (g-Y251NC6Ef-wordzgpt) para fazer uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje."
+      prompt: "Por favor, use o WordzGPT (g-Y251NC6Ef-wordzgpt) para fazer uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje.",
+      assistantId: "asst_vK15nuJOl7DFWQu0VclHDZOq" // ID do assistente específico
     },
     { 
       icon: <MessageSquare className="h-4 w-4 text-blue-400" />, 
@@ -54,7 +60,7 @@ const ActionButtons = () => {
         <button 
           key={action.label} 
           className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
-          onClick={() => handleButtonClick(action.prompt)}
+          onClick={() => handleButtonClick(action.prompt, action.assistantId)}
         >
           {action.icon}
           {action.label}
