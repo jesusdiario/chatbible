@@ -2,7 +2,7 @@
 import { Message } from '@/types';
 import MessageList from '@/components/MessageList';
 import ChatInput from '@/components/ChatInput';
-import ActionButtons, { ChatContext } from '@/components/ActionButtons';
+import { ActionButtons, ChatContext } from '@/components/ActionButtons';
 
 interface ChatContainerProps {
   messages: Message[];
