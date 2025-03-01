@@ -7,7 +7,7 @@ export const createThread = async (apiKey: string): Promise<ThreadResponse> => {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
+      'OpenAI-Beta': 'assistants=v2'
     },
     body: JSON.stringify({})
   });
@@ -31,7 +31,7 @@ export const addMessageToThread = async (
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
+      'OpenAI-Beta': 'assistants=v2'
     },
     body: JSON.stringify({
       role: 'user',
@@ -56,7 +56,7 @@ export const runAssistant = async (
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
+      'OpenAI-Beta': 'assistants=v2'
     },
     body: JSON.stringify({
       assistant_id: assistantId
@@ -81,7 +81,7 @@ export const checkRunStatus = async (
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
+      'OpenAI-Beta': 'assistants=v2'
     }
   });
 
@@ -103,7 +103,7 @@ export const getThreadMessages = async (
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
+      'OpenAI-Beta': 'assistants=v2'
     }
   });
 

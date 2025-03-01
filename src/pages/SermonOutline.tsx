@@ -9,6 +9,7 @@ import { useAssistant } from '@/hooks/useAssistant';
 
 const SermonOutline = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Este é o ID do assistente "Esboço de Pregação"
   const assistantId = 'asst_vK15nuJOl7DFWQu0VclHDZOq';
   
   const { 

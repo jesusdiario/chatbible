@@ -59,29 +59,35 @@ export const useAssistant = (assistantId: string) => {
       
       setMessages(prev => [...prev, newUserMessage]);
 
+      console.log(`Criando thread para o assistante: ${assistantId}`);
       // Create a thread
       const threadData = await createThread(apiKey);
       const threadId = threadData.id;
+      console.log(`Thread criada: ${threadId}`);
 
       // Add message to the thread
       await addMessageToThread(threadId, content, apiKey);
+      console.log(`Mensagem adicionada à thread`);
 
       // Run the assistant on the thread
+      console.log(`Executando assistente: ${assistantId}`);
       const runData = await runAssistant(threadId, assistantId, apiKey);
       const runId = runData.id;
+      console.log(`Run criada: ${runId}`);
 
       // Check the run status
-      let runStatus: RunStatus = 'in_progress';
+      let runStatus: RunStatus = runData.status as RunStatus || 'in_progress';
       let attempts = 0;
-      const maxAttempts = 60; // About 5 minutes with 5 seconds between attempts
+      const maxAttempts = 30; // Reduzido para 30 tentativas (cerca de 2.5 minutos)
+      const checkInterval = 5000; // 5 segundos entre verificações
 
       while (runStatus === 'in_progress' || runStatus === 'queued') {
         if (attempts >= maxAttempts) {
-          throw new Error('Tempo limite excedido ao aguardar resposta do assistente');
+          throw new Error('Tempo limite excedido ao aguardar resposta do assistente. Por favor, tente novamente mais tarde.');
         }
 
-        // Wait 5 seconds between checks
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Wait between checks
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
 
         runStatus = await checkRunStatus(threadId, runId, apiKey);
         attempts++;
@@ -90,6 +96,7 @@ export const useAssistant = (assistantId: string) => {
 
         // If completed, get the messages
         if (runStatus === 'completed') {
+          console.log('Run concluída, obtendo mensagens...');
           const messagesData = await getThreadMessages(threadId, apiKey);
           
           // The most recent assistant response will be at the top
@@ -99,16 +106,20 @@ export const useAssistant = (assistantId: string) => {
 
           if (assistantMessage) {
             const assistantContent = assistantMessage.content[0].text.value;
+            console.log('Resposta do assistente recebida');
             
             // Add the assistant's response to the message list
             setMessages(prev => [...prev, {
               role: 'assistant',
               content: assistantContent
             }]);
+          } else {
+            console.log('Nenhuma resposta do assistente encontrada');
+            throw new Error('Não foi possível obter a resposta do assistente');
           }
           break;
         } else if (runStatus === 'failed' || runStatus === 'cancelled' || runStatus === 'expired') {
-          console.error(`Run failed with status: ${runStatus}`);
+          console.error(`Run falhou com status: ${runStatus}`);
           throw new Error(`A execução do assistente falhou: ${runStatus}`);
         }
       }
