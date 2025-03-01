@@ -9,7 +9,7 @@ import { useAssistant } from '@/hooks/useAssistant';
 
 const SermonOutline = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const assistantId = 'asst_vK15nuJOl7DFWQu0VclHDZOq'; // Updated assistant ID
+  const assistantId = 'asst_vK15nuJOl7DFWQu0VclHDZOq';
   
   const { 
     messages, 

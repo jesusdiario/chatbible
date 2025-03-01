@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Message } from '@/types/messages';
 import { RunStatus } from '@/types/assistant';
+import { useApiKey } from '@/hooks/useApiKey';
 import { 
   createThread, 
   addMessageToThread, 
@@ -14,24 +15,18 @@ import {
 export const useAssistant = (assistantId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
+  const { apiKey, handleApiKeyChange } = useApiKey();
   const { toast } = useToast();
 
-  // Load API key from localStorage on initialization
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
   const saveApiKey = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    localStorage.setItem('openai_api_key', newApiKey);
-    toast({
-      title: "Sucesso",
-      description: "Chave de API da OpenAI salva com sucesso"
-    });
+    const success = handleApiKeyChange(newApiKey);
+    if (success) {
+      toast({
+        title: "Sucesso",
+        description: "Chave de API da OpenAI salva com sucesso"
+      });
+    }
+    return success;
   };
 
   const sendMessage = async (content: string) => {
