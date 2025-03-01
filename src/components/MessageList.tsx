@@ -1,9 +1,13 @@
 
 import React from 'react';
 import Message from './Message';
-import { Message as MessageType } from '@/types/messages';
 
-const MessageList = ({ messages }: { messages: MessageType[] }) => {
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+const MessageList = ({ messages }: { messages: Message[] }) => {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto px-4">
