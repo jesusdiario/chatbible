@@ -92,6 +92,15 @@ export const checkRunStatus = async (
   }
 
   const statusData = await response.json();
+  
+  // If run status is failed, try to get more details
+  if (statusData.status === 'failed') {
+    console.error('Run failed with details:', statusData);
+    if (statusData.last_error) {
+      throw new Error(`Falha na execução: ${statusData.last_error.code} - ${statusData.last_error.message}`);
+    }
+  }
+  
   return statusData.status as RunStatus;
 };
 
@@ -114,4 +123,33 @@ export const getThreadMessages = async (
   }
 
   return await response.json();
+};
+
+// Função para verificar se o assistente existe e está acessível
+export const verifyAssistant = async (
+  assistantId: string,
+  apiKey: string
+): Promise<boolean> => {
+  try {
+    const response = await fetch(`https://api.openai.com/v1/assistants/${assistantId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'OpenAI-Beta': 'assistants=v2'
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error('Assistant verification error:', errorData);
+      return false;
+    }
+
+    const assistant = await response.json();
+    console.log('Assistant verified:', assistant.id);
+    return true;
+  } catch (error) {
+    console.error('Assistant verification failed:', error);
+    return false;
+  }
 };

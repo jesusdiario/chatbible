@@ -15,7 +15,7 @@ export type RunResponse = {
   status: string;
 };
 
-export type RunStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'expired';
+export type RunStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'requires_action';
 
 export type AssistantMessagesResponse = {
   data: Array<{
@@ -26,4 +26,9 @@ export type AssistantMessagesResponse = {
       };
     }>;
   }>;
+};
+
+export type AssistantError = {
+  code: string;
+  message: string;
 };

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Message } from '@/types/messages';
 import { RunStatus } from '@/types/assistant';
@@ -9,18 +9,48 @@ import {
   addMessageToThread, 
   runAssistant, 
   checkRunStatus, 
-  getThreadMessages 
+  getThreadMessages,
+  verifyAssistant
 } from '@/services/assistantService';
 
 export const useAssistant = (assistantId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [assistantVerified, setAssistantVerified] = useState<boolean | null>(null);
   const { apiKey, handleApiKeyChange } = useApiKey();
   const { toast } = useToast();
+
+  // Verificar o assistante quando o hook for montado e houver uma chave API
+  useEffect(() => {
+    if (apiKey && assistantVerified === null) {
+      const verifyAssistantAccess = async () => {
+        try {
+          const isValid = await verifyAssistant(assistantId, apiKey);
+          setAssistantVerified(isValid);
+          if (!isValid) {
+            toast({
+              title: "Aviso",
+              description: `O assistente ID ${assistantId} não foi encontrado ou não está acessível com a chave API atual`,
+              variant: "destructive"
+            });
+          } else {
+            console.log(`Assistente ${assistantId} verificado e pronto para uso`);
+          }
+        } catch (error) {
+          console.error("Erro ao verificar assistente:", error);
+          setAssistantVerified(false);
+        }
+      };
+      
+      verifyAssistantAccess();
+    }
+  }, [apiKey, assistantId, assistantVerified, toast]);
 
   const saveApiKey = (newApiKey: string) => {
     const success = handleApiKeyChange(newApiKey);
     if (success) {
+      // Redefina o estado de verificação do assistente
+      setAssistantVerified(null);
       toast({
         title: "Sucesso",
         description: "Chave de API da OpenAI salva com sucesso"
@@ -43,6 +73,16 @@ export const useAssistant = (assistantId: string) => {
       toast({
         title: "Erro",
         description: "Por favor, adicione sua chave de API da OpenAI nas configurações",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificação adicional para o assistente
+    if (assistantVerified === false) {
+      toast({
+        title: "Erro",
+        description: `O assistente ID ${assistantId} não está acessível com a chave API fornecida`,
         variant: "destructive"
       });
       return;
@@ -78,7 +118,7 @@ export const useAssistant = (assistantId: string) => {
       // Check the run status
       let runStatus: RunStatus = runData.status as RunStatus || 'in_progress';
       let attempts = 0;
-      const maxAttempts = 30; // Reduzido para 30 tentativas (cerca de 2.5 minutos)
+      const maxAttempts = 30; // 30 tentativas (cerca de 2.5 minutos)
       const checkInterval = 5000; // 5 segundos entre verificações
 
       while (runStatus === 'in_progress' || runStatus === 'queued') {
@@ -89,10 +129,19 @@ export const useAssistant = (assistantId: string) => {
         // Wait between checks
         await new Promise(resolve => setTimeout(resolve, checkInterval));
 
-        runStatus = await checkRunStatus(threadId, runId, apiKey);
-        attempts++;
+        try {
+          runStatus = await checkRunStatus(threadId, runId, apiKey);
+          attempts++;
 
-        console.log(`Run status: ${runStatus} (attempt ${attempts}/${maxAttempts})`);
+          console.log(`Run status: ${runStatus} (attempt ${attempts}/${maxAttempts})`);
+        } catch (error: any) {
+          console.error('Erro ao verificar status:', error);
+          // Incluir detalhes específicos do erro no log
+          if (error.message.includes("Falha na execução")) {
+            throw error; // Propague o erro enriquecido
+          }
+          throw new Error(`Falha ao verificar o status da execução: ${error.message}`);
+        }
 
         // If completed, get the messages
         if (runStatus === 'completed') {
@@ -120,7 +169,7 @@ export const useAssistant = (assistantId: string) => {
           break;
         } else if (runStatus === 'failed' || runStatus === 'cancelled' || runStatus === 'expired') {
           console.error(`Run falhou com status: ${runStatus}`);
-          throw new Error(`A execução do assistente falhou: ${runStatus}`);
+          throw new Error(`A execução do assistente falhou: ${runStatus}. Verifique se o ID do assistente está correto e se sua chave API tem acesso a ele.`);
         }
       }
     } catch (error: any) {
@@ -143,6 +192,7 @@ export const useAssistant = (assistantId: string) => {
     isLoading,
     apiKey,
     sendMessage,
-    saveApiKey
+    saveApiKey,
+    assistantVerified
   };
 };
