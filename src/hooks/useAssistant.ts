@@ -1,11 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-type Message = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+import { Message } from '@/types/messages';
+import { RunStatus } from '@/types/assistant';
+import { 
+  createThread, 
+  addMessageToThread, 
+  runAssistant, 
+  checkRunStatus, 
+  getThreadMessages 
+} from '@/services/assistantService';
 
 export const useAssistant = (assistantId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -61,69 +65,18 @@ export const useAssistant = (assistantId: string) => {
       setMessages(prev => [...prev, newUserMessage]);
 
       // Create a thread
-      const threadResponse = await fetch('https://api.openai.com/v1/threads', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
-        },
-        body: JSON.stringify({})
-      });
-
-      if (!threadResponse.ok) {
-        const errorData = await threadResponse.json().catch(() => null);
-        console.error('Thread creation error:', errorData);
-        throw new Error(`Erro ao criar thread: ${threadResponse.status} ${threadResponse.statusText}`);
-      }
-
-      const threadData = await threadResponse.json();
+      const threadData = await createThread(apiKey);
       const threadId = threadData.id;
 
       // Add message to the thread
-      const messageResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
-        },
-        body: JSON.stringify({
-          role: 'user',
-          content
-        })
-      });
-
-      if (!messageResponse.ok) {
-        const errorData = await messageResponse.json().catch(() => null);
-        console.error('Message creation error:', errorData);
-        throw new Error(`Erro ao adicionar mensagem: ${messageResponse.status} ${messageResponse.statusText}`);
-      }
+      await addMessageToThread(threadId, content, apiKey);
 
       // Run the assistant on the thread
-      const runResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
-        },
-        body: JSON.stringify({
-          assistant_id: assistantId
-        })
-      });
-
-      if (!runResponse.ok) {
-        const errorData = await runResponse.json().catch(() => null);
-        console.error('Run creation error:', errorData);
-        throw new Error(`Erro ao executar o assistente: ${runResponse.status} ${runResponse.statusText}`);
-      }
-
-      const runData = await runResponse.json();
+      const runData = await runAssistant(threadId, assistantId, apiKey);
       const runId = runData.id;
 
       // Check the run status
-      let runStatus = 'in_progress';
+      let runStatus: RunStatus = 'in_progress';
       let attempts = 0;
       const maxAttempts = 60; // About 5 minutes with 5 seconds between attempts
 
@@ -135,43 +88,14 @@ export const useAssistant = (assistantId: string) => {
         // Wait 5 seconds between checks
         await new Promise(resolve => setTimeout(resolve, 5000));
 
-        const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'OpenAI-Beta': 'assistants=v1'
-          }
-        });
-
-        if (!statusResponse.ok) {
-          const errorData = await statusResponse.json().catch(() => null);
-          console.error('Status check error:', errorData);
-          throw new Error(`Erro ao verificar status da execução: ${statusResponse.status} ${statusResponse.statusText}`);
-        }
-
-        const statusData = await statusResponse.json();
-        runStatus = statusData.status;
+        runStatus = await checkRunStatus(threadId, runId, apiKey);
         attempts++;
 
         console.log(`Run status: ${runStatus} (attempt ${attempts}/${maxAttempts})`);
 
         // If completed, get the messages
         if (runStatus === 'completed') {
-          const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'OpenAI-Beta': 'assistants=v1'
-            }
-          });
-
-          if (!messagesResponse.ok) {
-            const errorData = await messagesResponse.json().catch(() => null);
-            console.error('Messages retrieval error:', errorData);
-            throw new Error(`Erro ao obter mensagens: ${messagesResponse.status} ${messagesResponse.statusText}`);
-          }
-
-          const messagesData = await messagesResponse.json();
+          const messagesData = await getThreadMessages(threadId, apiKey);
           
           // The most recent assistant response will be at the top
           const assistantMessage = messagesData.data.find(
