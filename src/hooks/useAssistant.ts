@@ -53,14 +53,14 @@ export const useAssistant = (assistantId: string) => {
     
     try {
       // Add user message to the list
-      const newMessages = [...messages, {
-        role: 'user',
+      const newUserMessage = {
+        role: 'user' as const,
         content
-      } as const];
+      };
       
-      setMessages(newMessages);
+      setMessages(prev => [...prev, newUserMessage]);
 
-      // Create or retrieve a thread
+      // Create a thread
       const threadResponse = await fetch('https://api.openai.com/v1/threads', {
         method: 'POST',
         headers: {
@@ -72,7 +72,9 @@ export const useAssistant = (assistantId: string) => {
       });
 
       if (!threadResponse.ok) {
-        throw new Error('Erro ao criar thread');
+        const errorData = await threadResponse.json().catch(() => null);
+        console.error('Thread creation error:', errorData);
+        throw new Error(`Erro ao criar thread: ${threadResponse.status} ${threadResponse.statusText}`);
       }
 
       const threadData = await threadResponse.json();
@@ -93,7 +95,9 @@ export const useAssistant = (assistantId: string) => {
       });
 
       if (!messageResponse.ok) {
-        throw new Error('Erro ao adicionar mensagem');
+        const errorData = await messageResponse.json().catch(() => null);
+        console.error('Message creation error:', errorData);
+        throw new Error(`Erro ao adicionar mensagem: ${messageResponse.status} ${messageResponse.statusText}`);
       }
 
       // Run the assistant on the thread
@@ -110,7 +114,9 @@ export const useAssistant = (assistantId: string) => {
       });
 
       if (!runResponse.ok) {
-        throw new Error('Erro ao executar o assistente');
+        const errorData = await runResponse.json().catch(() => null);
+        console.error('Run creation error:', errorData);
+        throw new Error(`Erro ao executar o assistente: ${runResponse.status} ${runResponse.statusText}`);
       }
 
       const runData = await runResponse.json();
@@ -138,12 +144,16 @@ export const useAssistant = (assistantId: string) => {
         });
 
         if (!statusResponse.ok) {
-          throw new Error('Erro ao verificar status da execução');
+          const errorData = await statusResponse.json().catch(() => null);
+          console.error('Status check error:', errorData);
+          throw new Error(`Erro ao verificar status da execução: ${statusResponse.status} ${statusResponse.statusText}`);
         }
 
         const statusData = await statusResponse.json();
         runStatus = statusData.status;
         attempts++;
+
+        console.log(`Run status: ${runStatus} (attempt ${attempts}/${maxAttempts})`);
 
         // If completed, get the messages
         if (runStatus === 'completed') {
@@ -156,7 +166,9 @@ export const useAssistant = (assistantId: string) => {
           });
 
           if (!messagesResponse.ok) {
-            throw new Error('Erro ao obter mensagens');
+            const errorData = await messagesResponse.json().catch(() => null);
+            console.error('Messages retrieval error:', errorData);
+            throw new Error(`Erro ao obter mensagens: ${messagesResponse.status} ${messagesResponse.statusText}`);
           }
 
           const messagesData = await messagesResponse.json();
@@ -177,6 +189,7 @@ export const useAssistant = (assistantId: string) => {
           }
           break;
         } else if (runStatus === 'failed' || runStatus === 'cancelled' || runStatus === 'expired') {
+          console.error(`Run failed with status: ${runStatus}`);
           throw new Error(`A execução do assistente falhou: ${runStatus}`);
         }
       }
@@ -187,6 +200,9 @@ export const useAssistant = (assistantId: string) => {
         description: error.message || "Ocorreu um erro ao comunicar com a API do OpenAI",
         variant: "destructive"
       });
+      
+      // Remove the user message if the API call failed
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
