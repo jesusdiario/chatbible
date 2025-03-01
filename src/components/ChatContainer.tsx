@@ -1,25 +1,23 @@
 
 import React from 'react';
-import MessageList from '@/components/MessageList';
-import ChatInput from '@/components/ChatInput';
+import ChatLayout from '@/components/ChatLayout';
+import { Message } from '@/types/messages';
 
 interface ChatContainerProps {
-  messages: { role: 'user' | 'assistant'; content: string }[];
+  messages: Message[];
   onSendMessage: (content: string) => void;
   isLoading: boolean;
 }
 
 const ChatContainer = ({ messages, onSendMessage, isLoading }: ChatContainerProps) => {
   return (
-    <>
-      <MessageList messages={messages} />
-      <div className="w-full max-w-3xl mx-auto px-4 py-2">
-        <ChatInput onSend={onSendMessage} isLoading={isLoading} />
-      </div>
-      <div className="text-xs text-center text-gray-500 py-2">
-        O assistente Esboço de Pregação pode cometer erros. Verifique informações importantes.
-      </div>
-    </>
+    <ChatLayout
+      messages={messages}
+      onSendMessage={onSendMessage}
+      isLoading={isLoading}
+      disclaimerText="O assistente Esboço de Pregação pode cometer erros. Verifique informações importantes."
+      inputPlaceholder="Descreva o tema ou assunto do sermão"
+    />
   );
 };
 
