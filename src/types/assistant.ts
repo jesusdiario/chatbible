@@ -13,10 +13,6 @@ export type ThreadResponse = {
 export type RunResponse = {
   id: string;
   status: string;
-  last_error?: {
-    code: string;
-    message: string;
-  };
 };
 
 export type RunStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'requires_action';
@@ -36,15 +32,3 @@ export type AssistantError = {
   code: string;
   message: string;
 };
-
-export type AssistantDetailsResponse = {
-  id: string;
-  object: string;
-  created_at: number;
-  name: string;
-  description: string | null;
-  model: string;
-  instructions: string | null;
-  tools: Array<any>;
-  metadata: Record<string, any>;
-}

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Message } from '@/types/messages';
-import { RunStatus, AssistantDetailsResponse } from '@/types/assistant';
+import { RunStatus } from '@/types/assistant';
 import { useApiKey } from '@/hooks/useApiKey';
 import { 
   createThread, 
@@ -17,29 +17,28 @@ export const useAssistant = (assistantId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [assistantVerified, setAssistantVerified] = useState<boolean | null>(null);
-  const [assistantDetails, setAssistantDetails] = useState<AssistantDetailsResponse | null>(null);
   const { apiKey, handleApiKeyChange } = useApiKey();
   const { toast } = useToast();
 
-  // Verificar o assistente quando o hook for montado e houver uma chave API
+  // Verificar o assistante quando o hook for montado e houver uma chave API
   useEffect(() => {
     if (apiKey && assistantVerified === null) {
       const verifyAssistantAccess = async () => {
         try {
-          console.log(`Verificando acesso ao assistente: ${assistantId}`);
-          const details = await verifyAssistant(assistantId, apiKey);
-          setAssistantDetails(details);
-          setAssistantVerified(true);
-          console.log(`Assistente ${assistantId} verificado e pronto para uso`);
-          console.log(`Nome: ${details.name}, Modelo: ${details.model}`);
-        } catch (error: any) {
+          const isValid = await verifyAssistant(assistantId, apiKey);
+          setAssistantVerified(isValid);
+          if (!isValid) {
+            toast({
+              title: "Aviso",
+              description: `O assistente ID ${assistantId} não foi encontrado ou não está acessível com a chave API atual`,
+              variant: "destructive"
+            });
+          } else {
+            console.log(`Assistente ${assistantId} verificado e pronto para uso`);
+          }
+        } catch (error) {
           console.error("Erro ao verificar assistente:", error);
           setAssistantVerified(false);
-          toast({
-            title: "Erro ao verificar assistente",
-            description: error.message,
-            variant: "destructive"
-          });
         }
       };
       
@@ -52,7 +51,6 @@ export const useAssistant = (assistantId: string) => {
     if (success) {
       // Redefina o estado de verificação do assistente
       setAssistantVerified(null);
-      setAssistantDetails(null);
       toast({
         title: "Sucesso",
         description: "Chave de API da OpenAI salva com sucesso"
@@ -88,22 +86,6 @@ export const useAssistant = (assistantId: string) => {
         variant: "destructive"
       });
       return;
-    }
-
-    // Se ainda não verificamos o assistente, faça isso primeiro
-    if (assistantVerified === null) {
-      try {
-        await verifyAssistant(assistantId, apiKey);
-        setAssistantVerified(true);
-      } catch (error: any) {
-        setAssistantVerified(false);
-        toast({
-          title: "Erro ao verificar assistente",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
     }
 
     setIsLoading(true);
@@ -199,7 +181,7 @@ export const useAssistant = (assistantId: string) => {
       });
       
       // Remove the user message if the API call failed
-      setMessages(prev => prev.length > 0 ? prev.slice(0, -1) : []);
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +193,6 @@ export const useAssistant = (assistantId: string) => {
     apiKey,
     sendMessage,
     saveApiKey,
-    assistantVerified,
-    assistantDetails
+    assistantVerified
   };
 };

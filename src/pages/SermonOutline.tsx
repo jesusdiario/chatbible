@@ -20,8 +20,7 @@ const SermonOutline = () => {
     apiKey, 
     sendMessage, 
     saveApiKey,
-    assistantVerified,
-    assistantDetails
+    assistantVerified
   } = useAssistant(assistantId);
 
   // Efeito para verificar se a chave API está configurada
@@ -65,17 +64,8 @@ const SermonOutline = () => {
           )}
           
           {assistantVerified === false && (
-            <div className="text-center p-3 my-2 bg-red-50 text-red-600 rounded-md border border-red-200">
-              <p className="font-semibold">O assistente não está disponível ou a chave API não tem permissão para acessá-lo.</p>
-              <p className="text-sm mt-1">ID do assistente: {assistantId}</p>
-              <p className="text-sm">Verifique se este assistente existe na sua conta da OpenAI e se a chave API tem acesso a ele.</p>
-            </div>
-          )}
-          
-          {assistantVerified === true && assistantDetails && (
-            <div className="text-center p-2 my-2 bg-green-50 text-green-600 rounded-md border border-green-200">
-              <p>Assistente conectado: <span className="font-semibold">{assistantDetails.name || assistantId}</span></p>
-              <p className="text-xs">Modelo: {assistantDetails.model}</p>
+            <div className="text-center p-2 my-2 bg-red-50 text-red-500 rounded-md">
+              O assistente não está disponível ou a chave API não tem permissão para acessá-lo.
             </div>
           )}
         </div>
