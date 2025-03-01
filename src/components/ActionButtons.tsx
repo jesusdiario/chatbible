@@ -1,73 +1,51 @@
+import React, { createContext, useContext } from 'react';
+import { Button } from "@/components/ui/button";
+import AssistantList from './AssistantList';
 
-import React, { useContext } from "react";
-import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
-// Criando um contexto para expor a função de envio de mensagem
-export interface ChatContext {
-  sendMessage?: (content: string) => void;
+interface ChatContextProps {
+  sendMessage: (message: string) => void;
 }
 
-// Use este contexto onde você precisa acessar a função sendMessage
-export const ChatContext = React.createContext<ChatContext>({});
+const ChatContext = createContext<ChatContextProps | undefined>(undefined);
 
 const ActionButtons = () => {
   const { sendMessage } = useContext(ChatContext);
-  const navigate = useNavigate();
 
-  const handleButtonClick = (prompt: string, assistantId?: string) => {
-    if (assistantId) {
-      // Se temos um ID de assistente, navegar para a página específica
-      navigate(`/assistant/${assistantId}`);
-    } else if (sendMessage) {
-      // Caso contrário, enviar a mensagem normalmente
-      sendMessage(prompt);
+  // Exemplo de perguntas rápidas
+  const quickQuestions = [
+    "Explique o significado de João 3:16",
+    "Quais são os nomes dos 12 apóstolos?",
+    "O que a Bíblia diz sobre o amor ao próximo?",
+    "Explique a parábola do filho pródigo"
+  ];
+
+  const handleQuickQuestion = (question: string) => {
+    if (sendMessage) {
+      sendMessage(question);
     }
   };
 
-  const actions = [
-    { 
-      icon: <BookOpenText className="h-4 w-4 text-purple-400" />, 
-      label: "Exegese de Capítulo",
-      prompt: "Por favor, use o WordzGPT (g-Y251NC6Ef-wordzgpt) para fazer uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje.",
-      assistantId: "asst_vK15nuJOl7DFWQu0VclHDZOq" // ID do assistente específico
-    },
-    { 
-      icon: <MessageSquare className="h-4 w-4 text-blue-400" />, 
-      label: "Criar Pregação Expositiva",
-      prompt: "Crie uma pregação expositiva baseada em João 3:16, com introdução, desenvolvimento com 3 pontos principais, ilustrações e conclusão."
-    },
-    { 
-      icon: <Grid className="h-4 w-4 text-green-400" />, 
-      label: "Estudo para Célula",
-      prompt: "Prepare um estudo bíblico para célula sobre o tema 'Frutos do Espírito' de Gálatas 5, com perguntas para discussão, aplicação prática e oração final."
-    },
-    { 
-      icon: <Baby className="h-4 w-4 text-yellow-400" />, 
-      label: "Explicar para Crianças",
-      prompt: "Explique a história da Arca de Noé de uma forma simples para crianças de 5 a 8 anos, incluindo lições que elas podem aprender."
-    },
-    { 
-      icon: <User className="h-4 w-4 text-red-400" />, 
-      label: "Atividade Infantil",
-      prompt: "Crie uma atividade infantil para ensinar a história de Davi e Golias para crianças entre 6 e 10 anos, com perguntas e um jogo ou dinâmica relacionada."
-    },
-  ];
-
   return (
-    <div className="flex gap-2 flex-wrap justify-center mt-4">
-      {actions.map((action) => (
-        <button 
-          key={action.label} 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
-          onClick={() => handleButtonClick(action.prompt, action.assistantId)}
-        >
-          {action.icon}
-          {action.label}
-        </button>
-      ))}
+    <div className="space-y-8 w-full">
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Perguntas sugeridas</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {quickQuestions.map((question, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className="justify-start text-left h-auto py-3 px-4"
+              onClick={() => handleQuickQuestion(question)}
+            >
+              {question}
+            </Button>
+          ))}
+        </div>
+      </div>
+      
+      <AssistantList />
     </div>
   );
 };
 
-export default ActionButtons;
+export { ActionButtons, ChatContext };

@@ -1,25 +1,50 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAssistants, Message as AssistantMessage } from '@/hooks/useAssistants';
+import ChatInput from '@/components/ChatInput';
+import MessageList from '@/components/MessageList';
+import { Message } from '@/types';
 
 const AssistantPage = () => {
   const { assistantId } = useParams();
   const navigate = useNavigate();
-  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [assistantName, setAssistantName] = useState('Assistente Especializado');
+  const [assistantDescription, setAssistantDescription] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
   const { toast } = useToast();
+  const { 
+    assistants, 
+    thread,
+    createThread, 
+    sendMessageToAssistant 
+  } = useAssistants();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Buscar informações do assistente e criar um thread
+  useEffect(() => {
+    if (assistantId && assistants.length > 0) {
+      const assistant = assistants.find(a => a.id === assistantId);
+      if (assistant) {
+        setAssistantName(assistant.name);
+        setAssistantDescription(assistant.description || 'Assistente da OpenAI');
+      }
+    }
     
-    if (!message.trim()) {
+    // Criar um thread quando a página carregar
+    if (!thread) {
+      createThread();
+    }
+  }, [assistantId, assistants, thread]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!assistantId || !thread || !content.trim()) {
       toast({
         title: "Erro",
-        description: "Por favor, digite uma mensagem",
+        description: "Não foi possível enviar a mensagem. Tente novamente.",
         variant: "destructive"
       });
       return;
@@ -27,76 +52,72 @@ const AssistantPage = () => {
 
     setIsLoading(true);
     
+    // Adicionar mensagem do usuário imediatamente
+    const userMessage: Message = {
+      role: 'user',
+      content
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
     try {
-      // Aqui faríamos a integração com a API do ChatGPT para acessar o assistant
-      // Como não temos a implementação completa agora, mostraremos um toast
-      toast({
-        title: "Mensagem enviada",
-        description: `Mensagem enviada para o assistente ${assistantId}`,
-      });
+      // Enviar mensagem para o assistant
+      const threadMessages = await sendMessageToAssistant(
+        assistantId,
+        thread.id,
+        content
+      );
       
-      // Redirecionamos de volta para a página principal após alguns segundos
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      // Converter as mensagens do formato da API para o nosso formato
+      const formattedMessages = threadMessages.map((msg: AssistantMessage): Message => ({
+        role: msg.role,
+        content: msg.content[0]?.type === 'text' ? msg.content[0].text.value : ''
+      }));
+      
+      // Atualizar mensagens na tela
+      setMessages(formattedMessages);
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao enviar mensagem para o assistant",
-        variant: "destructive"
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <div className="container max-w-3xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="ghost" 
-            className="p-2" 
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Assistente Especializado</h1>
+    <div className="flex flex-col h-screen bg-slate-900 text-white">
+      <div className="flex items-center gap-4 p-4 border-b border-slate-800">
+        <Button 
+          variant="ghost" 
+          className="p-2" 
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl font-bold">{assistantName}</h1>
+          <p className="text-sm text-gray-400">{assistantDescription}</p>
         </div>
-        
-        <div className="bg-slate-800 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-medium mb-4">Exegese de Capítulo</h2>
-          <p className="text-gray-400 mb-6">
-            Este assistente foi treinado especificamente para fazer exegese bíblica detalhada, incluindo contexto histórico, análise do texto original, 
-            principais ensinamentos e aplicações para hoje.
-          </p>
-          <p className="text-sm">ID do Assistente: {assistantId}</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="message" className="text-sm font-medium">
-              Qual capítulo bíblico você deseja analisar?
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ex: Gênesis 1, Salmos 23, Mateus 5..."
-                className="flex-1 bg-slate-800 border-slate-700"
-              />
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isLoading ? "Enviando..." : <Send className="h-4 w-4" />}
-              </Button>
-            </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-4">
+            <h2 className="text-2xl font-semibold mb-2">Assistente pronto para ajudar</h2>
+            <p className="text-gray-400 mb-6">Envie uma mensagem para começar a conversa</p>
           </div>
-        </form>
+        ) : (
+          <MessageList messages={messages} />
+        )}
+      </div>
+      
+      <div className="p-4 border-t border-slate-800">
+        {!thread ? (
+          <div className="flex justify-center py-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+        )}
       </div>
     </div>
   );
