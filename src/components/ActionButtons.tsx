@@ -1,6 +1,7 @@
 
 import React, { useContext } from "react";
 import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Criando um contexto para expor a função de envio de mensagem
 export interface ChatContext {
@@ -10,10 +11,16 @@ export interface ChatContext {
 // Use este contexto onde você precisa acessar a função sendMessage
 export const ChatContext = React.createContext<ChatContext>({});
 
-const ActionButtons = () => {
+export const ActionButtons = () => {
   const { sendMessage } = useContext(ChatContext);
+  const navigate = useNavigate();
 
-  const handleButtonClick = (prompt: string) => {
+  const handleButtonClick = (prompt: string, action?: () => void) => {
+    if (action) {
+      action();
+      return;
+    }
+    
     if (sendMessage) {
       sendMessage(prompt);
     }
@@ -29,7 +36,8 @@ const ActionButtons = () => {
     { 
       icon: <MessageSquare className="h-4 w-4 text-blue-400" />, 
       label: "Criar Pregação Expositiva",
-      prompt: "Crie uma pregação expositiva baseada em João 3:16, com introdução, desenvolvimento com 3 pontos principais, ilustrações e conclusão."
+      prompt: "Crie uma pregação expositiva baseada em João 3:16, com introdução, desenvolvimento com 3 pontos principais, ilustrações e conclusão.",
+      action: () => navigate("/sermon-outline")
     },
     { 
       icon: <Grid className="h-4 w-4 text-green-400" />, 
@@ -54,7 +62,7 @@ const ActionButtons = () => {
         <button 
           key={action.label} 
           className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
-          onClick={() => handleButtonClick(action.prompt)}
+          onClick={() => handleButtonClick(action.prompt, action.action)}
         >
           {action.icon}
           {action.label}

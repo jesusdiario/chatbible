@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface ChatInputProps {
   onSend: (message: string) => void;
   isLoading?: boolean;
+  placeholder?: string;
 }
 
 interface MessageCount {
@@ -19,7 +20,7 @@ interface MessageCount {
   updated_at: string;
 }
 
-const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, placeholder = "Sua dúvida bíblica" }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
@@ -220,7 +221,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Sua dúvida bíblica"
+          placeholder={placeholder}
           className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
           disabled={isLoading || loading}

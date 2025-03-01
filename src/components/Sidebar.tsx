@@ -1,5 +1,5 @@
 
-import { Menu, Globe, ChevronDown, Key, PlusCircle } from "lucide-react";
+import { Menu, Globe, ChevronDown, Key, PlusCircle, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -49,6 +49,10 @@ const Sidebar = ({
     }
   };
 
+  const goToSermonOutline = () => {
+    navigate('/sermon-outline');
+  };
+
   return (
     <>
       <div className={cn("fixed top-0 left-0 z-40 h-screen bg-chatgpt-sidebar transition-all duration-300", isOpen ? "w-64" : "w-0")}>
@@ -78,6 +82,12 @@ const Sidebar = ({
                       <Globe className="h-4 w-4" />
                     </div>
                     <span className="text-sm">BibleGPT</span>
+                  </div>
+                  <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" onClick={goToSermonOutline}>
+                    <div className="h-6 w-6 flex items-center justify-center">
+                      <MessageSquare className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm">Esboço de Pregação</span>
                   </div>
                 </div>
 
