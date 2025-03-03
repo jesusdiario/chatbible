@@ -1,7 +1,8 @@
 
-import React, { useContext } from 'react';
+import React from 'react';
 import ChatInput from '@/components/ChatInput';
-import ActionButtons, { ChatContext } from '@/components/ActionButtons';
+import ActionButtons from '@/components/ActionButtons';
+import { ChatContext } from '@/contexts/ChatContext';
 
 interface EmptyStatePromptProps {
   onSendMessage: (message: string) => void;
