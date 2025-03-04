@@ -34,7 +34,7 @@ const usePregacaoExpositiva = () => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
+          'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
         },
         body: JSON.stringify({})
       });
@@ -99,7 +99,7 @@ const usePregacaoExpositiva = () => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
+          'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
         },
         body: JSON.stringify({
           role: 'user',
@@ -118,7 +118,7 @@ const usePregacaoExpositiva = () => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
+          'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
         },
         body: JSON.stringify({
           assistant_id: assistantId
@@ -143,7 +143,7 @@ const usePregacaoExpositiva = () => {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
-            'OpenAI-Beta': 'assistants=v1'
+            'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
           }
         });
 
@@ -166,7 +166,7 @@ const usePregacaoExpositiva = () => {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'OpenAI-Beta': 'assistants=v1'
+          'OpenAI-Beta': 'assistants=v2'  // Atualizado para v2
         }
       });
 
