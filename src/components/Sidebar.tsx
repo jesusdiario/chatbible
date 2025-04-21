@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
 import SubscriptionModal from "@/components/SubscriptionModal";
+
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -12,6 +13,7 @@ interface SidebarProps {
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
 }
+
 const Sidebar = ({
   isOpen,
   onToggle,
@@ -22,34 +24,39 @@ const Sidebar = ({
   const [apiKey, setApiKey] = useState("");
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const navigate = useNavigate();
+
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
     onApiKeyChange(newApiKey);
   };
+
   useEffect(() => {
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
     }
   }, []);
+
   const timeframes = categorizeChatHistory(chatHistory);
+
   const goToHome = () => {
     navigate('/');
     if (onChatSelect) {
       onChatSelect('new');
     }
   };
+
   const goToLivrosDaBiblia = () => {
     navigate('/livros-da-biblia');
   };
+
   return <>
       <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-chatgpt-sidebar", isOpen ? "w-full md:w-64" : "w-0")}>
         <nav className="flex h-full w-full flex-col px-3" aria-label="Histórico de Conversas">
           <div className="flex justify-between flex h-[60px] items-center">
             <button onClick={onToggle} className="h-10 rounded-lg px-2 text-token-text-secondary hover:bg-token-sidebar-surface-secondary">
-              <X className="h-5 w-5 md:hidden" />
-              <Menu className="h-5 w-5 hidden md:block" />
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             
           </div>
@@ -107,4 +114,5 @@ const Sidebar = ({
       <SubscriptionModal isOpen={showSubscriptionModal} onClose={() => setShowSubscriptionModal(false)} />
     </>;
 };
+
 export default Sidebar;
