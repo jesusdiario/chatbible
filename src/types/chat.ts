@@ -11,6 +11,10 @@ export interface TimeframedHistory {
 }
 
 export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[] => {
+  if (!chats || chats.length === 0) {
+    return [];
+  }
+
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
@@ -43,28 +47,28 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
   if (today.length > 0) {
     timeframes.push({
       title: "Hoje",
-      items: today.sort((a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime())
+      items: today.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
     });
   }
 
   if (yesterdayChats.length > 0) {
     timeframes.push({
       title: "Ontem",
-      items: yesterdayChats.sort((a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime())
+      items: yesterdayChats.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
     });
   }
 
   if (lastSevenDays.length > 0) {
     timeframes.push({
       title: "Últimos 7 Dias",
-      items: lastSevenDays.sort((a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime())
+      items: lastSevenDays.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
     });
   }
 
   if (lastThirtyDays.length > 0) {
     timeframes.push({
       title: "Últimos 30 Dias",
-      items: lastThirtyDays.sort((a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime())
+      items: lastThirtyDays.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
     });
   }
 

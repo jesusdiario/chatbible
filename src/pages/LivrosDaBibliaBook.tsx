@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -14,6 +15,15 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
+
+interface ChatHistoryItem {
+  id: string;
+  title: string;
+  lastAccessed: Date;
+  user_id: string;
+  book_slug?: string;
+  last_message?: string;
+}
 
 const BIBLE_PROMPTS: Record<string, string> = {
   genesis: `Você é um especialista no livro de Gênesis da Bíblia. 
@@ -32,7 +42,7 @@ const LivrosDaBibliaBook = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [chatHistory, setChatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
 
   // Fetch current user session when component mounts
   useEffect(() => {
@@ -55,13 +65,25 @@ const LivrosDaBibliaBook = () => {
     // Fetch chat history
     const loadChatHistory = async () => {
       if (userId) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('chat_history')
           .select('*')
+          .eq('user_id', userId)
           .order('last_accessed', { ascending: false });
         
-        if (data) {
-          setChatHistory(data);
+        if (data && !error) {
+          // Transformar os dados para corresponder à interface ChatHistory
+          const formattedHistory = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            lastAccessed: new Date(item.last_accessed),
+            user_id: item.user_id,
+            book_slug: item.book_slug,
+            last_message: item.last_message
+          }));
+          setChatHistory(formattedHistory);
+        } else {
+          console.error("Erro ao carregar histórico de chat:", error);
         }
       }
     };
@@ -110,6 +132,25 @@ const LivrosDaBibliaBook = () => {
           last_accessed: new Date().toISOString(),
           messages: [...newMessages, assistantMessage]
         });
+
+        // Recarregar o histórico de chat após adicionar uma nova conversa
+        const { data: updatedHistory } = await supabase
+          .from('chat_history')
+          .select('*')
+          .eq('user_id', userId)
+          .order('last_accessed', { ascending: false });
+
+        if (updatedHistory) {
+          const formattedHistory = updatedHistory.map(item => ({
+            id: item.id,
+            title: item.title,
+            lastAccessed: new Date(item.last_accessed),
+            user_id: item.user_id,
+            book_slug: item.book_slug,
+            last_message: item.last_message
+          }));
+          setChatHistory(formattedHistory);
+        }
       }
 
     } catch (err: any) {
@@ -123,6 +164,28 @@ const LivrosDaBibliaBook = () => {
     }
   };
 
+  const handleChatSelect = (chatId: string) => {
+    if (chatId === 'new') {
+      setMessages([]);
+      return;
+    }
+
+    // Carregar mensagens da conversa selecionada
+    const loadChatMessages = async () => {
+      const { data } = await supabase
+        .from('chat_history')
+        .select('messages')
+        .eq('id', chatId)
+        .single();
+
+      if (data && data.messages) {
+        setMessages(data.messages);
+      }
+    };
+
+    loadChatMessages();
+  };
+
   // Default/fallback for missing book
   if (!config) {
     return (
@@ -132,6 +195,7 @@ const LivrosDaBibliaBook = () => {
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
           onApiKeyChange={() => {}}
           chatHistory={chatHistory}
+          onChatSelect={handleChatSelect}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
           <ChatHeader 
@@ -155,6 +219,7 @@ const LivrosDaBibliaBook = () => {
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onApiKeyChange={() => {}}
         chatHistory={chatHistory}
+        onChatSelect={handleChatSelect}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 

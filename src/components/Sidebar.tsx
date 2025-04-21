@@ -1,5 +1,5 @@
 
-import { Menu, Globe, ChevronDown, Key, PlusCircle, X } from "lucide-react";
+import { Menu, Globe, ChevronDown, Key, PlusCircle, X, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -39,6 +39,7 @@ const Sidebar = ({
     }
   }, []);
 
+  // Certifique-se de que o chatHistory está sendo processado corretamente
   const timeframes = categorizeChatHistory(chatHistory);
 
   const goToHome = () => {
@@ -77,18 +78,31 @@ const Sidebar = ({
                     <span className="text-sm">Livros da Bíblia</span>
                   </div>
                 </div>
-                {timeframes.length > 0 && <div className="mt-4 flex flex-col gap-4">
-                    {timeframes.map(timeframe => <div key={timeframe.title}>
+                {timeframes && timeframes.length > 0 ? (
+                  <div className="mt-4 flex flex-col gap-4">
+                    {timeframes.map(timeframe => (
+                      <div key={timeframe.title}>
                         <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                        {timeframe.items.map(item => <div 
-                          key={item.id} 
-                          className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
-                          onClick={() => onChatSelect?.(item.id)}
-                        >
+                        {timeframe.items.map(item => (
+                          <div 
+                            key={item.id} 
+                            className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
+                            onClick={() => onChatSelect?.(item.id)}
+                          >
+                            <div className="h-6 w-6 flex items-center justify-center">
+                              <MessageSquare className="h-4 w-4" />
+                            </div>
                             <span className="text-sm truncate">{item.title}</span>
-                          </div>)}
-                      </div>)}
-                  </div>}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-4 px-3 py-2 text-xs text-gray-500">
+                    Nenhuma conversa recente
+                  </div>
+                )}
               </div>}
           </div>
 
