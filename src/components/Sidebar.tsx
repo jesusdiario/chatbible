@@ -53,6 +53,10 @@ const Sidebar = ({
       navigate(`/chat/${slug}`);
     }
     onChatSelect?.(chatId);
+    
+    if (window.innerWidth < 768) {
+      onToggle();
+    }
   };
 
   return <>
