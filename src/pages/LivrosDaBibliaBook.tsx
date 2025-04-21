@@ -1,147 +1,45 @@
-import React, { useState, useEffect } from "react";
+
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
-import ActionButtons, { ChatContext } from "@/components/ActionButtons";
-import LeviticusActionButtons from "@/components/LeviticusActionButtons";
 import MessageList from "@/components/MessageList";
-import { supabase } from "@/integrations/supabase/client";
-import { Menu } from "lucide-react";
-import { ChatHistory } from "@/types/chat";
-
-type Message = {
-  role: 'user' | 'assistant';
-  content: string;
-};
-
-interface ChatHistoryItem {
-  id: string;
-  title: string;
-  lastAccessed: Date;
-  user_id: string;
-  book_slug?: string;
-  last_message?: string;
-  messages?: Message[];
-}
-
-const BIBLE_PROMPTS: Record<string, string> = {
-  genesis: `Você é um especialista no livro de Gênesis da Bíblia. 
-Seu papel é ajudar os usuários a entender este livro, suas histórias, significados e implicações teológicas.
-Sempre baseie suas respostas no conteúdo Bíblico e entendimento acadêmico.
-Seja conciso, claro e preciso em suas respostas.
-Se não tiver certeza sobre algo, admita e sugira verificar com outras fontes.
-Mantenha sempre um tom respeitoso e educacional.`,
-  // ... outros prompts específicos podem ser adicionados aqui
-};
+import EmptyChatState from "@/components/EmptyChatState";
+import { useChatState } from "@/hooks/useChatState";
+import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 
 const LivrosDaBibliaBook = () => {
   const { book, slug } = useParams<{ book?: string, slug?: string }>();
   const config = book ? bibleAssistants[book] : null;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const navigate = useNavigate();
 
-  // Fetch current user session when component mounts
-  useEffect(() => {
-    const fetchUserSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUserId(session.user.id);
-      }
-    };
-    
-    fetchUserSession();
-    
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUserId(session?.user ? session.user.id : null);
-      }
-    );
-    
-    // Fetch chat history
-    const loadChatHistory = async () => {
-      if (userId) {
-        const { data, error } = await supabase
-          .from('chat_history')
-          .select('*')
-          .eq('user_id', userId)
-          .order('last_accessed', { ascending: false });
-        
-        if (data && !error) {
-          // Transformar os dados para corresponder à interface ChatHistory
-          const formattedHistory = data.map(item => ({
-            id: item.id,
-            title: item.title,
-            lastAccessed: new Date(item.last_accessed),
-            user_id: item.user_id,
-            book_slug: item.book_slug,
-            last_message: item.last_message
-          }));
-          setChatHistory(formattedHistory);
-        } else {
-          console.error("Erro ao carregar histórico de chat:", error);
-        }
-      }
-    };
-    
-    if (userId) {
-      loadChatHistory();
-    }
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [userId]);
+  const {
+    messages,
+    setMessages,
+    isLoading,
+    setIsLoading,
+    userId,
+    chatHistory,
+    setChatHistory
+  } = useChatState({ book, slug });
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
     
     setIsLoading(true);
     try {
-      const userMessage: Message = { role: "user", content };
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { 
-          messages: newMessages,
-          systemPrompt: book ? BIBLE_PROMPTS[book] : undefined
-        }
-      });
-
-      if (error) throw error;
-
-      const assistantMessage: Message = { 
-        role: "assistant", 
-        content: data.content 
-      };
+      const result = await sendChatMessage(content, messages, book, userId || undefined, slug);
+      setMessages(result.messages);
       
-      setMessages([...newMessages, assistantMessage]);
+      if (!slug && book) {
+        navigate(`/livros-da-biblia/${book}/${result.slug}`);
+      }
 
-      // Save to chat history only if we have a user ID
+      // Refresh chat history
       if (userId) {
-        const newSlug = crypto.randomUUID();
-        const { data: chatData, error: chatError } = await supabase.from('chat_history').upsert({
-          user_id: userId,
-          title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-          book_slug: book,
-          last_message: assistantMessage.content,
-          last_accessed: new Date().toISOString(),
-          messages: [...newMessages, assistantMessage],
-          slug: slug || newSlug
-        });
-
-        if (!slug) {
-          navigate(`/livros-da-biblia/${book}/${newSlug}`);
-        }
-
-        // Recarregar o histórico de chat após adicionar uma nova conversa
         const { data: updatedHistory } = await supabase
           .from('chat_history')
           .select('*')
@@ -155,15 +53,15 @@ const LivrosDaBibliaBook = () => {
             lastAccessed: new Date(item.last_accessed),
             user_id: item.user_id,
             book_slug: item.book_slug,
-            last_message: item.last_message
+            last_message: item.last_message,
+            slug: item.slug
           }));
           setChatHistory(formattedHistory);
         }
       }
-
     } catch (err: any) {
-      const errorMessage: Message = { 
-        role: "assistant", 
+      const errorMessage = { 
+        role: "assistant" as const, 
         content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -172,31 +70,18 @@ const LivrosDaBibliaBook = () => {
     }
   };
 
-  const handleChatSelect = (chatId: string) => {
+  const handleChatSelect = async (chatId: string) => {
     if (chatId === 'new') {
       setMessages([]);
       return;
     }
 
-    // Carregar mensagens da conversa selecionada
-    const loadChatMessages = async () => {
-      const { data } = await supabase
-        .from('chat_history')
-        .select('messages')
-        .eq('id', chatId)
-        .single();
-
-      if (data && data.messages) {
-        // Assegure que data.messages é do tipo Message[]
-        const chatMessages = data.messages as Message[];
-        setMessages(chatMessages);
-      }
-    };
-
-    loadChatMessages();
+    const messages = await loadChatMessages(chatId);
+    if (messages) {
+      setMessages(messages);
+    }
   };
 
-  // Default/fallback for missing book
   if (!config) {
     return (
       <div className="flex h-screen flex-col">
@@ -220,8 +105,6 @@ const LivrosDaBibliaBook = () => {
     );
   }
 
-  const ActionButtonsComponent = book === 'levitico' ? LeviticusActionButtons : ActionButtons;
-
   return (
     <div className="flex h-screen flex-col md:flex-row">
       <Sidebar 
@@ -239,17 +122,12 @@ const LivrosDaBibliaBook = () => {
         />
         <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
           {messages.length === 0 ? (
-            <div className="w-full max-w-3xl px-4 space-y-4">
-              <div>
-                <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
-                  Converse sobre {config.title}
-                </h1>
-                <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
-              </div>
-              <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
-                <ActionButtonsComponent />
-              </ChatContext.Provider>
-            </div>
+            <EmptyChatState
+              title={config.title}
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+              bookSlug={book}
+            />
           ) : (
             <>
               <MessageList messages={messages} />

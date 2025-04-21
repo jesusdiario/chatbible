@@ -1,4 +1,3 @@
-
 export interface ChatHistory {
   id: string;
   title: string;
@@ -74,3 +73,13 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
 
   return timeframes;
 };
+
+export interface ChatHistory {
+  id: string;
+  title: string;
+  lastAccessed: Date;
+  user_id: string;
+  book_slug?: string;
+  last_message?: string;
+  slug?: string;
+}

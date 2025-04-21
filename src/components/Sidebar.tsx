@@ -40,6 +40,10 @@ const Sidebar = ({
     }
   }, []);
 
+  const goToLivrosDaBiblia = () => {
+    navigate('/livros-da-biblia');
+  };
+
   const timeframes = categorizeChatHistory(chatHistory);
 
   const handleChatClick = (chatId: string, slug: string, bookSlug?: string) => {
