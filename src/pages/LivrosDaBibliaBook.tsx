@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -43,31 +42,37 @@ const LivrosDaBibliaBook = () => {
         const newMessages = [...messages, { role: "user", content }];
         setMessages(newMessages);
 
-        // Send to OpenAI Assistants endpoint: Use key & assistantId
-        // (Replace with a real API call to OpenAI Assistants API if needed)
-        const response = await fetch('https://api.openai.com/v1/assistants/' + genesisOpenAIAssistantId + '/messages', {
+        const response = await fetch('https://api.openai.com/v2/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${genesisOpenAIKey}`
+            'Authorization': `Bearer ${genesisOpenAIKey}`,
+            'OpenAI-Beta': 'assistants=v1'
           },
           body: JSON.stringify({
-            messages: [
-              ...newMessages.map(msg => ({ role: msg.role, content: msg.content }))
-            ]
+            model: 'gpt-4o',
+            messages: newMessages.map(msg => ({ 
+              role: msg.role, 
+              content: msg.content 
+            })),
+            max_tokens: 1024
           })
         });
+
         if (!response.ok) {
           let resp = await response.json().catch(() => ({}));
           throw new Error(resp.error?.message || "Erro ao comunicar com a OpenAI");
         }
+
         const data = await response.json();
-        // Fallback to showing entire response if assistant response format changes.
-        let assistantContent = data?.choices?.[0]?.message?.content || data?.message?.content || JSON.stringify(data, null, 2);
+        const assistantContent = data?.choices?.[0]?.message?.content;
 
         setMessages([...newMessages, { role: "assistant", content: assistantContent }]);
       } catch (err: any) {
-        setMessages(prev => [...prev, { role: "assistant", content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") }]);
+        setMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
+        }]);
       } finally {
         setIsLoading(false);
       }
@@ -161,4 +166,3 @@ const LivrosDaBibliaBook = () => {
 };
 
 export default LivrosDaBibliaBook;
-
