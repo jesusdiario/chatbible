@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,7 @@ import Auth from "./pages/Auth";
 import LivrosDaBiblia from "./pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "./pages/LivrosDaBibliaBook";
 import Admin from "./pages/Admin";
+import AdminPages from "./pages/AdminPages";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,11 @@ const App = () => {
             <Route path="/admin" element={
               <ProtectedRoute>
                 <Admin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/paginas" element={
+              <ProtectedRoute>
+                <AdminPages />
               </ProtectedRoute>
             } />
             <Route path="/livros-da-biblia" element={
