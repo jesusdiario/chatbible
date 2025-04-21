@@ -1,6 +1,5 @@
-
 import React, { useContext } from "react";
-import { BookOpenText, MessageSquare, Grid, Baby, User } from "lucide-react";
+import { BookOpenText, MessageSquare, Grid, Book, User } from "lucide-react";
 
 // Criando um contexto para expor a função de envio de mensagem
 export interface ChatContext {
@@ -22,29 +21,53 @@ const ActionButtons = () => {
   const actions = [
     { 
       icon: <BookOpenText className="h-4 w-4 text-purple-400" />, 
-      label: "Exegese de Capítulo",
-      // Este prompt agora informa que o usuário quer usar o WordzGPT para análise bíblica
-      prompt: "Por favor, use o WordzGPT (g-Y251NC6Ef-wordzgpt) para fazer uma exegese detalhada do capítulo 5 do livro de Marcos da Bíblia, incluindo contexto histórico, análise do texto original, principais ensinamentos e aplicações para hoje."
+      label: "Caráter de Deus",
+      prompt: "O que o livro de Gênesis revela sobre o caráter de Deus como Criador, Juiz e Redentor? Por favor, explore os atributos de Deus desde a criação até a aliança com Abraão."
     },
     { 
       icon: <MessageSquare className="h-4 w-4 text-blue-400" />, 
-      label: "Criar Pregação Expositiva",
-      prompt: "Crie uma pregação expositiva baseada em João 3:16, com introdução, desenvolvimento com 3 pontos principais, ilustrações e conclusão."
+      label: "Natureza Humana",
+      prompt: "Como os primeiros capítulos de Gênesis moldam nossa compreensão sobre a natureza humana, o pecado e a responsabilidade diante de Deus? Foque especialmente em Gênesis 1-3 e sua importância para a antropologia bíblica."
     },
     { 
       icon: <Grid className="h-4 w-4 text-green-400" />, 
-      label: "Estudo para Célula",
-      prompt: "Prepare um estudo bíblico para célula sobre o tema 'Frutos do Espírito' de Gálatas 5, com perguntas para discussão, aplicação prática e oração final."
+      label: "Promessa Abraâmica",
+      prompt: "De que maneira a promessa feita a Abraão em Gênesis 12:1-3 é o ponto de partida para toda a história da redenção? Por favor, relacione a narrativa patriarcal com o plano messiânico."
     },
     { 
-      icon: <Baby className="h-4 w-4 text-yellow-400" />, 
-      label: "Explicar para Crianças",
-      prompt: "Explique a história da Arca de Noé de uma forma simples para crianças de 5 a 8 anos, incluindo lições que elas podem aprender."
+      icon: <Book className="h-4 w-4 text-yellow-400" />, 
+      label: "História de José",
+      prompt: "Como a história de José no Egito revela a soberania de Deus mesmo em meio a circunstâncias adversas? Analise Gênesis 37-50 e mostre como a providência divina se manifesta nos detalhes."
     },
     { 
-      icon: <User className="h-4 w-4 text-red-400" />, 
-      label: "Atividade Infantil",
-      prompt: "Crie uma atividade infantil para ensinar a história de Davi e Golias para crianças entre 6 e 10 anos, com perguntas e um jogo ou dinâmica relacionada."
+      icon: <MessageSquare className="h-4 w-4 text-red-400" />, 
+      label: "Os Patriarcas",
+      prompt: "Quais padrões de fé, obediência e falha podem ser observados nos patriarcas: Abraão, Isaque e Jacó? Explore os temas de confiança, disciplina e graça nas suas vidas."
+    },
+    { 
+      icon: <BookOpenText className="h-4 w-4 text-indigo-400" />, 
+      label: "Bênção e Maldição",
+      prompt: "Qual é o significado da bênção e da maldição em Gênesis, e como elas apontam para realidades espirituais maiores? Analise estes temas desde o Éden até os descendentes de Noé."
+    },
+    { 
+      icon: <Grid className="h-4 w-4 text-orange-400" />, 
+      label: "Relato da Criação",
+      prompt: "De que forma o relato da criação em Gênesis 1 e 2 se distingue de outros relatos antigos e o que isso ensina sobre o propósito da humanidade? Compare as cosmovisões e explique o valor único do ser humano."
+    },
+    { 
+      icon: <Book className="h-4 w-4 text-pink-400" />, 
+      label: "Torre de Babel",
+      prompt: "O que a Torre de Babel nos ensina sobre orgulho, linguagem e a necessidade da intervenção divina? Explique os limites da autonomia humana sem Deus."
+    },
+    { 
+      icon: <MessageSquare className="h-4 w-4 text-teal-400" />, 
+      label: "Efeitos do Pecado",
+      prompt: "Como o pecado afeta não apenas o indivíduo, mas famílias, cidades e nações ao longo do livro de Gênesis? Analise desde Adão até Sodoma, mostrando como as consequências do pecado se espalham."
+    },
+    { 
+      icon: <BookOpenText className="h-4 w-4 text-violet-400" />, 
+      label: "Cristo em Gênesis",
+      prompt: "Onde vemos Cristo prefigurado ou tipificado no livro de Gênesis? Analise exemplos como o descendente prometido à mulher, Melquisedeque, o sacrifício de Isaque e José como tipo de Cristo."
     },
   ];
 
