@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+
+// Importação dos componentes de páginas
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
+import Admin from "@/pages/Admin";
+import AdminPages from "@/pages/AdminPages";
+import AdminBooks from "@/pages/AdminBooks";
+import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
+import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 
 const queryClient = new QueryClient();
 
