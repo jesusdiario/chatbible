@@ -1,8 +1,5 @@
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/components/ui/use-toast";
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,109 +13,32 @@ import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import BookForm from '@/components/admin/BookForm';
 import BooksTable from '@/components/admin/BooksTable';
+import { useBooks } from '@/hooks/useBooks';
 
 const AdminBooks = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingBook, setEditingBook] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [formData, setFormData] = React.useState({
     title: '',
     slug: '',
     book_category: 'pentateuco',
     image_url: ''
   });
 
-  const queryClient = useQueryClient();
-
-  const { data: books } = useQuery({
-    queryKey: ['bible-books'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bible_books')
-        .select('*')
-        .order('title');
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (newBook: any) => {
-      const { data, error } = await supabase
-        .from('bible_books')
-        .insert([newBook])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bible-books'] });
-      toast({ title: "Sucesso", description: "Livro criado com sucesso!" });
-      setIsAddDialogOpen(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Erro", 
-        description: `Erro ao criar livro: ${error.message}`,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedBook: any) => {
-      const { data, error } = await supabase
-        .from('bible_books')
-        .update(updatedBook)
-        .eq('id', editingBook.id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bible-books'] });
-      toast({ title: "Sucesso", description: "Livro atualizado com sucesso!" });
-      setIsAddDialogOpen(false);
-      setEditingBook(null);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Erro", 
-        description: `Erro ao atualizar livro: ${error.message}`,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('bible_books')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bible-books'] });
-      toast({ title: "Sucesso", description: "Livro excluído com sucesso!" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Erro", 
-        description: `Erro ao excluir livro: ${error.message}`,
-        variant: "destructive"
-      });
-    }
-  });
+  const {
+    books,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    editingBook,
+    setEditingBook,
+    createMutation,
+    updateMutation,
+    deleteMutation
+  } = useBooks();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingBook) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate({ ...formData, id: editingBook.id });
     } else {
       createMutation.mutate(formData);
     }
