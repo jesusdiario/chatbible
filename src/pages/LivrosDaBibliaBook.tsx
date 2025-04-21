@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -9,6 +8,7 @@ import ActionButtons, { ChatContext } from "@/components/ActionButtons";
 import LeviticusActionButtons from "@/components/LeviticusActionButtons";
 import MessageList from "@/components/MessageList";
 import { supabase } from "@/integrations/supabase/client";
+import { Menu } from "lucide-react";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -126,18 +126,19 @@ const LivrosDaBibliaBook = () => {
   // Default/fallback for missing book
   if (!config) {
     return (
-      <div className="flex h-screen">
+      <div className="flex h-screen flex-col">
         <Sidebar 
           isOpen={isSidebarOpen} 
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
           onApiKeyChange={() => {}}
           chatHistory={chatHistory}
         />
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
           <ChatHeader 
             isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
-          <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg">
+          <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg px-4">
             Livro não encontrado.
           </div>
         </main>
@@ -148,22 +149,23 @@ const LivrosDaBibliaBook = () => {
   const ActionButtonsComponent = book === 'levitico' ? LeviticusActionButtons : ActionButtons;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen flex-col md:flex-row">
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onApiKeyChange={() => {}}
         chatHistory={chatHistory}
       />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 
           isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
           {messages.length === 0 ? (
             <div className="w-full max-w-3xl px-4 space-y-4">
               <div>
-                <h1 className="mb-8 text-4xl font-semibold text-center">
+                <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
                   Converse sobre {config.title}
                 </h1>
                 <ChatInput onSend={handleSendMessage} isLoading={isLoading} />

@@ -1,5 +1,5 @@
 
-import { Menu, Globe, ChevronDown, Key, PlusCircle } from "lucide-react";
+import { Menu, Globe, ChevronDown, Key, PlusCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -58,13 +58,14 @@ const Sidebar = ({
         className={cn(
           "fixed top-0 left-0 z-40 h-screen transition-all duration-300",
           "bg-chatgpt-sidebar",
-          isOpen ? "w-64" : "w-0"
+          isOpen ? "w-full md:w-64" : "w-0"
         )}
       >
         <nav className="flex h-full w-full flex-col px-3" aria-label="Histórico de Conversas">
           <div className="flex justify-between flex h-[60px] items-center">
             <button onClick={onToggle} className="h-10 rounded-lg px-2 text-token-text-secondary hover:bg-token-sidebar-surface-secondary">
-              <Menu className="h-5 w-5" />
+              <X className="h-5 w-5 md:hidden" />
+              <Menu className="h-5 w-5 hidden md:block" />
             </button>
             <button onClick={goToHome} className="flex items-center gap-2 rounded-lg px-3 py-1 text-sm hover:bg-token-sidebar-surface-secondary cursor-pointer">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="icon-xl-heavy">
@@ -135,6 +136,15 @@ const Sidebar = ({
           )}
         </nav>
       </div>
+      
+      {/* Overlay para quando o sidebar estiver aberto em dispositivos móveis */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={onToggle}
+          aria-hidden="true"
+        />
+      )}
       
       <SubscriptionModal 
         isOpen={showSubscriptionModal} 

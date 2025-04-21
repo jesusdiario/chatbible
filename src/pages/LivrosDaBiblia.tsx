@@ -32,22 +32,22 @@ const LivrosDaBiblia = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
         onApiKeyChange={handleApiKeyChange}
       />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
-        <div className="pt-[60px] pb-4 px-8 bg-chatgpt-main text-white min-h-screen">
+        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
           {categories.map(({ title, slugs }) => (
             <section key={title} className="mb-12">
               <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{title}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {slugs.map(slug => {
                   const cfg = bibleAssistants[slug];
                   if (!cfg) return null;
@@ -60,7 +60,7 @@ const LivrosDaBiblia = () => {
                       <img
                         src={`/images/covers/${slug}.jpg`}
                         alt={`Capa de ${cfg.title}`}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-36 sm:h-48 object-cover"
                       />
                       <div className="p-2 bg-chatgpt-secondary">
                         <span className="text-sm font-medium">{cfg.title}</span>
