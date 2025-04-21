@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -27,6 +28,12 @@ const LivrosDaBibliaBook = () => {
   const { book } = useParams<{ book?: string }>();
   const config = book ? bibleAssistants[book] : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(localStorage.getItem('openai_api_key') || '');
+
+  const handleApiKeyChange = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+  };
 
   // Only handle custom interface for "genesis"
   if (book === "genesis" && config) {
@@ -39,7 +46,8 @@ const LivrosDaBibliaBook = () => {
       if (!content.trim()) return;
       setIsLoading(true);
       try {
-        const newMessages = [...messages, { role: "user", content }];
+        const userMessage: Message = { role: "user", content };
+        const newMessages: Message[] = [...messages, userMessage];
         setMessages(newMessages);
 
         const response = await fetch('https://api.openai.com/v2/chat/completions', {
@@ -67,12 +75,14 @@ const LivrosDaBibliaBook = () => {
         const data = await response.json();
         const assistantContent = data?.choices?.[0]?.message?.content;
 
-        setMessages([...newMessages, { role: "assistant", content: assistantContent }]);
+        const assistantMessage: Message = { role: "assistant", content: assistantContent };
+        setMessages([...newMessages, assistantMessage]);
       } catch (err: any) {
-        setMessages(prev => [...prev, { 
+        const errorMessage: Message = { 
           role: "assistant", 
           content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
-        }]);
+        };
+        setMessages(prev => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
       }
@@ -83,6 +93,8 @@ const LivrosDaBibliaBook = () => {
         <Sidebar 
           isOpen={isSidebarOpen} 
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onApiKeyChange={handleApiKeyChange}
+          chatHistory={[]}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader 
@@ -126,6 +138,8 @@ const LivrosDaBibliaBook = () => {
         <Sidebar 
           isOpen={isSidebarOpen} 
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onApiKeyChange={handleApiKeyChange}
+          chatHistory={[]}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader 
@@ -146,6 +160,8 @@ const LivrosDaBibliaBook = () => {
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+        onApiKeyChange={handleApiKeyChange}
+        chatHistory={[]}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader 
