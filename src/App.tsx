@@ -61,6 +61,16 @@ const App = () => {
                 <LivrosDaBibliaBook />
               </ProtectedRoute>
             } />
+            <Route path="/livros-da-biblia/:book/:slug" element={
+              <ProtectedRoute>
+                <LivrosDaBibliaBook />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat/:slug" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

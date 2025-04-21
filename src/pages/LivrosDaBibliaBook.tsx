@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
@@ -38,13 +37,14 @@ Mantenha sempre um tom respeitoso e educacional.`,
 };
 
 const LivrosDaBibliaBook = () => {
-  const { book } = useParams<{ book?: string }>();
+  const { book, slug } = useParams<{ book?: string, slug?: string }>();
   const config = book ? bibleAssistants[book] : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+  const navigate = useNavigate();
 
   // Fetch current user session when component mounts
   useEffect(() => {
@@ -126,14 +126,20 @@ const LivrosDaBibliaBook = () => {
 
       // Save to chat history only if we have a user ID
       if (userId) {
-        await supabase.from('chat_history').upsert({
+        const newSlug = crypto.randomUUID();
+        const { data: chatData, error: chatError } = await supabase.from('chat_history').upsert({
           user_id: userId,
           title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
           book_slug: book,
           last_message: assistantMessage.content,
           last_accessed: new Date().toISOString(),
-          messages: [...newMessages, assistantMessage]
+          messages: [...newMessages, assistantMessage],
+          slug: slug || newSlug
         });
+
+        if (!slug) {
+          navigate(`/livros-da-biblia/${book}/${newSlug}`);
+        }
 
         // Recarregar o histórico de chat após adicionar uma nova conversa
         const { data: updatedHistory } = await supabase
@@ -224,6 +230,7 @@ const LivrosDaBibliaBook = () => {
         onApiKeyChange={() => {}}
         chatHistory={chatHistory}
         onChatSelect={handleChatSelect}
+        currentPath={window.location.pathname}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 

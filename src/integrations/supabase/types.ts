@@ -56,6 +56,7 @@ export type Database = {
           last_accessed: string
           last_message: string | null
           messages: Json | null
+          slug: string
           title: string
           user_id: string
         }
@@ -66,6 +67,7 @@ export type Database = {
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
+          slug?: string
           title: string
           user_id: string
         }
@@ -76,6 +78,7 @@ export type Database = {
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
+          slug?: string
           title?: string
           user_id?: string
         }

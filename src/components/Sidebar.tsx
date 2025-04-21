@@ -1,4 +1,3 @@
-
 import { Menu, Globe, ChevronDown, Key, PlusCircle, X, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ interface SidebarProps {
   onApiKeyChange: (apiKey: string) => void;
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
+  currentPath?: string;
 }
 
 const Sidebar = ({
@@ -20,7 +20,8 @@ const Sidebar = ({
   onToggle,
   onApiKeyChange,
   onChatSelect,
-  chatHistory = []
+  chatHistory = [],
+  currentPath
 }: SidebarProps) => {
   const [apiKey, setApiKey] = useState("");
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -39,18 +40,15 @@ const Sidebar = ({
     }
   }, []);
 
-  // Certifique-se de que o chatHistory está sendo processado corretamente
   const timeframes = categorizeChatHistory(chatHistory);
 
-  const goToHome = () => {
-    navigate('/');
-    if (onChatSelect) {
-      onChatSelect('new');
+  const handleChatClick = (chatId: string, slug: string, bookSlug?: string) => {
+    if (bookSlug) {
+      navigate(`/livros-da-biblia/${bookSlug}/${slug}`);
+    } else {
+      navigate(`/chat/${slug}`);
     }
-  };
-
-  const goToLivrosDaBiblia = () => {
-    navigate('/livros-da-biblia');
+    onChatSelect?.(chatId);
   };
 
   return <>
@@ -86,8 +84,11 @@ const Sidebar = ({
                         {timeframe.items.map(item => (
                           <div 
                             key={item.id} 
-                            className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
-                            onClick={() => onChatSelect?.(item.id)}
+                            className={cn(
+                              "group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer",
+                              currentPath?.includes(item.slug || '') && "bg-token-sidebar-surface-secondary"
+                            )}
+                            onClick={() => handleChatClick(item.id, item.slug || '', item.book_slug)}
                           >
                             <div className="h-6 w-6 flex items-center justify-center">
                               <MessageSquare className="h-4 w-4" />
@@ -126,7 +127,6 @@ const Sidebar = ({
         </nav>
       </div>
       
-      {/* Overlay para quando o sidebar estiver aberto em dispositivos móveis */}
       {isOpen && <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30" onClick={onToggle} aria-hidden="true" />}
       
       <SubscriptionModal isOpen={showSubscriptionModal} onClose={() => setShowSubscriptionModal(false)} />
