@@ -1,73 +1,30 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
-import { useToast } from "@/hooks/use-toast";
 
-type BibleAssistant = {
-  slug: string;
-  title: string;
-  assistant_id: string;
-  category: string;
-  description: string | null;
-  display_order: number | null;
-};
-
-type CategoryGroup = {
-  title: string;
-  items: BibleAssistant[];
-};
+const categories = [
+  { 
+    title: 'Pentateuco', 
+    slugs: ['genesis', 'exodo', 'levitico', 'numeros'] 
+  },
+  {
+    title: 'Históricos',
+    slugs: [
+      'josue','juizes','rute',
+      '1-samuel','2-samuel','1-reis','2-reis',
+      '1-cronicas','2-cronicas',
+      'esdras','neemias','tobias','judite','ester',
+      '1-macabeus','2-macabeus'
+    ]
+  }
+];
 
 const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
-  const [categories, setCategories] = useState<CategoryGroup[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchAssistants();
-  }, []);
-
-  const fetchAssistants = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('bible_assistants')
-        .select('*')
-        .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      // Agrupar assistentes por categoria
-      const groupedData = data.reduce((acc: { [key: string]: BibleAssistant[] }, assistant) => {
-        if (!acc[assistant.category]) {
-          acc[assistant.category] = [];
-        }
-        acc[assistant.category].push(assistant);
-        return acc;
-      }, {});
-
-      // Converter para o formato final
-      const formattedCategories = Object.entries(groupedData).map(([title, items]) => ({
-        title,
-        items
-      }));
-
-      setCategories(formattedCategories);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar assistentes",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleApiKeyChange = (newApiKey: string) => {
     setApiKey(newApiKey);
@@ -87,38 +44,34 @@ const LivrosDaBiblia = () => {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <div className="pt-[60px] pb-4 px-8 bg-chatgpt-main text-white min-h-screen">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          ) : (
-            categories.map(({ title, items }) => (
-              <section key={title} className="mb-12">
-                <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{title}</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {items.map(assistant => (
+          {categories.map(({ title, slugs }) => (
+            <section key={title} className="mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{title}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {slugs.map(slug => {
+                  const cfg = bibleAssistants[slug];
+                  if (!cfg) return null;
+                  return (
                     <Link
-                      key={assistant.slug}
-                      to={`/livros-da-biblia/${assistant.slug}`}
+                      key={slug}
+                      to={`/livros-da-biblia/${slug}`}
                       className="block rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition bg-chatgpt-sidebar border border-chatgpt-border"
                     >
                       <img
-                        src={`/images/covers/${assistant.slug}.jpg`}
-                        alt={`Capa de ${assistant.title}`}
+                        src={`/images/covers/${slug}.jpg`}
+                        alt={`Capa de ${cfg.title}`}
                         className="w-full h-48 object-cover"
                       />
-                      <div className="p-4 bg-chatgpt-secondary">
-                        <h3 className="text-lg font-medium mb-2">{assistant.title}</h3>
-                        {assistant.description && (
-                          <p className="text-sm text-gray-300">{assistant.description}</p>
-                        )}
+                      <div className="p-2 bg-chatgpt-secondary">
+                        <span className="text-sm font-medium">{cfg.title}</span>
                       </div>
                     </Link>
-                  ))}
-                </div>
-              </section>
-            ))
-          )}
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+          {/* A seção Poéticos e Proféticos pode ser adicionada depois */}
         </div>
       </main>
     </div>
