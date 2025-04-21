@@ -18,15 +18,9 @@ const LivrosDaBibliaBook = () => {
   const { book } = useParams<{ book?: string }>();
   const config = book ? bibleAssistants[book] : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [apiKey, setApiKey] = useState<string>(localStorage.getItem("openai_api_key") || "");
+  // API KEY é sempre lida do .env agora
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY || "";
 
-  // Handler para APIKEY sempre ser recebido
-  const handleApiKeyChange = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem("openai_api_key", key);
-  };
-
-  // Genesis: chat assistant OpenAI (usa assistantId/id do config)
   if (book === "genesis" && config) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +32,7 @@ const LivrosDaBibliaBook = () => {
         const newMessages: Message[] = [...messages, { role: "user", content }];
         setMessages(newMessages);
 
+        // Usar assistantId (não model), pois a API mudou!
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -49,8 +44,7 @@ const LivrosDaBibliaBook = () => {
               role: msg.role,
               content: msg.content
             })),
-            assistant: config.assistantId // OBRIGATÓRIO
-            // Não passar model
+            assistant: config.assistantId // Passa o assistantId do livro
           })
         });
 
@@ -79,7 +73,7 @@ const LivrosDaBibliaBook = () => {
         <Sidebar 
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          onApiKeyChange={handleApiKeyChange}
+          onApiKeyChange={() => {}} // Não altera mais a key no frontend
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader 
@@ -122,7 +116,7 @@ const LivrosDaBibliaBook = () => {
         <Sidebar
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          onApiKeyChange={handleApiKeyChange}
+          onApiKeyChange={() => {}}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader
@@ -142,7 +136,7 @@ const LivrosDaBibliaBook = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onApiKeyChange={handleApiKeyChange}
+        onApiKeyChange={() => {}}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader
