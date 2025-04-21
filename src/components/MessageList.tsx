@@ -1,21 +1,22 @@
 
+import { FC } from 'react';
 import Message from './Message';
+import { Message as MessageType } from '@/types/chat';
 
-export type Message = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+interface MessageListProps {
+  messages: MessageType[];
+}
 
-const MessageList = ({
-  messages
-}: {
-  messages: Message[];
-}) => {
-  return <div className="flex-1 overflow-y-auto">
+const MessageList: FC<MessageListProps> = ({ messages }) => {
+  return (
+    <div className="flex-1 overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto px-4 pb-165">
-        {messages.map((message, index) => <Message key={index} {...message} />)}
+        {messages.map((message, index) => (
+          <Message key={index} {...message} />
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default MessageList;

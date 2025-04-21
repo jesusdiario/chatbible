@@ -1,7 +1,16 @@
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface ChatHistory {
   id: string;
   title: string;
   lastAccessed: Date;
+  user_id: string;
+  book_slug?: string;
+  last_message?: string;
+  slug?: string;
 }
 
 export interface TimeframedHistory {
@@ -74,12 +83,22 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
   return timeframes;
 };
 
-export interface ChatHistory {
-  id: string;
-  title: string;
-  lastAccessed: Date;
-  user_id: string;
-  book_slug?: string;
-  last_message?: string;
+export interface ChatState {
+  messages: Message[];
+  setMessages: (messages: Message[]) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  userId: string | null;
+  chatHistory: ChatHistory[];
+  setChatHistory: (history: ChatHistory[]) => void;
+}
+
+export interface ChatProps {
+  book?: string;
+  slug?: string;
+}
+
+export interface SendMessageResponse {
+  messages: Message[];
   slug?: string;
 }

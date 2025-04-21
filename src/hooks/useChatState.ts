@@ -1,15 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Message } from '@/components/MessageList';
-import { ChatHistory } from '@/types/chat';
+import { Message, ChatHistory, ChatProps, ChatState } from '@/types/chat';
 
-export interface UseChatStateProps {
-  book?: string;
-  slug?: string;
-}
-
-export const useChatState = ({ book, slug }: UseChatStateProps) => {
+export const useChatState = ({ book, slug }: ChatProps): ChatState => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -75,3 +69,4 @@ export const useChatState = ({ book, slug }: UseChatStateProps) => {
     setChatHistory
   };
 };
+

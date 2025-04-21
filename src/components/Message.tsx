@@ -1,15 +1,11 @@
-
+import { FC } from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Message as MessageType } from '@/types/chat';
 
-type MessageProps = {
-  role: 'user' | 'assistant';
-  content: string;
-};
-
-const Message = ({ role, content }: MessageProps) => {
+const Message: FC<MessageType> = ({ role, content }) => {
   return (
     <div className="py-6">
       <div className={`flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}`}>
