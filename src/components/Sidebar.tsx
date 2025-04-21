@@ -1,3 +1,4 @@
+
 import { Menu, Globe, ChevronDown, Key, PlusCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -58,7 +59,6 @@ const Sidebar = ({
             <button onClick={onToggle} className="h-10 rounded-lg px-2 text-token-text-secondary hover:bg-token-sidebar-surface-secondary">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-            
           </div>
 
           <div className="flex-col flex-1 transition-opacity duration-500 relative -mr-2 pr-2 overflow-y-auto">
@@ -80,7 +80,11 @@ const Sidebar = ({
                 {timeframes.length > 0 && <div className="mt-4 flex flex-col gap-4">
                     {timeframes.map(timeframe => <div key={timeframe.title}>
                         <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                        {timeframe.items.map(item => <div key={item.id} className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" onClick={() => onChatSelect?.(item.id)}>
+                        {timeframe.items.map(item => <div 
+                          key={item.id} 
+                          className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
+                          onClick={() => onChatSelect?.(item.id)}
+                        >
                             <span className="text-sm truncate">{item.title}</span>
                           </div>)}
                       </div>)}
