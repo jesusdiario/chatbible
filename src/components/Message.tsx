@@ -1,5 +1,4 @@
 
-import React from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
 import ReactMarkdown from 'react-markdown';
