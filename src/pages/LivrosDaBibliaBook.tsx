@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
@@ -10,60 +10,61 @@ import MessageList from "@/components/MessageList";
 import { ChatHistory } from "@/types/chat";
 
 type Message = {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 };
-
-interface ChatData {
-  id: string;
-  title: string;
-  messages: Message[];
-  lastAccessed: Date;
-}
-
-const genesisOpenAIAssistantId = "asst_YLwvqvZmSOMwxaku53jtKAlt";
-const genesisOpenAIKey = "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";
 
 const LivrosDaBibliaBook = () => {
   const { book } = useParams<{ book?: string }>();
   const config = book ? bibleAssistants[book] : null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(localStorage.getItem("openai_api_key") || "");
 
-  // Only handle custom interface for "genesis"
+  // Handler para APIKEY sempre ser recebido
+  const handleApiKeyChange = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem("openai_api_key", key);
+  };
+
+  // Genesis: chat assistant OpenAI (usa assistantId/id do config)
   if (book === "genesis" && config) {
-    // Minimal chat state
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Only handle client chat in memory for this assistant.
     const handleSendMessage = async (content: string) => {
-      if (!content.trim()) return;
+      if (!content.trim() || !apiKey) return;
       setIsLoading(true);
       try {
-        const newMessages = [...messages, { role: "user", content }];
+        const newMessages: Message[] = [...messages, { role: "user", content }];
         setMessages(newMessages);
 
-        // Send to OpenAI Assistants endpoint: Use key & assistantId
-        // (Replace with a real API call to OpenAI Assistants API if needed)
-        const response = await fetch('https://api.openai.com/v1/assistants/' + genesisOpenAIAssistantId + '/messages', {
-          method: 'POST',
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${genesisOpenAIKey}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            messages: [
-              ...newMessages.map(msg => ({ role: msg.role, content: msg.content }))
-            ]
+            messages: newMessages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            assistant: config.assistantId // OBRIGATÓRIO
+            // Não passar model
           })
         });
-        if (!response.ok) {
-          let resp = await response.json().catch(() => ({}));
-          throw new Error(resp.error?.message || "Erro ao comunicar com a OpenAI");
-        }
+
         const data = await response.json();
-        // Fallback to showing entire response if assistant response format changes.
-        let assistantContent = data?.choices?.[0]?.message?.content || data?.message?.content || JSON.stringify(data, null, 2);
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || "Erro ao comunicar com a OpenAI");
+        }
+        // Suporte ao formato novo da API OpenAI Assistants
+        let assistantContent =
+          data?.choices?.[0]?.message?.content ||
+          data?.message?.content ||
+          data?.content ||
+          JSON.stringify(data, null, 2);
 
         setMessages([...newMessages, { role: "assistant", content: assistantContent }]);
       } catch (err: any) {
@@ -76,13 +77,13 @@ const LivrosDaBibliaBook = () => {
     return (
       <div className="flex h-screen">
         <Sidebar 
-          isOpen={isSidebarOpen} 
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onApiKeyChange={handleApiKeyChange}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader 
             isSidebarOpen={isSidebarOpen}
-            // Hide new chat button for this custom assistant
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
@@ -114,18 +115,18 @@ const LivrosDaBibliaBook = () => {
     );
   }
 
-  // Default/fallback for all other books or missing
+  // Fallback para livros não encontrados ou rota inválida
   if (!config) {
     return (
       <div className="flex h-screen">
-        <Sidebar 
-          isOpen={isSidebarOpen} 
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onApiKeyChange={handleApiKeyChange}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <ChatHeader 
-            isSidebarOpen={isSidebarOpen} 
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          <ChatHeader
+            isSidebarOpen={isSidebarOpen}
           />
           <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg">
             Livro não encontrado.
@@ -135,17 +136,17 @@ const LivrosDaBibliaBook = () => {
     );
   }
 
-  // Fallback UI for other books (not Genesis)
+  // Outros livros: tela esperando integração futura
   return (
     <div className="flex h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onApiKeyChange={handleApiKeyChange}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <ChatHeader 
-          isSidebarOpen={isSidebarOpen} 
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        <ChatHeader
+          isSidebarOpen={isSidebarOpen}
         />
         <div className="pt-[60px] p-6">
           <h1 className="text-3xl font-bold mb-4">
@@ -161,4 +162,3 @@ const LivrosDaBibliaBook = () => {
 };
 
 export default LivrosDaBibliaBook;
-
