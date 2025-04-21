@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import LivrosDaBiblia from "./pages/LivrosDaBiblia";
-import Chat from "./pages/Chat";
+import LivrosDaBibliaBook from "./pages/LivrosDaBibliaBook";
 import Admin from "./pages/Admin";
 import AdminBooks from "./pages/AdminBooks";
 import AdminPages from "./pages/AdminPages";
@@ -22,7 +22,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/livros-da-biblia/:bookSlug",
-    element: <Chat />,
+    element: <LivrosDaBibliaBook />,
   },
   {
     path: "/admin",
