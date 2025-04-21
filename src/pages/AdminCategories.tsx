@@ -61,6 +61,13 @@ const AdminCategories = () => {
     setIsDeleteDialogOpen(true);
   };
 
+  // Helper function to handle category updates safely
+  const updateCurrentCategory = (updates: Partial<Category>) => {
+    if (currentCategory) {
+      setCurrentCategory({ ...currentCategory, ...updates });
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <Sidebar 
@@ -124,7 +131,7 @@ const AdminCategories = () => {
         title="Editar Categoria"
         description="Atualize os detalhes da categoria."
         category={currentCategory || {}}
-        setCategory={setCurrentCategory}
+        setCategory={updateCurrentCategory}
       />
 
       <DeleteCategoryDialog
