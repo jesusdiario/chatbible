@@ -10,6 +10,7 @@ import LeviticusActionButtons from "@/components/LeviticusActionButtons";
 import MessageList from "@/components/MessageList";
 import { supabase } from "@/integrations/supabase/client";
 import { Menu } from "lucide-react";
+import { ChatHistory } from "@/types/chat";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -23,6 +24,7 @@ interface ChatHistoryItem {
   user_id: string;
   book_slug?: string;
   last_message?: string;
+  messages?: Message[];
 }
 
 const BIBLE_PROMPTS: Record<string, string> = {
@@ -42,7 +44,7 @@ const LivrosDaBibliaBook = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
 
   // Fetch current user session when component mounts
   useEffect(() => {
@@ -179,7 +181,9 @@ const LivrosDaBibliaBook = () => {
         .single();
 
       if (data && data.messages) {
-        setMessages(data.messages);
+        // Assegure que data.messages é do tipo Message[]
+        const chatMessages = data.messages as Message[];
+        setMessages(chatMessages);
       }
     };
 

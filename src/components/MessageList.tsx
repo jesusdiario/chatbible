@@ -1,8 +1,11 @@
+
 import Message from './Message';
-type Message = {
+
+export type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
+
 const MessageList = ({
   messages
 }: {
@@ -14,4 +17,5 @@ const MessageList = ({
       </div>
     </div>;
 };
+
 export default MessageList;
