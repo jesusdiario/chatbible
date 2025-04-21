@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ChatInput from './ChatInput';
-import { useContext } from './ActionButtons';
+import { ChatContext } from './ActionButtons';
 import ActionButtons from './ActionButtons';
 
 interface ChatEmptyStateProps {
@@ -18,9 +18,9 @@ const ChatEmptyState = ({ onSendMessage, isLoading }: ChatEmptyStateProps) => {
         </h1>
         <ChatInput onSend={onSendMessage} isLoading={isLoading} />
       </div>
-      <useContext.Provider value={{ sendMessage: onSendMessage }}>
+      <ChatContext.Provider value={{ sendMessage: onSendMessage }}>
         <ActionButtons />
-      </useContext.Provider>
+      </ChatContext.Provider>
     </div>
   );
 };
