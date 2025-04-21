@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import LivrosDaBiblia from "./pages/LivrosDaBiblia";
+import BibleBookChatPage from "./pages/livros-da-biblia/[book]";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,11 @@ const App = () => {
             <Route path="/livros-da-biblia" element={
               <ProtectedRoute>
                 <LivrosDaBiblia />
+              </ProtectedRoute>
+            } />
+            <Route path="/livros-da-biblia/:book" element={
+              <ProtectedRoute>
+                <BibleBookChatPage />
               </ProtectedRoute>
             } />
           </Routes>
