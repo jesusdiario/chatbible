@@ -1,3 +1,6 @@
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -85,12 +88,12 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
 
 export interface ChatState {
   messages: Message[];
-  setMessages: (messages: Message[]) => void;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   userId: string | null;
   chatHistory: ChatHistory[];
-  setChatHistory: (history: ChatHistory[]) => void;
+  setChatHistory: React.Dispatch<React.SetStateAction<ChatHistory[]>>;
 }
 
 export interface ChatProps {
@@ -101,4 +104,15 @@ export interface ChatProps {
 export interface SendMessageResponse {
   messages: Message[];
   slug?: string;
+}
+
+export interface ChatHistoryRecord {
+  id: string;
+  user_id: string;
+  title: string;
+  book_slug?: string;
+  last_message?: string;
+  last_accessed: string;
+  messages: Message[];
+  slug: string;
 }

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Message, SendMessageResponse } from '@/types/chat';
+import { Message, SendMessageResponse, ChatHistoryRecord } from '@/types/chat';
 
 export const BIBLE_PROMPTS: Record<string, string> = {
   genesis: `Você é um especialista no livro de Gênesis da Bíblia. 
@@ -43,7 +43,7 @@ export const sendChatMessage = async (
       book_slug: book,
       last_message: assistantMessage.content,
       last_accessed: new Date().toISOString(),
-      messages: [...newMessages, assistantMessage],
+      messages: [...newMessages, assistantMessage] as any,
       slug: newSlug
     });
 
@@ -59,7 +59,8 @@ export const loadChatMessages = async (chatId: string): Promise<Message[] | null
     .select('messages')
     .eq('id', chatId)
     .single();
-
-  return data?.messages as Message[] | null;
+  
+  if (!data || !data.messages) return null;
+  
+  return data.messages as Message[];
 };
-

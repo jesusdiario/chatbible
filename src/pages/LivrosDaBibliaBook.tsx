@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -12,6 +13,7 @@ import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Message } from "@/types/chat";
 
 const LivrosDaBibliaBook = () => {
   const { book, slug } = useParams<{ book?: string, slug?: string }>();
@@ -33,6 +35,9 @@ const LivrosDaBibliaBook = () => {
     if (!content.trim()) return;
     
     setIsLoading(true);
+    const userMessage: Message = { role: "user", content };
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    
     try {
       const result = await sendChatMessage(content, messages, book, userId || undefined, slug);
       setMessages(result.messages);
@@ -67,11 +72,11 @@ const LivrosDaBibliaBook = () => {
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      const errorMessage = { 
-        role: "assistant" as const, 
+      const errorMessage: Message = { 
+        role: "assistant", 
         content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }

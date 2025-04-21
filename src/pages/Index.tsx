@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -11,6 +12,7 @@ import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Message } from "@/types/chat";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -55,8 +57,8 @@ const Index = () => {
     if (!content.trim()) return;
 
     setIsLoading(true);
-    const userMessage = { role: "user" as const, content };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage: Message = { role: "user", content };
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
     try {
       const result = await sendChatMessage(content, messages, undefined, userId, slug);
@@ -92,11 +94,11 @@ const Index = () => {
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      const errorMessage = { 
-        role: "assistant" as const, 
+      const errorMessage: Message = { 
+        role: "assistant", 
         content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }

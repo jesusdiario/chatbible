@@ -69,4 +69,3 @@ export const useChatState = ({ book, slug }: ChatProps): ChatState => {
     setChatHistory
   };
 };
-
