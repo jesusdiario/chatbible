@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   createBrowserRouter,
@@ -10,6 +11,7 @@ import Admin from "./pages/Admin";
 import AdminBooks from "./pages/AdminBooks";
 import AdminPages from "./pages/AdminPages";
 import AdminCategories from "./pages/AdminCategories";
+import { QueryProvider } from "./providers/QueryProvider";
 
 const router = createBrowserRouter([
   {
@@ -45,7 +47,9 @@ const router = createBrowserRouter([
 function App() {
   return (
     <React.StrictMode>
-      <RouterProvider router={router} />
+      <QueryProvider>
+        <RouterProvider router={router} />
+      </QueryProvider>
     </React.StrictMode>
   );
 }
