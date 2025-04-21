@@ -5,7 +5,22 @@ import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 
-const pentateucoSlugs = ["genesis", "exodo", "levitico", "numeros"];
+const categories = [
+  { 
+    title: 'Pentateuco', 
+    slugs: ['genesis', 'exodo', 'levitico', 'numeros'] 
+  },
+  {
+    title: 'Históricos',
+    slugs: [
+      'josue','juizes','rute',
+      '1-samuel','2-samuel','1-reis','2-reis',
+      '1-cronicas','2-cronicas',
+      'esdras','neemias','tobias','judite','ester',
+      '1-macabeus','2-macabeus'
+    ]
+  }
+];
 
 const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,34 +44,34 @@ const LivrosDaBiblia = () => {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <div className="pt-[60px] pb-4 px-8 bg-chatgpt-main text-white min-h-screen">
-          <h1 className="text-2xl md:text-3xl font-bold mt-6">Pentateuco</h1>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-5 mb-10">
-            {pentateucoSlugs.map((slug) => {
-              const { title } = bibleAssistants[slug];
-              return (
-                <Link
-                  key={slug}
-                  to={`/livros-da-biblia/${slug}`}
-                  className="block rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition bg-chatgpt-sidebar border border-chatgpt-border"
-                >
-                  <img
-                    src={`/images/covers/${slug}.jpg`}
-                    alt={`Capa de ${title}`}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-2 bg-chatgpt-secondary">
-                    <span className="text-sm font-medium">{title}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          <h2 className="text-xl font-semibold mt-6 mb-2">Históricos</h2>
-          <div className="min-h-[56px] mb-8"></div>
-
-          <h2 className="text-xl font-semibold mt-6 mb-2">Poéticos e Proféticos</h2>
-          <div className="min-h-[56px]"></div>
+          {categories.map(({ title, slugs }) => (
+            <section key={title} className="mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{title}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {slugs.map(slug => {
+                  const cfg = bibleAssistants[slug];
+                  if (!cfg) return null;
+                  return (
+                    <Link
+                      key={slug}
+                      to={`/livros-da-biblia/${slug}`}
+                      className="block rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition bg-chatgpt-sidebar border border-chatgpt-border"
+                    >
+                      <img
+                        src={`/images/covers/${slug}.jpg`}
+                        alt={`Capa de ${cfg.title}`}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-2 bg-chatgpt-secondary">
+                        <span className="text-sm font-medium">{cfg.title}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+          {/* A seção Poéticos e Proféticos pode ser adicionada depois */}
         </div>
       </main>
     </div>
