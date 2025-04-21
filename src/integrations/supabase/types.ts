@@ -48,6 +48,74 @@ export type Database = {
         }
         Relationships: []
       }
+      bible_books: {
+        Row: {
+          book_category: Database["public"]["Enums"]["book_category"]
+          category_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          book_category: Database["public"]["Enums"]["book_category"]
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          book_category?: Database["public"]["Enums"]["book_category"]
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bible_books_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "bible_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bible_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           book_slug: string | null
@@ -84,6 +152,41 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_pages: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_pages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "bible_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_counts: {
         Row: {
           count: number
@@ -111,6 +214,81 @@ export type Database = {
         }
         Relationships: []
       }
+      popular_questions: {
+        Row: {
+          created_at: string
+          id: string
+          is_predefined: boolean
+          question: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_predefined?: boolean
+          question: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_predefined?: boolean
+          question?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          page_id: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          page_id?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          page_id?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "bible_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "custom_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -132,6 +310,72 @@ export type Database = {
           terms_accepted?: boolean
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          end_date: string | null
+          id: string
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_stats: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          total_messages: number
+          unique_users: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          total_messages?: number
+          unique_users?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          total_messages?: number
+          unique_users?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -164,10 +408,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: { _user_id: string; _role: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      book_category:
+        | "pentateuco"
+        | "historico"
+        | "poetico"
+        | "profetico"
+        | "novo_testamento"
+        | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -284,6 +538,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      book_category: [
+        "pentateuco",
+        "historico",
+        "poetico",
+        "profetico",
+        "novo_testamento",
+        "outro",
+      ],
     },
   },
 } as const

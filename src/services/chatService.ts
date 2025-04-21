@@ -43,7 +43,7 @@ export const sendChatMessage = async (
       book_slug: book,
       last_message: assistantMessage.content,
       last_accessed: new Date().toISOString(),
-      messages: [...newMessages, assistantMessage] as any,
+      messages: JSON.stringify(newMessages.concat(assistantMessage)) as any,
       slug: newSlug
     });
 
@@ -62,5 +62,5 @@ export const loadChatMessages = async (chatId: string): Promise<Message[] | null
   
   if (!data || !data.messages) return null;
   
-  return data.messages as Message[];
+  return JSON.parse(data.messages as string) as Message[];
 };
