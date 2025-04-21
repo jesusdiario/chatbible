@@ -9,13 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Book {
-  id: string;
-  title: string;
-  slug: string;
-  book_category: string;
-}
+import { Book } from '@/types/book';
 
 interface BooksTableProps {
   books: Book[];

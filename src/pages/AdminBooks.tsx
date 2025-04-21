@@ -14,10 +14,11 @@ import Sidebar from "@/components/Sidebar";
 import BookForm from '@/components/admin/BookForm';
 import BooksTable from '@/components/admin/BooksTable';
 import { useBooks } from '@/hooks/useBooks';
+import { BookFormData } from '@/types/book';
 
 const AdminBooks = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = React.useState<BookFormData>({
     title: '',
     slug: '',
     book_category: 'pentateuco',
@@ -44,13 +45,13 @@ const AdminBooks = () => {
     }
   };
 
-  const handleEdit = (book: any) => {
+  const handleEdit = (book: BookFormData & { id: string }) => {
     setEditingBook(book);
     setFormData({
       title: book.title,
       slug: book.slug,
       book_category: book.book_category,
-      image_url: book.image_url || ''
+      image_url: book.image_url
     });
     setIsAddDialogOpen(true);
   };
@@ -68,6 +69,7 @@ const AdminBooks = () => {
       book_category: 'pentateuco',
       image_url: ''
     });
+    setEditingBook(null);
   };
 
   return (
@@ -86,7 +88,10 @@ const AdminBooks = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Gerenciar Livros da Bíblia</h1>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (!open) resetForm();
+              }}>
                 <DialogTrigger asChild>
                   <Button variant="outline">Adicionar Livro</Button>
                 </DialogTrigger>

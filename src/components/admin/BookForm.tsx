@@ -10,15 +10,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { BookFormData, BookCategory } from '@/types/book';
 
 interface BookFormProps {
-  formData: {
-    title: string;
-    slug: string;
-    book_category: string;
-    image_url: string;
-  };
-  setFormData: (data: any) => void;
+  formData: BookFormData;
+  setFormData: (data: BookFormData) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -47,7 +43,7 @@ const BookForm = ({ formData, setFormData, onSubmit }: BookFormProps) => {
         <label htmlFor="category">Categoria</label>
         <Select
           value={formData.book_category}
-          onValueChange={(value) => setFormData({ ...formData, book_category: value })}
+          onValueChange={(value: BookCategory) => setFormData({ ...formData, book_category: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione uma categoria" />
@@ -58,6 +54,7 @@ const BookForm = ({ formData, setFormData, onSubmit }: BookFormProps) => {
             <SelectItem value="poetico">Poético</SelectItem>
             <SelectItem value="profetico">Profético</SelectItem>
             <SelectItem value="novo_testamento">Novo Testamento</SelectItem>
+            <SelectItem value="outro">Outro</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -65,7 +62,7 @@ const BookForm = ({ formData, setFormData, onSubmit }: BookFormProps) => {
         <label htmlFor="image">URL da Imagem</label>
         <Input
           id="image"
-          value={formData.image_url}
+          value={formData.image_url || ''}
           onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
         />
       </div>

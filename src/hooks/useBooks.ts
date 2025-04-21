@@ -3,14 +3,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
-interface Book {
-  id: string;
-  title: string;
-  slug: string;
-  book_category: string;
-  image_url?: string;
-}
+import { Book, BookFormData } from '@/types/book';
 
 export const useBooks = () => {
   const queryClient = useQueryClient();
@@ -25,12 +18,12 @@ export const useBooks = () => {
         .select('*')
         .order('title');
       if (error) throw error;
-      return data;
+      return data as Book[];
     }
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newBook: Omit<Book, 'id'>) => {
+    mutationFn: async (newBook: BookFormData) => {
       const { data, error } = await supabase
         .from('bible_books')
         .insert([newBook])
@@ -55,11 +48,16 @@ export const useBooks = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updatedBook: Book) => {
+    mutationFn: async (book: Book) => {
       const { data, error } = await supabase
         .from('bible_books')
-        .update(updatedBook)
-        .eq('id', updatedBook.id)
+        .update({
+          title: book.title,
+          slug: book.slug,
+          book_category: book.book_category,
+          image_url: book.image_url
+        })
+        .eq('id', book.id)
         .select()
         .single();
       if (error) throw error;
