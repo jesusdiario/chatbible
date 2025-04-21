@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   createBrowserRouter,
@@ -6,12 +5,11 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import LivrosDaBiblia from "./pages/LivrosDaBiblia";
-import LivrosDaBibliaBook from "./pages/LivrosDaBibliaBook";
+import Chat from "./pages/Chat";
 import Admin from "./pages/Admin";
 import AdminBooks from "./pages/AdminBooks";
 import AdminPages from "./pages/AdminPages";
 import AdminCategories from "./pages/AdminCategories";
-import { QueryProvider } from "./providers/QueryProvider";
 
 const router = createBrowserRouter([
   {
@@ -24,7 +22,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/livros-da-biblia/:bookSlug",
-    element: <LivrosDaBibliaBook />,
+    element: <Chat />,
   },
   {
     path: "/admin",
@@ -47,9 +45,7 @@ const router = createBrowserRouter([
 function App() {
   return (
     <React.StrictMode>
-      <QueryProvider>
-        <RouterProvider router={router} />
-      </QueryProvider>
+      <RouterProvider router={router} />
     </React.StrictMode>
   );
 }
