@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { bibleAssistants } from "../config/bibleAssistants";
+import { supabase } from "@/integrations/supabase/client";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
@@ -23,17 +22,45 @@ interface ChatData {
   lastAccessed: Date;
 }
 
+// Atualizar a função que obtém as informações do livro
 const LivrosDaBibliaBook = () => {
   const { book } = useParams<{ book?: string }>();
-  const config = book ? bibleAssistants[book] : null;
+  const [bookConfig, setBookConfig] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [chatsData, setChatsData] = useState<Record<string, ChatData>>({});
-  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchBookConfig = async () => {
+      if (!book) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('bible_assistants')
+          .select('*')
+          .eq('slug', book)
+          .single();
+
+        if (error) throw error;
+        setBookConfig(data);
+      } catch (error: any) {
+        toast({
+          title: "Erro ao carregar configuração do livro",
+          description: error.message,
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookConfig();
+  }, [book]);
 
   // Carregar histórico e dados dos chats do localStorage
   useEffect(() => {
@@ -234,8 +261,30 @@ const LivrosDaBibliaBook = () => {
     }
   }, []);
 
-  // Se não for rota de Gênesis, renderza placeholder padrão
-  if (!config) {
+  // Se estiver carregando, mostrar loading
+  if (isLoading) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onApiKeyChange={handleApiKeyChange}
+        />
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+          <ChatHeader 
+            isSidebarOpen={isSidebarOpen} 
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+          <div className="pt-[60px] flex items-center justify-center min-h-[70vh]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Se não encontrou o livro
+  if (!bookConfig) {
     return (
       <div className="flex h-screen">
         <Sidebar 
@@ -320,10 +369,10 @@ const LivrosDaBibliaBook = () => {
         />
         <div className="pt-[60px] p-6">
           <h1 className="text-3xl font-bold mb-4">
-            Converse com {config.title}
+            Converse com {bookConfig.title}
           </h1>
           <div className="rounded shadow text-lg bg-slate-900/60 p-6">
-            (Chat dedicado para {config.title} em breve!)
+            (Chat dedicado para {bookConfig.title} em breve!)
           </div>
         </div>
       </main>
