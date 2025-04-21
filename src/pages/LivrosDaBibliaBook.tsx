@@ -56,6 +56,16 @@ const LivrosDaBibliaBook = () => {
       };
       
       setMessages([...newMessages, assistantMessage]);
+
+      // Save to chat history
+      await supabase.from('chat_history').upsert({
+        title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+        book_slug: book,
+        last_message: assistantMessage.content,
+        last_accessed: new Date().toISOString(),
+        messages: newMessages
+      });
+
     } catch (err: any) {
       const errorMessage: Message = { 
         role: "assistant", 

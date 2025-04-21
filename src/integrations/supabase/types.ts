@@ -48,6 +48,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_history: {
+        Row: {
+          book_slug: string | null
+          created_at: string
+          id: string
+          last_accessed: string
+          last_message: string | null
+          messages: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          book_slug?: string | null
+          created_at?: string
+          id?: string
+          last_accessed?: string
+          last_message?: string | null
+          messages?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          book_slug?: string | null
+          created_at?: string
+          id?: string
+          last_accessed?: string
+          last_message?: string | null
+          messages?: Json | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       message_counts: {
         Row: {
           count: number
