@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -30,119 +29,96 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
   const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // Tempo de reset em milissegundos (30 dias)
   
   useEffect(() => {
-    // Função para buscar ou criar o contador de mensagens do usuário
     const fetchOrCreateMessageCount = async () => {
       try {
         setLoading(true);
-        
-        // Verificar se o usuário está autenticado
+
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          console.log("Usuário não autenticado");
           setLoading(false);
           return;
         }
-        
         const userId = session.user.id;
-        
-        // Buscar o contador de mensagens do usuário
+
+        // Busca ou cria registro em message_counts
         const { data, error } = await supabase
-          .from('message_counts')
+          .from('message_counts' as any)
           .select('*')
           .eq('user_id', userId)
           .single();
-        
+
         if (error && error.code !== 'PGRST116') {
-          // PGRST116 significa que nenhum registro foi encontrado
-          console.error("Erro ao buscar contador de mensagens:", error);
           setLoading(false);
           return;
         }
-        
-        // Se não existir um registro, criar um novo
+
         if (!data) {
           const { data: newData, error: insertError } = await supabase
-            .from('message_counts')
+            .from('message_counts' as any)
             .insert([{ user_id: userId, count: 0, last_reset_time: new Date().toISOString() }])
             .select()
             .single();
-          
+
           if (insertError) {
-            console.error("Erro ao criar contador de mensagens:", insertError);
             setLoading(false);
             return;
           }
-          
           setMessageCount(0);
         } else {
-          // Verificar se é hora de resetar o contador
+          // Resetar se completou período
           const lastResetTime = new Date(data.last_reset_time).getTime();
           const currentTime = Date.now();
           const timeElapsed = currentTime - lastResetTime;
-          
+
           if (timeElapsed >= RESET_TIME) {
-            // Resetar o contador
-            const { error: updateError } = await supabase
-              .from('message_counts')
-              .update({ 
-                count: 0, 
+            await supabase
+              .from('message_counts' as any)
+              .update({
+                count: 0,
                 last_reset_time: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
               .eq('user_id', userId);
-            
-            if (updateError) {
-              console.error("Erro ao resetar contador de mensagens:", updateError);
-            }
-            
             setMessageCount(0);
             setTimeUntilReset(RESET_TIME);
           } else {
-            // Atualizar o contador e o tempo restante
             setMessageCount(data.count);
             setTimeUntilReset(RESET_TIME - timeElapsed);
           }
         }
-        
+
         setLoading(false);
       } catch (error) {
-        console.error("Erro ao processar contador de mensagens:", error);
         setLoading(false);
       }
     };
-    
+
     fetchOrCreateMessageCount();
-    
-    // Atualizar o temporizador a cada minuto
+
+    // Atualiza temporizador (a cada minuto)
     const intervalId = setInterval(() => {
       if (timeUntilReset > 0) {
         setTimeUntilReset(prev => {
           const newTime = prev - 60000;
           if (newTime <= 0) {
-            fetchOrCreateMessageCount(); // Recarregar dados quando o timer zerar
+            fetchOrCreateMessageCount();
             return 0;
           }
           return newTime;
         });
       }
     }, 60000);
-    
+
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line
   }, []);
 
   const handleSubmit = async () => {
     if (message.trim() && !isLoading && !loading) {
       try {
-        // Verificar se o usuário está autenticado
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.log("Usuário não autenticado");
-          return;
-        }
-        
+        if (!session) return;
         const userId = session.user.id;
-        
-        // Verificar se o usuário atingiu o limite de mensagens
         if (messageCount >= MESSAGE_LIMIT) {
           setShowSubscriptionModal(true);
           toast({
@@ -151,30 +127,27 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           });
           return;
         }
-        
-        // Incrementar o contador de mensagens
+
         const newCount = messageCount + 1;
         const { error } = await supabase
-          .from('message_counts')
-          .update({ 
+          .from('message_counts' as any)
+          .update({
             count: newCount,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', userId);
-        
+
         if (error) {
-          console.error("Erro ao atualizar contador de mensagens:", error);
           toast({
             title: "Erro",
-            description: "Ocorreu um erro ao processar sua mensagem. Tente novamente.",
+            description: "Ocorreu um erro ao processar sua mensagem.",
             variant: "destructive"
           });
           return;
         }
-        
+
         setMessageCount(newCount);
-        
-        // Verificar se atingiu o limite após esta mensagem
+
         if (newCount >= MESSAGE_LIMIT) {
           setShowSubscriptionModal(true);
           toast({
@@ -182,12 +155,10 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
             description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens mensais. Faça upgrade para o plano premium.`,
           });
         }
-        
-        // Enviar a mensagem
+
         onSend(message);
         setMessage("");
       } catch (error) {
-        console.error("Erro ao processar envio de mensagem:", error);
         toast({
           title: "Erro",
           description: "Ocorreu um erro ao enviar sua mensagem. Tente novamente.",
