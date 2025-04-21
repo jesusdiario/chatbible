@@ -5,33 +5,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
+import BookForm from '@/components/admin/BookForm';
+import BooksTable from '@/components/admin/BooksTable';
 
 const AdminBooks = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -46,19 +30,6 @@ const AdminBooks = () => {
 
   const queryClient = useQueryClient();
 
-  // Buscar categorias e livros
-  const { data: categories } = useQuery({
-    queryKey: ['bible-categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bible_categories')
-        .select('*')
-        .order('title');
-      if (error) throw error;
-      return data;
-    }
-  });
-
   const { data: books } = useQuery({
     queryKey: ['bible-books'],
     queryFn: async () => {
@@ -71,7 +42,6 @@ const AdminBooks = () => {
     }
   });
 
-  // Mutations para criar, atualizar e deletar livros
   const createMutation = useMutation({
     mutationFn: async (newBook: any) => {
       const { data, error } = await supabase
@@ -207,98 +177,20 @@ const AdminBooks = () => {
                       Preencha os dados do livro abaixo
                     </DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="title">Título</label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="slug">Slug</label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="category">Categoria</label>
-                      <Select
-                        value={formData.book_category}
-                        onValueChange={(value) => setFormData({ ...formData, book_category: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pentateuco">Pentateuco</SelectItem>
-                          <SelectItem value="historico">Histórico</SelectItem>
-                          <SelectItem value="poetico">Poético</SelectItem>
-                          <SelectItem value="profetico">Profético</SelectItem>
-                          <SelectItem value="novo_testamento">Novo Testamento</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="image">URL da Imagem</label>
-                      <Input
-                        id="image"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      />
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">
-                        {editingBook ? 'Salvar' : 'Adicionar'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
+                  <BookForm 
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleSubmit}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {books?.map((book) => (
-                  <TableRow key={book.id}>
-                    <TableCell>{book.title}</TableCell>
-                    <TableCell>{book.slug}</TableCell>
-                    <TableCell>{book.book_category}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(book)}
-                        >
-                          Editar
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDelete(book.id)}
-                        >
-                          Excluir
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <BooksTable 
+              books={books || []}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
       </main>
