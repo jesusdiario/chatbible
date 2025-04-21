@@ -1,4 +1,3 @@
-
 import { Menu, Globe, ChevronDown, Key, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,6 @@ const Sidebar = ({
     onApiKeyChange(newApiKey);
   };
 
-  // Carregar a chave API do localStorage
   useEffect(() => {
     const savedApiKey = localStorage.getItem('openai_api_key');
     if (savedApiKey) {
@@ -47,6 +45,10 @@ const Sidebar = ({
     if (onChatSelect) {
       onChatSelect('new');
     }
+  };
+
+  const goToLivrosDaBiblia = () => {
+    navigate('/livros-da-biblia');
   };
 
   return (
@@ -73,14 +75,16 @@ const Sidebar = ({
                     </div>
                     <span className="text-sm">Nova conversa</span>
                   </div>
-                  <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
+                  <div 
+                    className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
+                    onClick={goToLivrosDaBiblia}
+                  >
                     <div className="h-6 w-6 flex items-center justify-center">
                       <Globe className="h-4 w-4" />
                     </div>
-                    <span className="text-sm">BibleGPT</span>
+                    <span className="text-sm">Livros da Bíblia</span>
                   </div>
                 </div>
-
                 {timeframes.length > 0 && <div className="mt-4 flex flex-col gap-4">
                     {timeframes.map(timeframe => <div key={timeframe.title}>
                         <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>

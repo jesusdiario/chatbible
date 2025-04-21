@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import LivrosDaBiblia from "./pages/LivrosDaBiblia";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +48,11 @@ const App = () => {
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/livros-da-biblia" element={
+              <ProtectedRoute>
+                <LivrosDaBiblia />
               </ProtectedRoute>
             } />
           </Routes>
