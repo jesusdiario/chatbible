@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
@@ -7,8 +6,12 @@ import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
 import MessageList from "@/components/MessageList";
 import EmptyChatState from "@/components/EmptyChatState";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const LivrosDaBibliaBook = () => {
   const { book, slug } = useParams<{ book?: string, slug?: string }>();
@@ -38,7 +41,6 @@ const LivrosDaBibliaBook = () => {
         navigate(`/livros-da-biblia/${book}/${result.slug}`);
       }
 
-      // Refresh chat history
       if (userId) {
         const { data: updatedHistory } = await supabase
           .from('chat_history')
@@ -60,6 +62,11 @@ const LivrosDaBibliaBook = () => {
         }
       }
     } catch (err: any) {
+      toast({
+        title: "Erro",
+        description: err?.message || "Erro inesperado ao enviar mensagem",
+        variant: "destructive",
+      });
       const errorMessage = { 
         role: "assistant" as const, 
         content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
@@ -76,68 +83,82 @@ const LivrosDaBibliaBook = () => {
       return;
     }
 
-    const messages = await loadChatMessages(chatId);
-    if (messages) {
-      setMessages(messages);
+    try {
+      const messages = await loadChatMessages(chatId);
+      if (messages) {
+        setMessages(messages);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar o histórico da conversa",
+        variant: "destructive",
+      });
     }
   };
 
   if (!config) {
     return (
       <div className="flex h-screen flex-col">
-        <Sidebar 
-          isOpen={isSidebarOpen} 
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-          onApiKeyChange={() => {}}
-          chatHistory={chatHistory}
-          onChatSelect={handleChatSelect}
-        />
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-          <ChatHeader 
-            isSidebarOpen={isSidebarOpen}
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        <ErrorBoundary>
+          <Sidebar 
+            isOpen={isSidebarOpen} 
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            onApiKeyChange={() => {}}
+            chatHistory={chatHistory}
+            onChatSelect={handleChatSelect}
+            currentPath={window.location.pathname}
           />
-          <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg px-4">
-            Livro não encontrado.
-          </div>
-        </main>
+          <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+            <ChatHeader 
+              isSidebarOpen={isSidebarOpen}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            />
+            <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg px-4">
+              Livro não encontrado.
+            </div>
+          </main>
+        </ErrorBoundary>
       </div>
     );
   }
 
   return (
     <div className="flex h-screen flex-col md:flex-row">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onApiKeyChange={() => {}}
-        chatHistory={chatHistory}
-        onChatSelect={handleChatSelect}
-        currentPath={window.location.pathname}
-      />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-        <ChatHeader 
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      <ErrorBoundary>
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onApiKeyChange={() => {}}
+          chatHistory={chatHistory}
+          onChatSelect={handleChatSelect}
+          currentPath={window.location.pathname}
         />
-        <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
-          {messages.length === 0 ? (
-            <EmptyChatState
-              title={config.title}
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              bookSlug={book}
-            />
-          ) : (
-            <>
-              <MessageList messages={messages} />
-              <div className="w-full max-w-3xl mx-auto px-4 py-2">
-                <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
-              </div>
-            </>
-          )}
-        </div>
-      </main>
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+          <ChatHeader 
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+          <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
+            {messages.length === 0 ? (
+              <EmptyChatState
+                title={config.title}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+                bookSlug={book}
+              />
+            ) : (
+              <>
+                {isLoading && <LoadingSpinner />}
+                <MessageList messages={messages} />
+                <div className="w-full max-w-3xl mx-auto px-4 py-2">
+                  <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+                </div>
+              </>
+            )}
+          </div>
+        </main>
+      </ErrorBoundary>
     </div>
   );
 };
