@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 
@@ -36,11 +37,25 @@ const Admin = () => {
 
       if (error) {
         console.error('Erro ao verificar papel de admin:', error);
+        toast({
+          title: "Erro de Autorização",
+          description: "Não foi possível verificar suas permissões.",
+          variant: "destructive"
+        });
         setIsAdmin(false);
         return;
       }
 
       setIsAdmin(data);
+
+      // Se não for admin, mostra uma mensagem toast
+      if (!data) {
+        toast({
+          title: "Acesso Negado",
+          description: "Você não tem permissão de administrador.",
+          variant: "destructive"
+        });
+      }
     };
 
     checkAdminRole();
@@ -79,7 +94,7 @@ const Admin = () => {
   });
 
   if (isAdmin === null) {
-    return <div>Carregando...</div>;
+    return <div className="min-h-screen flex items-center justify-center">Verificando permissões...</div>;
   }
 
   if (isAdmin === false) {
