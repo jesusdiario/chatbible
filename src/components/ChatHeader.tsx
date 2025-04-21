@@ -52,7 +52,7 @@ const ChatHeader = ({
   };
 
   return (
-    <header className="fixed top-0 z-30 w-full border-b border-gray-200">
+    <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
       <div className="flex h-[60px] items-center justify-between px-4">
         <div className="flex items-center gap-2">
           {!isSidebarOpen && (
@@ -66,11 +66,15 @@ const ChatHeader = ({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-slate-800">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8 bg-chatgpt-main hover:bg-chatgpt-secondary" // fundo opaco do design system nos botões de perfil
+              >
                 <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-chatgpt-secondary">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleChangePassword}>
