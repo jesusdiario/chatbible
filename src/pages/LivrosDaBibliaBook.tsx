@@ -6,6 +6,7 @@ import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
 import ActionButtons, { ChatContext } from "@/components/ActionButtons";
+import LeviticusActionButtons from "@/components/LeviticusActionButtons";
 import MessageList from "@/components/MessageList";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -88,6 +89,8 @@ const LivrosDaBibliaBook = () => {
     );
   }
 
+  const ActionButtonsComponent = book === 'levitico' ? LeviticusActionButtons : ActionButtons;
+
   return (
     <div className="flex h-screen">
       <Sidebar 
@@ -110,7 +113,7 @@ const LivrosDaBibliaBook = () => {
                 <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
               <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
-                <ActionButtons />
+                <ActionButtonsComponent />
               </ChatContext.Provider>
             </div>
           ) : (
