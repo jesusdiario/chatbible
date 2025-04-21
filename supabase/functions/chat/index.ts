@@ -13,28 +13,25 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, apiKey } = await req.json()
+    const { messages, systemPrompt } = await req.json()
+    
+    const finalMessages = systemPrompt 
+      ? [{ role: 'system', content: systemPrompt }, ...messages]
+      : messages
 
-    if (!apiKey) {
-      throw new Error('API key is required')
-    }
+    console.log('Sending request to OpenAI:', { finalMessages })
 
-    console.log('Sending request to OpenAI:', { messages })
-
-    const response = await fetch('https://api.openai.com/v2/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'OpenAI-Beta': 'assistants=v1'
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-        messages: messages.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content
-        })),
-        max_tokens: 1024,
+        messages: finalMessages,
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     })
 
