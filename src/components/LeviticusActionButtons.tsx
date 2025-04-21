@@ -1,6 +1,6 @@
 
 import React, { useContext } from "react";
-import { Book, MessageSquare, HelpCircle, FileText, Info, QuestionMarkCircle } from "lucide-react";
+import { Book, MessageSquare, HelpCircle, FileText, Info } from "lucide-react";
 import { ChatContext } from "./ActionButtons";
 
 const LeviticusActionButtons = () => {
@@ -69,7 +69,7 @@ const LeviticusActionButtons = () => {
       prompt: "Como o evangelho está presente no livro de Levítico?"
     },
     {
-      icon: <QuestionMarkCircle className="h-4 w-4 text-green-400" />,
+      icon: <HelpCircle className="h-4 w-4 text-green-400" />,
       label: "Custo do pecado",
       prompt: "O que Levítico mostra sobre o peso do pecado diante de Deus?"
     },
