@@ -39,7 +39,7 @@ const ChatHeader = ({
     });
   };
   return <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
-      <div className="flex h-[60px] items-center justify-between px-4">
+      <div className="flex h-[60px] items-center justify-between px-4f">
         <div className="flex items-center gap-2">
           {!isSidebarOpen && onToggleSidebar && <Menu className="h-5 w-5 cursor-pointer" onClick={onToggleSidebar} />}
           <div className="text-xl font-semibold px-2 md:px[50px]">BibleGPT</div>
