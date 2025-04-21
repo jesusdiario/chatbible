@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +14,12 @@ interface ChatData {
   lastAccessed: Date;
 }
 
+interface ChatHistory {
+  id: string;
+  title: string;
+  lastAccessed: Date;
+}
+
 export const useChat = (apiKey: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -26,7 +31,13 @@ export const useChat = (apiKey: string) => {
     setMessages([]);
   };
 
-  const saveCurrentChat = (chatId: string, messageList: Message[], chatsData: Record<string, ChatData>, setChatsData: (data: Record<string, ChatData>) => void, setChatHistory: (fn: (prev: any[]) => any[]) => void) => {
+  const saveCurrentChat = (
+    chatId: string, 
+    messageList: Message[], 
+    chatsData: Record<string, ChatData>, 
+    setChatsData: (data: Record<string, ChatData>) => void, 
+    setChatHistory: React.Dispatch<React.SetStateAction<ChatHistory[]>>
+  ) => {
     if (messageList.length === 0) return;
     
     const firstUserMessage = messageList.find(msg => msg.role === 'user');
