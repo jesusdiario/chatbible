@@ -1,5 +1,5 @@
 
-import { Menu, CreditCard, User, Key, Trash2 } from "lucide-react";
+import { Settings, Menu, CreditCard, Key, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -53,25 +53,32 @@ const ChatHeader = ({
 
   return (
     <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
-      <div className="flex h-[60px] items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+      <div className="flex h-[60px] items-center px-4">
+        <div className="flex flex-1 items-center gap-4">
           {!isSidebarOpen && onToggleSidebar && (
-            <Menu 
-              className="h-5 w-5 cursor-pointer" 
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-9 w-9"
               onClick={onToggleSidebar}
-            />
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           )}
-          <div className="text-xl font-semibold px-2 md:px-[50px]">BibleGPT</div>
+          <div className={`text-xl font-semibold transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+            BibleGPT
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-8 w-8 bg-chatgpt-main hover:bg-chatgpt-secondary"
+                className="h-9 w-9"
               >
-                <User className="h-4 w-4" />
+                <Settings className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-chatgpt-secondary">
