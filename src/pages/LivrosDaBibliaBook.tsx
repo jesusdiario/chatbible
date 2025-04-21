@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { bibleAssistants } from "../config/bibleAssistants";
 import ChatHeader from "@/components/ChatHeader";
@@ -31,6 +31,49 @@ const LivrosDaBibliaBook = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [chatHistory, setChatHistory] = useState([]);
+
+  // Fetch current user session when component mounts
+  useEffect(() => {
+    const fetchUserSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+      }
+    };
+    
+    fetchUserSession();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUserId(session?.user ? session.user.id : null);
+      }
+    );
+    
+    // Fetch chat history
+    const loadChatHistory = async () => {
+      if (userId) {
+        const { data } = await supabase
+          .from('chat_history')
+          .select('*')
+          .order('last_accessed', { ascending: false });
+        
+        if (data) {
+          setChatHistory(data);
+        }
+      }
+    };
+    
+    if (userId) {
+      loadChatHistory();
+    }
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [userId]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -57,14 +100,17 @@ const LivrosDaBibliaBook = () => {
       
       setMessages([...newMessages, assistantMessage]);
 
-      // Save to chat history
-      await supabase.from('chat_history').upsert({
-        title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-        book_slug: book,
-        last_message: assistantMessage.content,
-        last_accessed: new Date().toISOString(),
-        messages: newMessages
-      });
+      // Save to chat history only if we have a user ID
+      if (userId) {
+        await supabase.from('chat_history').upsert({
+          user_id: userId,
+          title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+          book_slug: book,
+          last_message: assistantMessage.content,
+          last_accessed: new Date().toISOString(),
+          messages: [...newMessages, assistantMessage]
+        });
+      }
 
     } catch (err: any) {
       const errorMessage: Message = { 
@@ -85,7 +131,7 @@ const LivrosDaBibliaBook = () => {
           isOpen={isSidebarOpen} 
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
           onApiKeyChange={() => {}}
-          chatHistory={[]}
+          chatHistory={chatHistory}
         />
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <ChatHeader 
@@ -107,7 +153,7 @@ const LivrosDaBibliaBook = () => {
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onApiKeyChange={() => {}}
-        chatHistory={[]}
+        chatHistory={chatHistory}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader 
