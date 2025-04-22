@@ -36,15 +36,29 @@ const LivrosDaBiblia = () => {
     queryFn: getBibleBooks
   });
 
+  // Debug log to see what's being returned from the API
+  console.log("Categories:", categories);
+  console.log("Books:", books);
+
   // Normalize slugs for comparison
   const normalizeSlug = (slug: string) => 
     slug.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   // Group books by category with normalized slugs
   const booksByCategory: Record<string, BibleBook[]> = {};
+  
+  // Initialize empty arrays for all categories first to ensure all categories appear
+  // even if they don't have books yet
+  categories.forEach(category => {
+    const normalizedCategorySlug = normalizeSlug(category.slug);
+    booksByCategory[normalizedCategorySlug] = [];
+  });
+  
+  // Now add all books to their respective categories
   books.forEach(book => {
     const normalizedCategorySlug = normalizeSlug(book.category_slug);
     if (!booksByCategory[normalizedCategorySlug]) {
+      // If category wasn't initialized above, create it now
       booksByCategory[normalizedCategorySlug] = [];
     }
     booksByCategory[normalizedCategorySlug].push(book);
@@ -174,15 +188,19 @@ const LivrosDaBiblia = () => {
               {categories.map(category => {
                 const normalizedSlug = normalizeSlug(category.slug);
                 const categoryBooks = booksByCategory[normalizedSlug] || [];
-                if (categoryBooks.length === 0) return null;
                 
+                // Sempre renderize a categoria, mesmo que não tenha livros
                 return (
                   <section key={category.slug} className="mb-12">
                     <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
                     {category.description && (
                       <p className="text-gray-300 mb-6">{category.description}</p>
                     )}
-                    {renderBookList(categoryBooks)}
+                    {categoryBooks.length > 0 ? (
+                      renderBookList(categoryBooks)
+                    ) : (
+                      <p className="text-gray-400">Nenhum livro cadastrado para esta categoria.</p>
+                    )}
                   </section>
                 );
               })}
