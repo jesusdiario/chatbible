@@ -36,13 +36,13 @@ const LivrosDaBiblia = () => {
     queryFn: getBibleBooks
   });
 
-  // Debug log to see what's being returned from the API
-  console.log("Categories:", categories);
-  console.log("Books:", books);
+  // Debug logs to see what's being returned from the API
+  console.log("Categories:", categories.map(c => ({ slug: c.slug, title: c.title })));
+  console.log("Books:", books.map(b => ({ slug: b.slug, category_slug: b.category_slug })));
 
-  // Normalize slugs for comparison
+  // Normalize slugs for comparison - make sure this handles accents correctly
   const normalizeSlug = (slug: string) => 
-    slug.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    slug?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   // Group books by category with normalized slugs
   const booksByCategory: Record<string, BibleBook[]> = {};
@@ -63,6 +63,13 @@ const LivrosDaBiblia = () => {
     }
     booksByCategory[normalizedCategorySlug].push(book);
   });
+
+  // Debug log which categories have books
+  console.log('Categories slugs:', categories.map(c => normalizeSlug(c.slug)));
+  console.log('Books by category keys:', Object.keys(booksByCategory));
+  console.log('Books by category entries:', Object.entries(booksByCategory).map(([key, books]) => 
+    ({ key, count: books.length })
+  ));
 
   // Sort books within each category by display_order
   Object.keys(booksByCategory).forEach(categorySlug => {
