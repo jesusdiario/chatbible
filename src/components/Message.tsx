@@ -1,11 +1,9 @@
-
 import { FC } from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '@/types/chat';
-import { ReadAloudButton } from './ReadAloudButton';
 
 interface MessageProps extends MessageType {
   isTyping?: boolean;
@@ -21,7 +19,7 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
             role === 'user' 
               ? 'bg-gray-700/50 rounded-[20px] px-4 py-2 inline-block hover:bg-gray-700/70 transition-all duration-200' 
               : 'prose prose-invert max-w-none'
-          } flex items-center`}>
+          }`}>
             {role === 'user' ? (
               content
             ) : (
@@ -70,7 +68,6 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
                 {isTyping && (
                   <span className="inline-block w-2 h-4 ml-1 -mb-1 bg-white animate-blink" />
                 )}
-                <ReadAloudButton text={content} />
               </>
             )}
           </div>
