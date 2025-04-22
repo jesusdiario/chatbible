@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useBibleCategories } from "@/hooks/useBibleCategories";
 
 interface BooksTableProps {
   books: any[];
@@ -17,14 +16,6 @@ interface BooksTableProps {
 }
 
 export function BooksTable({ books, onEdit, onDelete }: BooksTableProps) {
-  const { data: categories } = useBibleCategories();
-  
-  // Função para obter o título da categoria com base no slug
-  const getCategoryTitle = (categorySlug: string) => {
-    const category = categories?.find(cat => cat.slug === categorySlug);
-    return category?.title || categorySlug;
-  };
-
   return (
     <Table>
       <TableHeader>
@@ -41,7 +32,7 @@ export function BooksTable({ books, onEdit, onDelete }: BooksTableProps) {
           <TableRow key={book.id}>
             <TableCell>{book.title}</TableCell>
             <TableCell>{book.slug}</TableCell>
-            <TableCell>{getCategoryTitle(book.book_category)}</TableCell>
+            <TableCell>{book.book_category}</TableCell>
             <TableCell>{book.display_order}</TableCell>
             <TableCell>
               <div className="flex space-x-2">
