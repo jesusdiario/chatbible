@@ -1,9 +1,7 @@
-
 import React from 'react';
 import ChatInput from '@/components/ChatInput';
 import ActionButtons, { ChatContext } from '@/components/ActionButtons';
-import LeviticusActionButtons from '@/components/LeviticusActionButtons';
-import ExodusActionButtons from '@/components/ExodusActionButtons';
+import BookActionButtons from '@/components/BookActionButtons';
 
 interface EmptyChatStateProps {
   title: string;
@@ -13,18 +11,8 @@ interface EmptyChatStateProps {
 }
 
 const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
-  const getActionButtonsComponent = () => {
-    switch (bookSlug) {
-      case 'levitico':
-        return LeviticusActionButtons;
-      case 'exodo':
-        return ExodusActionButtons;
-      default:
-        return ActionButtons;
-    }
-  };
-
-  const ActionButtonsComponent = getActionButtonsComponent();
+  // Use the BookActionButtons component if we have a bookSlug
+  const ActionButtonsComponent = bookSlug ? BookActionButtons : ActionButtons;
 
   return (
     <div className="w-full max-w-3xl px-4 space-y-4">
@@ -35,7 +23,7 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
         <ChatInput onSend={onSendMessage} isLoading={isLoading} />
       </div>
       <ChatContext.Provider value={{ sendMessage: onSendMessage }}>
-        <ActionButtonsComponent />
+        <ActionButtonsComponent bookSlug={bookSlug} />
       </ChatContext.Provider>
     </div>
   );

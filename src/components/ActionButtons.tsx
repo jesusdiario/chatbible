@@ -1,13 +1,11 @@
-
 import React, { useContext } from "react";
 import { BookOpenText, MessageSquare, Grid, Book } from "lucide-react";
 
-// Criando um contexto para expor a função de envio de mensagem
 export interface ChatContext {
-  sendMessage?: (content: string) => void;
+  sendMessage?: (content: string, promptOverride?: string) => void;
 }
 
-// Use este contexto onde você precisa acessar a função sendMessage
+// Use this context where you need to access the sendMessage function
 export const ChatContext = React.createContext<ChatContext>({});
 
 const ActionButtons = () => {

@@ -18,12 +18,13 @@ export const sendChatMessage = async (
   messages: Message[],
   book?: string,
   userId?: string,
-  slug?: string
+  slug?: string,
+  promptOverride?: string
 ): Promise<SendMessageResponse> => {
   const userMessage: Message = { role: "user", content };
   const newMessages = [...messages, userMessage];
   
-  const systemPrompt = await getPromptForBook(book);
+  const systemPrompt = promptOverride || await getPromptForBook(book);
 
   const { data, error } = await supabase.functions.invoke('chat', {
     body: { 
