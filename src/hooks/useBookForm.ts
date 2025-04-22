@@ -1,9 +1,12 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
+import { Database } from '@/integrations/supabase/types';
 
-type BookCategory = 'pentateuco' | 'historico' | 'poetico' | 'profetico' | 'novo_testamento' | 'outro';
+// Use the correct type from the Database types
+type BookCategory = Database["public"]["Enums"]["book_category"];
 
 interface BookFormData {
   title: string;
@@ -29,7 +32,7 @@ export function useBookForm() {
     mutationFn: async (newBook: BookFormData) => {
       const { data, error } = await supabase
         .from('bible_books')
-        .insert([{ ...newBook }])
+        .insert([newBook])
         .select()
         .single();
       if (error) throw error;
@@ -53,7 +56,7 @@ export function useBookForm() {
     mutationFn: async (updatedBook: BookFormData) => {
       const { data, error } = await supabase
         .from('bible_books')
-        .update({ ...updatedBook })
+        .update(updatedBook)
         .eq('id', editingBook.id)
         .select()
         .single();

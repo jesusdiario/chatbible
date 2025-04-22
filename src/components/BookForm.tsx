@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/select";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { toast } from "@/hooks/use-toast";
+import { Database } from '@/integrations/supabase/types';
+
+type BookCategory = Database["public"]["Enums"]["book_category"];
 
 interface BookFormProps {
   formData: any;
@@ -64,7 +67,7 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
         <label htmlFor="category">Categoria</label>
         <Select
           value={formData.book_category}
-          onValueChange={(value) => setFormData({ ...formData, book_category: value })}
+          onValueChange={(value: BookCategory) => setFormData({ ...formData, book_category: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione uma categoria" />
@@ -75,7 +78,9 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
             <SelectItem value="poetico">Poético</SelectItem>
             <SelectItem value="profetico">Profético</SelectItem>
             <SelectItem value="novo_testamento">Novo Testamento</SelectItem>
-            <SelectItem value="outro">Outro</SelectItem>
+            <SelectItem value="cartas_paulinas">Cartas Paulinas</SelectItem>
+            <SelectItem value="cartas_gerais">Cartas Gerais</SelectItem>
+            <SelectItem value="apocalipse">Apocalipse</SelectItem>
           </SelectContent>
         </Select>
       </div>
