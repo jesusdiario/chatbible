@@ -1,3 +1,4 @@
+
 import { FC } from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
@@ -7,11 +8,11 @@ import { Message as MessageType } from '@/types/chat';
 
 const Message: FC<MessageType> = ({ role, content }) => {
   return (
-    <div className="py-6">
+    <div className="py-6 animate-fade-in">
       <div className={`flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}`}>
         <MessageAvatar isAssistant={role === 'assistant'} />
         <div className={`flex-1 space-y-2 ${role === 'user' ? 'flex justify-end' : ''}`}>
-          <div className={`${role === 'user' ? 'bg-gray-700/50 rounded-[20px] px-4 py-2 inline-block' : 'prose prose-invert max-w-none'}`}>
+          <div className={`${role === 'user' ? 'bg-gray-700/50 rounded-[20px] px-4 py-2 inline-block hover:bg-gray-700/70 transition-all duration-200' : 'prose prose-invert max-w-none'}`}>
             {role === 'user' ? (
               content
             ) : (
@@ -32,7 +33,17 @@ const Message: FC<MessageType> = ({ role, content }) => {
                         {children}
                       </code>
                     ) : (
-                      <pre className="bg-gray-800 p-4 rounded-md overflow-x-auto my-4">
+                      <pre className="bg-gray-800 p-4 rounded-md overflow-x-auto my-4 group relative">
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(String(children))}
+                          className="absolute top-2 right-2 bg-gray-700 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Copiar código"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                        </button>
                         <code className={className} {...props}>
                           {children}
                         </code>

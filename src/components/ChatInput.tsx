@@ -10,9 +10,10 @@ import MessageCounter from "@/components/MessageCounter";
 interface ChatInputProps {
   onSend: (message: string) => void;
   isLoading?: boolean;
+  bookSlug?: string;
 }
 
-const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = React.useState(false);
   const { toast } = useToast();
   const { 
@@ -86,6 +87,7 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
       <ChatMessageInput 
         onSend={handleSubmit}
         isLoading={isLoading || countLoading}
+        bookSlug={bookSlug}
       />
       <MessageCounter 
         currentCount={messageCount}

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -20,6 +19,7 @@ const LivrosDaBibliaBook = () => {
   const [bookDetails, setBookDetails] = useState<{ title: string } | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const [loadingBook, setLoadingBook] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -62,8 +62,21 @@ const LivrosDaBibliaBook = () => {
     setMessages(prevMessages => [...prevMessages, userMessage]);
     
     try {
-      const result = await sendChatMessage(content, messages, book, userId || undefined, slug);
-      setMessages(result.messages);
+      setIsTyping(true);
+      
+      const assistantMessage: Message = { role: "assistant", content: "" };
+      setMessages(prevMsgs => [...prevMsgs, assistantMessage]);
+      
+      const result = await sendChatMessage(content, messages.slice(0, -1), book, userId || undefined, slug);
+      
+      setMessages(prevMsgs => {
+        const newMsgs = [...prevMsgs];
+        newMsgs[newMsgs.length - 1] = { 
+          role: "assistant", 
+          content: result.messages[result.messages.length - 1].content 
+        };
+        return newMsgs;
+      });
       
       if (!slug && book) {
         navigate(`/livros-da-biblia/${book}/${result.slug}`);
@@ -95,13 +108,17 @@ const LivrosDaBibliaBook = () => {
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      const errorMessage: Message = { 
-        role: "assistant", 
-        content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
-      };
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages(prevMsgs => {
+        const newMsgs = [...prevMsgs];
+        newMsgs[newMsgs.length - 1] = { 
+          role: "assistant", 
+          content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
+        };
+        return newMsgs;
+      });
     } finally {
       setIsLoading(false);
+      setIsTyping(false);
     }
   };
 
@@ -203,10 +220,12 @@ const LivrosDaBibliaBook = () => {
               />
             ) : (
               <>
-                {isLoading && <LoadingSpinner />}
-                <MessageList messages={messages} />
+                <MessageList messages={messages} isTyping={isTyping} />
                 <div className="w-full max-w-3xl mx-auto px-4 py-2">
-                  <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+                  <ChatInput 
+                    onSend={handleSendMessage} 
+                    isLoading={isLoading} 
+                  />
                 </div>
               </>
             )}

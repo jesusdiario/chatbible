@@ -21,7 +21,7 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
         <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
           Converse sobre {title}
         </h1>
-        <ChatInput onSend={onSendMessage} isLoading={isLoading} />
+        <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />
       </div>
       <ChatContext.Provider value={{ sendMessage: onSendMessage }}>
         <ActionButtonsComponent bookSlug={bookSlug} />
