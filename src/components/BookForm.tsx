@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,8 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 interface BookFormProps {
   formData: any;
@@ -20,36 +18,24 @@ interface BookFormProps {
 }
 
 export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookFormProps) {
-  const handleFileUpload = async (file: File, bookSlug: string) => {
-    try {
-      const fileName = `${bookSlug}-${Date.now()}.${file.name.split('.').pop()}`;
-      const { data, error } = await supabase
-        .storage
-        .from('covers')
-        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+  const uploadMutation = useFileUpload();
 
-      if (error) {
-        throw error;
-      }
-
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('covers')
-        .getPublicUrl(data.path);
-
-      await supabase
-        .from('bible_books')
-        .update({ image_url: publicUrl })
-        .eq('slug', bookSlug);
-
-      toast({ title: "Sucesso", description: "Capa atualizada com sucesso!" });
-    } catch (error: any) {
+  const handleFileUpload = async (file: File) => {
+    if (!formData.slug) {
       toast({ 
         title: "Erro", 
-        description: `Erro ao fazer upload da capa: ${error.message}`,
+        description: "Por favor, preencha o slug antes de fazer upload da capa",
         variant: "destructive"
       });
+      return;
     }
+
+    const publicUrl = await uploadMutation.mutateAsync({
+      file,
+      bookSlug: formData.slug
+    });
+
+    setFormData({ ...formData, image_url: publicUrl });
   };
 
   return (
@@ -87,6 +73,7 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
             <SelectItem value="poetico">Poético</SelectItem>
             <SelectItem value="profetico">Profético</SelectItem>
             <SelectItem value="novo_testamento">Novo Testamento</SelectItem>
+            <SelectItem value="outro">Outro</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -98,8 +85,8 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
           accept="image/*"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file && formData.slug) {
-              handleFileUpload(file, formData.slug);
+            if (file) {
+              handleFileUpload(file);
             }
           }}
         />
