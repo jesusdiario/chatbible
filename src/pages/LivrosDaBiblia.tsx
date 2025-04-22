@@ -14,6 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Card, CardContent } from "@/components/ui/card";
 
 const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -49,12 +50,9 @@ const LivrosDaBiblia = () => {
     booksByCategory[normalizedCategorySlug].push(book);
   });
 
-  // Sort books within each category
-  categories.forEach(cat => {
-    const normalizedSlug = normalizeSlug(cat.slug);
-    if (booksByCategory[normalizedSlug]) {
-      booksByCategory[normalizedSlug].sort((a, b) => a.display_order - b.display_order);
-    }
+  // Sort books within each category by display_order
+  Object.keys(booksByCategory).forEach(categorySlug => {
+    booksByCategory[categorySlug].sort((a, b) => a.display_order - b.display_order);
   });
 
   if (catError || booksError) {
@@ -82,7 +80,7 @@ const LivrosDaBiblia = () => {
   }
 
   const renderBookList = (categoryBooks: BibleBook[]) => {
-    const useCarousel = categoryBooks.length > 4;
+    const useCarousel = categoryBooks.length > 6;
 
     if (useCarousel) {
       return (
@@ -97,7 +95,7 @@ const LivrosDaBiblia = () => {
             >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {categoryBooks.map((book) => (
-                  <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4">
+                  <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/4 lg:basis-1/6">
                     <Link
                       to={`/livros-da-biblia/${book.slug}`}
                       className="block group"
@@ -128,7 +126,7 @@ const LivrosDaBiblia = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
         {categoryBooks.map((book) => (
           <Link
             key={book.slug}
@@ -181,6 +179,9 @@ const LivrosDaBiblia = () => {
                 return (
                   <section key={category.slug} className="mb-12">
                     <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
+                    {category.description && (
+                      <p className="text-gray-300 mb-6">{category.description}</p>
+                    )}
                     {renderBookList(categoryBooks)}
                   </section>
                 );
