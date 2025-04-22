@@ -8,7 +8,9 @@ const categorySlugMap: Record<string, string> = {
   'novo_testamento': 'novo-testamento',
   'cartas_paulinas': 'cartas-paulinas',
   'cartas_gerais': 'cartas-gerais',
-  'apocalipse': 'apocalipse'
+  'apocalipse': 'apocalipse',
+  'poetico': 'poeticos',
+  'profetico': 'profeticos'
 };
 
 // Normaliza slugs para comparação
