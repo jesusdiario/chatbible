@@ -10,8 +10,10 @@ export interface BibleCategory {
 export interface BibleBook {
   slug: string;
   title: string;
-  image_url: string;
-  category_slug: string;
+  image_url: string | null;
+  category_slug?: string;  // Make optional to accommodate both structures
+  book_category?: string;  // Added to match Supabase schema
+  category_id?: string;    // Added to match Supabase schema
   display_order?: number;
 }
 
@@ -32,7 +34,7 @@ export async function getBibleCategories(): Promise<BibleCategory[]> {
 export async function getBibleBooks(): Promise<BibleBook[]> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*')
+    .select('*, bible_categories(slug)')
     .order('display_order', { ascending: true });
 
   if (error) {
@@ -40,13 +42,19 @@ export async function getBibleBooks(): Promise<BibleBook[]> {
     throw error;
   }
 
-  return data || [];
+  // Transform the data to include category_slug from the joined table
+  const transformedData = data.map(book => ({
+    ...book,
+    category_slug: book.bible_categories?.slug || book.book_category
+  }));
+
+  return transformedData;
 }
 
 export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*')
+    .select('*, bible_categories(slug)')
     .eq('slug', slug)
     .single();
 
@@ -59,5 +67,11 @@ export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null
     throw error;
   }
 
-  return data;
+  // Transform the data to include category_slug
+  const book = data ? {
+    ...data,
+    category_slug: data.bible_categories?.slug || data.book_category
+  } : null;
+
+  return book;
 }
