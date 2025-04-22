@@ -33,7 +33,7 @@ export async function getBibleCategories(): Promise<BibleCategory[]> {
 export async function getBibleBooks(): Promise<BibleBook[]> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('slug, title, image_url, category_slug, display_order')
+    .select('slug, title, image_url, book_category as category_slug, display_order')
     .order('display_order', { ascending: true });
 
   if (error) {
@@ -47,7 +47,7 @@ export async function getBibleBooks(): Promise<BibleBook[]> {
 export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('slug, title, image_url, category_slug, display_order')
+    .select('slug, title, image_url, book_category as category_slug, display_order')
     .eq('slug', slug)
     .single();
 

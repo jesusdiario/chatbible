@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,12 +40,12 @@ const AdminBooks = () => {
     title: '',
     slug: '',
     book_category: 'pentateuco',
-    image_url: ''
+    image_url: '',
+    display_order: 0
   });
 
   const queryClient = useQueryClient();
 
-  // Buscar categorias e livros
   const { data: categories } = useQuery({
     queryKey: ['bible-categories'],
     queryFn: async () => {
@@ -71,7 +70,6 @@ const AdminBooks = () => {
     }
   });
 
-  // Mutations para criar, atualizar e deletar livros
   const createMutation = useMutation({
     mutationFn: async (newBook: any) => {
       const { data, error } = await supabase
@@ -160,7 +158,8 @@ const AdminBooks = () => {
       title: book.title,
       slug: book.slug,
       book_category: book.book_category,
-      image_url: book.image_url || ''
+      image_url: book.image_url || '',
+      display_order: book.display_order || 0
     });
     setIsAddDialogOpen(true);
   };
@@ -176,7 +175,8 @@ const AdminBooks = () => {
       title: '',
       slug: '',
       book_category: 'pentateuco',
-      image_url: ''
+      image_url: '',
+      display_order: 0
     });
   };
 
@@ -252,6 +252,16 @@ const AdminBooks = () => {
                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <label htmlFor="display_order">Ordem de Exibição</label>
+                      <Input
+                        id="display_order"
+                        type="number"
+                        value={formData.display_order}
+                        onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                        required
+                      />
+                    </div>
                     <DialogFooter>
                       <Button type="submit">
                         {editingBook ? 'Salvar' : 'Adicionar'}
@@ -268,6 +278,7 @@ const AdminBooks = () => {
                   <TableHead>Título</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Ordem</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -277,6 +288,7 @@ const AdminBooks = () => {
                     <TableCell>{book.title}</TableCell>
                     <TableCell>{book.slug}</TableCell>
                     <TableCell>{book.book_category}</TableCell>
+                    <TableCell>{book.display_order}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button 
