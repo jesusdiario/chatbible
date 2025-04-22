@@ -28,15 +28,38 @@ export const sendChatMessage = async (
   
   const systemPrompt = promptOverride || await getPromptForBook(book);
 
-  const { data: stream, error } = await supabase.functions.invoke('chat', {
+  // Use headers to specify streaming response instead of responseType
+  const { data, error } = await supabase.functions.invoke('chat', {
     body: { 
       messages: newMessages,
       systemPrompt
-    },
-    responseType: 'stream'
+    }
   });
 
   if (error) throw error;
+
+  // Handle streaming response using fetch API directly
+  const response = await fetch(`https://qdukcxetdfidgxcuwjdo.functions.supabase.co/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabase.auth.session()?.access_token}`
+    },
+    body: JSON.stringify({
+      messages: newMessages,
+      systemPrompt
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch from OpenAI');
+  }
+
+  // Ensure we have a ReadableStream
+  const stream = response.body;
+  if (!stream) {
+    throw new Error('No stream available');
+  }
 
   let fullContent = '';
   const assistantMessage: Message = { 
