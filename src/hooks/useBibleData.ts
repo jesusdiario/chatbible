@@ -6,6 +6,9 @@ import { getBibleCategories, getBibleBooks, BibleCategory, BibleBook } from '@/s
 const categorySlugMap: Record<string, string> = {
   'historico': 'historicos',
   'novo_testamento': 'novo-testamento',
+  'cartas_paulinas': 'cartas-paulinas',
+  'cartas_gerais': 'cartas-gerais',
+  'apocalipse': 'apocalipse'
 };
 
 // Normaliza slugs para comparação
@@ -46,15 +49,22 @@ export const useBibleData = () => {
   books.forEach(book => {
     let normalizedCategorySlug = normalizeSlug(book.category_slug);
     
+    // Aplica mapeamento se existir no dicionário de correção
     if (categorySlugMap[book.category_slug]) {
       normalizedCategorySlug = normalizeSlug(categorySlugMap[book.category_slug]);
     }
     
     if (!booksByCategory[normalizedCategorySlug]) {
+      // Se a categoria ainda não existir no objeto, inicializa
       booksByCategory[normalizedCategorySlug] = [];
     }
     booksByCategory[normalizedCategorySlug].push(book);
   });
+
+  // Adiciona logs para debug
+  console.log("Categorias disponíveis:", categories.map(c => c.slug));
+  console.log("Livros por categoria:", booksByCategory);
+  console.log("Mapeamento de categoria:", categorySlugMap);
 
   // Ordena livros dentro de cada categoria por display_order
   Object.keys(booksByCategory).forEach(categorySlug => {
