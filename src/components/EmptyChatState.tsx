@@ -3,6 +3,7 @@ import React from 'react';
 import ChatInput from '@/components/ChatInput';
 import ActionButtons, { ChatContext } from '@/components/ActionButtons';
 import LeviticusActionButtons from '@/components/LeviticusActionButtons';
+import ExodusActionButtons from '@/components/ExodusActionButtons';
 
 interface EmptyChatStateProps {
   title: string;
@@ -12,7 +13,18 @@ interface EmptyChatStateProps {
 }
 
 const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
-  const ActionButtonsComponent = bookSlug === 'levitico' ? LeviticusActionButtons : ActionButtons;
+  const getActionButtonsComponent = () => {
+    switch (bookSlug) {
+      case 'levitico':
+        return LeviticusActionButtons;
+      case 'exodo':
+        return ExodusActionButtons;
+      default:
+        return ActionButtons;
+    }
+  };
+
+  const ActionButtonsComponent = getActionButtonsComponent();
 
   return (
     <div className="w-full max-w-3xl px-4 space-y-4">

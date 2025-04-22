@@ -116,6 +116,30 @@ export type Database = {
         }
         Relationships: []
       }
+      bible_prompts: {
+        Row: {
+          book_slug: string
+          created_at: string | null
+          id: string
+          prompt_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          book_slug: string
+          created_at?: string | null
+          id?: string
+          prompt_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          book_slug?: string
+          created_at?: string | null
+          id?: string
+          prompt_text?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           book_slug: string | null

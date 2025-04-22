@@ -1,14 +1,16 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Message, SendMessageResponse, ChatHistoryRecord } from '@/types/chat';
 
-export const BIBLE_PROMPTS: Record<string, string> = {
-  genesis: `Você é um especialista no livro de Gênesis da Bíblia. 
-Seu papel é ajudar os usuários a entender este livro, suas histórias, significados e implicações teológicas.
-Sempre baseie suas respostas no conteúdo Bíblico e entendimento acadêmico.
-Seja conciso, claro e preciso em suas respostas.
-Se não tiver certeza sobre algo, admita e sugira verificar com outras fontes.
-Mantenha sempre um tom respeitoso e educacional.`,
+export const getPromptForBook = async (bookSlug?: string): Promise<string | null> => {
+  if (!bookSlug) return null;
+
+  const { data: prompt } = await supabase
+    .from('bible_prompts')
+    .select('prompt_text')
+    .eq('book_slug', bookSlug)
+    .single();
+
+  return prompt?.prompt_text || null;
 };
 
 export const sendChatMessage = async (
@@ -20,11 +22,13 @@ export const sendChatMessage = async (
 ): Promise<SendMessageResponse> => {
   const userMessage: Message = { role: "user", content };
   const newMessages = [...messages, userMessage];
+  
+  const systemPrompt = await getPromptForBook(book);
 
   const { data, error } = await supabase.functions.invoke('chat', {
     body: { 
       messages: newMessages,
-      systemPrompt: book ? BIBLE_PROMPTS[book] : undefined
+      systemPrompt
     }
   });
 
