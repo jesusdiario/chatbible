@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
-import ChatInput from "@/components/ChatInput";
-import MessageList from "@/components/MessageList";
-import EmptyChatState from "@/components/EmptyChatState";
+import ChatHeader from "@/components/ChatHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import BookLoadingState from "@/components/BookLoadingState";
+import BookErrorState from "@/components/BookErrorState";
+import BookChat from "@/components/BookChat";
+import { useBibleBook } from "@/hooks/useBibleBook";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
-import { getBibleBookBySlug } from "@/services/bibleService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Message } from "@/types/chat";
 
 const LivrosDaBibliaBook = () => {
   const { book, slug } = useParams<{ book?: string, slug?: string }>();
-  const [bookDetails, setBookDetails] = useState<{ title: string } | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
-  const [loadingBook, setLoadingBook] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
-
+  
+  const { bookDetails, loadingBook } = useBibleBook(book);
   const {
     messages,
     setMessages,
@@ -31,28 +30,6 @@ const LivrosDaBibliaBook = () => {
     chatHistory,
     setChatHistory
   } = useChatState({ book, slug });
-
-  useEffect(() => {
-    const fetchBookDetails = async () => {
-      if (!book) return;
-      
-      try {
-        setLoadingBook(true);
-        const bookData = await getBibleBookBySlug(book);
-        if (bookData) {
-          setBookDetails(bookData);
-        } else {
-          console.error("Book not found:", book);
-        }
-      } catch (error) {
-        console.error("Error fetching book details:", error);
-      } finally {
-        setLoadingBook(false);
-      }
-    };
-
-    fetchBookDetails();
-  }, [book]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -143,55 +120,17 @@ const LivrosDaBibliaBook = () => {
   };
 
   if (loadingBook) {
-    return (
-      <div className="flex h-screen flex-col">
-        <ErrorBoundary>
-          <Sidebar 
-            isOpen={isSidebarOpen} 
-            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-            onApiKeyChange={() => {}}
-            chatHistory={chatHistory}
-            onChatSelect={handleChatSelect}
-            currentPath={window.location.pathname}
-          />
-          <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-            <ChatHeader 
-              isSidebarOpen={isSidebarOpen}
-              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            />
-            <div className="pt-[60px] flex items-center justify-center min-h-[70vh]">
-              <LoadingSpinner />
-            </div>
-          </main>
-        </ErrorBoundary>
-      </div>
-    );
+    return <BookLoadingState 
+      isSidebarOpen={isSidebarOpen} 
+      onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+    />;
   }
 
   if (!bookDetails) {
-    return (
-      <div className="flex h-screen flex-col">
-        <ErrorBoundary>
-          <Sidebar 
-            isOpen={isSidebarOpen} 
-            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-            onApiKeyChange={() => {}}
-            chatHistory={chatHistory}
-            onChatSelect={handleChatSelect}
-            currentPath={window.location.pathname}
-          />
-          <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-            <ChatHeader 
-              isSidebarOpen={isSidebarOpen}
-              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            />
-            <div className="pt-[60px] flex items-center justify-center min-h-[70vh] text-lg px-4">
-              Livro não encontrado.
-            </div>
-          </main>
-        </ErrorBoundary>
-      </div>
-    );
+    return <BookErrorState 
+      isSidebarOpen={isSidebarOpen} 
+      onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+    />;
   }
 
   return (
@@ -210,26 +149,14 @@ const LivrosDaBibliaBook = () => {
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
-          <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
-            {messages.length === 0 ? (
-              <EmptyChatState
-                title={bookDetails.title}
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-                bookSlug={book}
-              />
-            ) : (
-              <>
-                <MessageList messages={messages} isTyping={isTyping} />
-                <div className="w-full max-w-3xl mx-auto px-4 py-2">
-                  <ChatInput 
-                    onSend={handleSendMessage} 
-                    isLoading={isLoading} 
-                  />
-                </div>
-              </>
-            )}
-          </div>
+          <BookChat
+            title={bookDetails.title}
+            messages={messages}
+            isLoading={isLoading}
+            isTyping={isTyping}
+            bookSlug={book}
+            onSendMessage={handleSendMessage}
+          />
         </main>
       </ErrorBoundary>
     </div>
