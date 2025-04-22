@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Message, SendMessageResponse, ChatHistoryRecord } from '@/types/chat';
 
