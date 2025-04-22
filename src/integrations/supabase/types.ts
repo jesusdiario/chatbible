@@ -487,7 +487,9 @@ export type Database = {
         | "poetico"
         | "profetico"
         | "novo_testamento"
-        | "outro"
+        | "cartas_paulinas"
+        | "cartas_gerais"
+        | "apocalipse"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -610,7 +612,9 @@ export const Constants = {
         "poetico",
         "profetico",
         "novo_testamento",
-        "outro",
+        "cartas_paulinas",
+        "cartas_gerais",
+        "apocalipse",
       ],
     },
   },
