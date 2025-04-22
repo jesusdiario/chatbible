@@ -170,6 +170,39 @@ const AdminBooks = () => {
     }
   };
 
+  const handleFileUpload = async (file: File, bookSlug: string) => {
+    try {
+      const fileName = `${bookSlug}-${Date.now()}.${file.name.split('.').pop()}`;
+      const { data, error } = await supabase
+        .storage
+        .from('covers')
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('covers')
+        .getPublicUrl(data.path);
+
+      await supabase
+        .from('bible_books')
+        .update({ image_url: publicUrl })
+        .eq('slug', bookSlug);
+
+      queryClient.invalidateQueries({ queryKey: ['bible_books'] });
+      toast({ title: "Sucesso", description: "Capa atualizada com sucesso!" });
+    } catch (error: any) {
+      toast({ 
+        title: "Erro", 
+        description: `Erro ao fazer upload da capa: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -245,11 +278,17 @@ const AdminBooks = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="image">URL da Imagem</label>
+                      <label htmlFor="image">Capa do Livro</label>
                       <Input
                         id="image"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && formData.slug) {
+                            handleFileUpload(file, formData.slug);
+                          }
+                        }}
                       />
                     </div>
                     <div className="space-y-2">

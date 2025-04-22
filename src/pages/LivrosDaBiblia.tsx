@@ -24,32 +24,36 @@ const LivrosDaBiblia = () => {
     localStorage.setItem('openai_api_key', newApiKey);
   };
 
-  // Fetch categories
+  // Fetch categories and books
   const { data: categories = [], isLoading: catLoading, isError: catError, error: catErr } = useQuery({
     queryKey: ['bible_categories'],
     queryFn: getBibleCategories
   });
 
-  // Fetch books
   const { data: books = [], isLoading: booksLoading, isError: booksError, error: booksErr } = useQuery({
     queryKey: ['bible_books'],
     queryFn: getBibleBooks
   });
 
-  // Group books by category
+  // Normalize slugs for comparison
+  const normalizeSlug = (slug: string) => 
+    slug.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  // Group books by category with normalized slugs
   const booksByCategory: Record<string, BibleBook[]> = {};
   books.forEach(book => {
-    if (!book.category_slug) return;
-    if (!booksByCategory[book.category_slug]) {
-      booksByCategory[book.category_slug] = [];
+    const normalizedCategorySlug = normalizeSlug(book.category_slug);
+    if (!booksByCategory[normalizedCategorySlug]) {
+      booksByCategory[normalizedCategorySlug] = [];
     }
-    booksByCategory[book.category_slug].push(book);
+    booksByCategory[normalizedCategorySlug].push(book);
   });
 
-  // Ensure books are sorted by display_order within each category
+  // Sort books within each category
   categories.forEach(cat => {
-    if (booksByCategory[cat.slug]) {
-      booksByCategory[cat.slug].sort((a, b) => a.display_order - b.display_order);
+    const normalizedSlug = normalizeSlug(cat.slug);
+    if (booksByCategory[normalizedSlug]) {
+      booksByCategory[normalizedSlug].sort((a, b) => a.display_order - b.display_order);
     }
   });
 
@@ -82,40 +86,44 @@ const LivrosDaBiblia = () => {
 
     if (useCarousel) {
       return (
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {categoryBooks.map((book) => (
-              <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4">
-                <Link
-                  to={`/livros-da-biblia/${book.slug}`}
-                  className="block group"
-                >
-                  <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
-                    <img
-                      src={book.image_url || `/images/covers/${book.slug}.jpg`}
-                      alt={`Capa de ${book.title}`}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
-                      }}
-                    />
-                  </AspectRatio>
-                  <div className="p-2">
-                    <span className="text-sm font-medium">{book.title}</span>
-                  </div>
-                </Link>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+        <div className="relative">
+          <div className="overflow-hidden">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {categoryBooks.map((book) => (
+                  <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4">
+                    <Link
+                      to={`/livros-da-biblia/${book.slug}`}
+                      className="block group"
+                    >
+                      <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
+                        <img
+                          src={book.image_url || `/images/covers/${book.slug}.jpg`}
+                          alt={`Capa de ${book.title}`}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
+                          }}
+                        />
+                      </AspectRatio>
+                      <div className="p-2">
+                        <span className="text-sm font-medium">{book.title}</span>
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2 z-10" />
+              <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2 z-10" />
+            </Carousel>
+          </div>
+        </div>
       );
     }
 
@@ -164,17 +172,20 @@ const LivrosDaBiblia = () => {
               <LoadingSpinner />
             </div>
           ) : (
-            categories.map(category => {
-              const categoryBooks = booksByCategory[category.slug] || [];
-              if (categoryBooks.length === 0) return null;
-              
-              return (
-                <section key={category.slug} className="mb-12">
-                  <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
-                  {renderBookList(categoryBooks)}
-                </section>
-              );
-            })
+            <div className="max-w-7xl mx-auto space-y-12">
+              {categories.map(category => {
+                const normalizedSlug = normalizeSlug(category.slug);
+                const categoryBooks = booksByCategory[normalizedSlug] || [];
+                if (categoryBooks.length === 0) return null;
+                
+                return (
+                  <section key={category.slug} className="mb-12">
+                    <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
+                    {renderBookList(categoryBooks)}
+                  </section>
+                );
+              })}
+            </div>
           )}
         </div>
       </main>
