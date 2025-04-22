@@ -40,6 +40,13 @@ const LivrosDaBiblia = () => {
   console.log("Categories:", categories.map(c => ({ slug: c.slug, title: c.title })));
   console.log("Books:", books.map(b => ({ slug: b.slug, category_slug: b.category_slug })));
 
+  // Map for correcting category slugs that don't match exactly
+  const categorySlugMap: Record<string, string> = {
+    'historico': 'historicos',
+    'novo_testamento': 'novo-testamento',
+    // Add more mappings as needed
+  };
+
   // Normalize slugs for comparison - make sure this handles accents correctly
   const normalizeSlug = (slug: string) => 
     slug?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -56,7 +63,13 @@ const LivrosDaBiblia = () => {
   
   // Now add all books to their respective categories
   books.forEach(book => {
-    const normalizedCategorySlug = normalizeSlug(book.category_slug);
+    let normalizedCategorySlug = normalizeSlug(book.category_slug);
+    
+    // Apply mapping corrections for mismatched slugs
+    if (categorySlugMap[book.category_slug]) {
+      normalizedCategorySlug = normalizeSlug(categorySlugMap[book.category_slug]);
+    }
+    
     if (!booksByCategory[normalizedCategorySlug]) {
       // If category wasn't initialized above, create it now
       booksByCategory[normalizedCategorySlug] = [];
