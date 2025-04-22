@@ -38,12 +38,15 @@ export const sendChatMessage = async (
 
   if (error) throw error;
 
+  // Get the current session using the async getSession method
+  const { data: { session } } = await supabase.auth.getSession();
+  
   // Handle streaming response using fetch API directly
   const response = await fetch(`https://qdukcxetdfidgxcuwjdo.functions.supabase.co/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${supabase.auth.session()?.access_token}`
+      'Authorization': `Bearer ${session?.access_token}`
     },
     body: JSON.stringify({
       messages: newMessages,
