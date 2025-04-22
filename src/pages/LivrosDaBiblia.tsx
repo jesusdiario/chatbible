@@ -6,6 +6,14 @@ import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { getBibleCategories, getBibleBooks, BibleCategory, BibleBook } from "@/services/bibleService";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -69,6 +77,75 @@ const LivrosDaBiblia = () => {
     );
   }
 
+  const renderBookList = (categoryBooks: BibleBook[]) => {
+    const useCarousel = categoryBooks.length > 4;
+
+    if (useCarousel) {
+      return (
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {categoryBooks.map((book) => (
+              <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4">
+                <Link
+                  to={`/livros-da-biblia/${book.slug}`}
+                  className="block group"
+                >
+                  <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
+                    <img
+                      src={book.image_url || `/images/covers/${book.slug}.jpg`}
+                      alt={`Capa de ${book.title}`}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
+                      }}
+                    />
+                  </AspectRatio>
+                  <div className="p-2">
+                    <span className="text-sm font-medium">{book.title}</span>
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {categoryBooks.map((book) => (
+          <Link
+            key={book.slug}
+            to={`/livros-da-biblia/${book.slug}`}
+            className="block group"
+          >
+            <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
+              <img
+                src={book.image_url || `/images/covers/${book.slug}.jpg`}
+                alt={`Capa de ${book.title}`}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
+                }}
+              />
+            </AspectRatio>
+            <div className="p-2">
+              <span className="text-sm font-medium">{book.title}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <Sidebar 
@@ -94,29 +171,7 @@ const LivrosDaBiblia = () => {
               return (
                 <section key={category.slug} className="mb-12">
                   <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
-                    {categoryBooks.map(book => (
-                      <Link
-                        key={book.slug}
-                        to={`/livros-da-biblia/${book.slug}`}
-                        className="block rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition group"
-                      >
-                        <div className="relative h-48 overflow-hidden">
-                          <img
-                            src={book.image_url || `/images/covers/${book.slug}.jpg`}
-                            alt={`Capa de ${book.title}`}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
-                            }}
-                          />
-                        </div>
-                        <div className="p-2 bg-chatgpt-secondary">
-                          <span className="text-sm font-medium">{book.title}</span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                  {renderBookList(categoryBooks)}
                 </section>
               );
             })
