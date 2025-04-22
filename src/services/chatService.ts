@@ -20,26 +20,57 @@ export const sendChatMessage = async (
   book?: string,
   userId?: string,
   slug?: string,
-  promptOverride?: string
+  promptOverride?: string,
+  onChunk?: (chunk: string) => void
 ): Promise<SendMessageResponse> => {
   const userMessage: Message = { role: "user", content };
   const newMessages = [...messages, userMessage];
   
   const systemPrompt = promptOverride || await getPromptForBook(book);
 
-  const { data, error } = await supabase.functions.invoke('chat', {
+  const { data: stream, error } = await supabase.functions.invoke('chat', {
     body: { 
       messages: newMessages,
       systemPrompt
-    }
+    },
+    responseType: 'stream'
   });
 
   if (error) throw error;
 
+  let fullContent = '';
   const assistantMessage: Message = { 
     role: "assistant", 
-    content: data.content 
+    content: '' 
   };
+
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+
+      try {
+        const data = JSON.parse(line.replace('data: ', ''));
+        if (data.content) {
+          fullContent += data.content;
+          assistantMessage.content = fullContent;
+          onChunk?.(data.content);
+        }
+      } catch (err) {
+        console.error('Error parsing chunk:', err);
+      }
+    }
+  }
+
+  assistantMessage.content = fullContent;
 
   if (userId) {
     const newSlug = slug || crypto.randomUUID();

@@ -12,6 +12,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const respondWithError = (message: string, status = 500) => {
+    return new Response(
+      JSON.stringify({ error: message }),
+      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   try {
     const { messages, systemPrompt } = await req.json()
     
@@ -19,40 +26,81 @@ serve(async (req) => {
       ? [{ role: 'system', content: systemPrompt }, ...messages]
       : messages
 
-    console.log('Sending request to OpenAI:', { finalMessages })
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: finalMessages,
         temperature: 0.7,
-        max_tokens: 1000,
+        stream: true,
       }),
     })
 
-    const data = await response.json()
-    console.log('Received response from OpenAI:', data)
-
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Error calling OpenAI API')
+      const error = await response.json()
+      throw new Error(error.error?.message || 'Error calling OpenAI API')
     }
 
-    const content = data.choices[0].message.content
+    // Configurar streaming
+    const stream = response.body
+    const reader = stream?.getReader()
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
 
-    return new Response(
-      JSON.stringify({ content }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // Criar stream de resposta
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          if (!reader) throw new Error('No reader available')
+          
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+            for (const line of lines) {
+              if (line.includes('[DONE]')) continue
+              if (!line.startsWith('data: ')) continue
+
+              const data = line.replace('data: ', '')
+              try {
+                const json = JSON.parse(data)
+                const token = json.choices[0]?.delta?.content || ''
+                if (token) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: token })}\n\n`))
+                }
+              } catch (err) {
+                console.error('Error parsing JSON:', err)
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error in stream processing:', error)
+          controller.error(error)
+        } finally {
+          controller.close()
+          reader.releaseLock()
+        }
+      }
+    })
+
+    return new Response(readableStream, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      }
+    })
+
   } catch (error) {
     console.error('Error in chat function:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return respondWithError(error.message)
   }
 })

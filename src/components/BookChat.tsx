@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import ChatInput from './ChatInput';
 import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
