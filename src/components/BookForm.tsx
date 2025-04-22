@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { toast } from "@/hooks/use-toast";
+import { useBibleCategories } from "@/hooks/useBibleCategories";
 
 interface BookFormProps {
   formData: any;
@@ -21,6 +22,7 @@ interface BookFormProps {
 
 export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookFormProps) {
   const uploadMutation = useFileUpload();
+  const { data: categories, isLoading: categoriesLoading } = useBibleCategories();
 
   const handleFileUpload = async (file: File) => {
     if (!formData.slug) {
@@ -65,19 +67,20 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
         <Select
           value={formData.book_category}
           onValueChange={(value) => setFormData({ ...formData, book_category: value })}
+          disabled={categoriesLoading}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="pentateuco">Pentateuco</SelectItem>
-            <SelectItem value="historico">Histórico</SelectItem>
-            <SelectItem value="poetico">Poético</SelectItem>
-            <SelectItem value="profetico">Profético</SelectItem>
-            <SelectItem value="novo_testamento">Novo Testamento</SelectItem>
-            <SelectItem value="outro">Outro</SelectItem>
+            {categories?.map((category) => (
+              <SelectItem key={category.slug} value={category.slug}>
+                {category.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
+        {categoriesLoading && <p className="text-xs text-muted-foreground">Carregando categorias...</p>}
       </div>
       <div className="space-y-2">
         <label htmlFor="image">Capa do Livro</label>

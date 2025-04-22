@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import Sidebar from "@/components/Sidebar";
 import { BookForm } from '@/components/BookForm';
 import { BooksTable } from '@/components/BooksTable';
 import { useBookForm } from '@/hooks/useBookForm';
+import { useBibleCategories } from '@/hooks/useBibleCategories';
 
 const AdminBooks = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,6 +31,15 @@ const AdminBooks = () => {
     deleteMutation,
     resetForm
   } = useBookForm();
+
+  const { data: categories } = useBibleCategories();
+
+  // Inicializar book_category com a primeira categoria quando as categorias são carregadas
+  useEffect(() => {
+    if (categories?.length && !editingBook && !formData.book_category) {
+      setFormData(prev => ({ ...prev, book_category: categories[0].slug }));
+    }
+  }, [categories, editingBook, formData.book_category, setFormData]);
 
   const { data: books } = useQuery({
     queryKey: ['bible-books'],

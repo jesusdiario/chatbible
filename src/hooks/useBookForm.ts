@@ -1,14 +1,13 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
 
-type BookCategory = 'pentateuco' | 'historico' | 'poetico' | 'profetico' | 'novo_testamento' | 'outro';
-
 interface BookFormData {
   title: string;
   slug: string;
-  book_category: BookCategory;
+  book_category: string;
   image_url: string;
   display_order: number;
 }
@@ -18,7 +17,7 @@ export function useBookForm() {
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
     slug: '',
-    book_category: 'pentateuco',
+    book_category: '',
     image_url: '',
     display_order: 0
   });
@@ -100,7 +99,7 @@ export function useBookForm() {
     setFormData({
       title: '',
       slug: '',
-      book_category: 'pentateuco',
+      book_category: '',
       image_url: '',
       display_order: 0
     });
