@@ -1,95 +1,22 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query';
-import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
+import ChatHeader from "@/components/ChatHeader";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { getBibleCategories, getBibleBooks, BibleCategory, BibleBook } from "@/services/bibleService";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Card, CardContent } from "@/components/ui/card";
+import { BookGrid } from "@/components/BookGrid";
+import { useBibleData } from "@/hooks/useBibleData";
 
 const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
+  const { categories, booksByCategory, isLoading, isError, error } = useBibleData();
 
   const handleApiKeyChange = (newApiKey: string) => {
     setApiKey(newApiKey);
     localStorage.setItem('openai_api_key', newApiKey);
   };
 
-  // Fetch categories and books
-  const { data: categories = [], isLoading: catLoading, isError: catError, error: catErr } = useQuery({
-    queryKey: ['bible_categories'],
-    queryFn: getBibleCategories
-  });
-
-  const { data: books = [], isLoading: booksLoading, isError: booksError, error: booksErr } = useQuery({
-    queryKey: ['bible_books'],
-    queryFn: getBibleBooks
-  });
-
-  // Debug logs to see what's being returned from the API
-  console.log("Categories:", categories.map(c => ({ slug: c.slug, title: c.title })));
-  console.log("Books:", books.map(b => ({ slug: b.slug, category_slug: b.category_slug })));
-
-  // Map for correcting category slugs that don't match exactly
-  const categorySlugMap: Record<string, string> = {
-    'historico': 'historicos',
-    'novo_testamento': 'novo-testamento',
-    // Add more mappings as needed
-  };
-
-  // Normalize slugs for comparison - make sure this handles accents correctly
-  const normalizeSlug = (slug: string) => 
-    slug?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
-  // Group books by category with normalized slugs
-  const booksByCategory: Record<string, BibleBook[]> = {};
-  
-  // Initialize empty arrays for all categories first to ensure all categories appear
-  // even if they don't have books yet
-  categories.forEach(category => {
-    const normalizedCategorySlug = normalizeSlug(category.slug);
-    booksByCategory[normalizedCategorySlug] = [];
-  });
-  
-  // Now add all books to their respective categories
-  books.forEach(book => {
-    let normalizedCategorySlug = normalizeSlug(book.category_slug);
-    
-    // Apply mapping corrections for mismatched slugs
-    if (categorySlugMap[book.category_slug]) {
-      normalizedCategorySlug = normalizeSlug(categorySlugMap[book.category_slug]);
-    }
-    
-    if (!booksByCategory[normalizedCategorySlug]) {
-      // If category wasn't initialized above, create it now
-      booksByCategory[normalizedCategorySlug] = [];
-    }
-    booksByCategory[normalizedCategorySlug].push(book);
-  });
-
-  // Debug log which categories have books
-  console.log('Categories slugs:', categories.map(c => normalizeSlug(c.slug)));
-  console.log('Books by category keys:', Object.keys(booksByCategory));
-  console.log('Books by category entries:', Object.entries(booksByCategory).map(([key, books]) => 
-    ({ key, count: books.length })
-  ));
-
-  // Sort books within each category by display_order
-  Object.keys(booksByCategory).forEach(categorySlug => {
-    booksByCategory[categorySlug].sort((a, b) => a.display_order - b.display_order);
-  });
-
-  if (catError || booksError) {
+  if (isError) {
     return (
       <div className="flex flex-col md:flex-row h-screen">
         <Sidebar 
@@ -105,86 +32,13 @@ const LivrosDaBiblia = () => {
           <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
             <div className="p-4 bg-red-900 rounded">
               <p className="font-bold">Falha ao carregar dados:</p>
-              <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(catErr || booksErr, null, 2)}</pre>
+              <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(error, null, 2)}</pre>
             </div>
           </div>
         </main>
       </div>
     );
   }
-
-  const renderBookList = (categoryBooks: BibleBook[]) => {
-    const useCarousel = categoryBooks.length > 6;
-
-    if (useCarousel) {
-      return (
-        <div className="relative">
-          <div className="overflow-hidden">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {categoryBooks.map((book) => (
-                  <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/4 lg:basis-1/6">
-                    <Link
-                      to={`/livros-da-biblia/${book.slug}`}
-                      className="block group"
-                    >
-                      <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
-                        <img
-                          src={book.image_url || `/images/covers/${book.slug}.jpg`}
-                          alt={`Capa de ${book.title}`}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
-                          }}
-                        />
-                      </AspectRatio>
-                      <div className="p-2">
-                        <span className="text-sm font-medium">{book.title}</span>
-                      </div>
-                    </Link>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2 z-10" />
-              <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2 z-10" />
-            </Carousel>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-        {categoryBooks.map((book) => (
-          <Link
-            key={book.slug}
-            to={`/livros-da-biblia/${book.slug}`}
-            className="block group"
-          >
-            <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
-              <img
-                src={book.image_url || `/images/covers/${book.slug}.jpg`}
-                alt={`Capa de ${book.title}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
-                }}
-              />
-            </AspectRatio>
-            <div className="p-2">
-              <span className="text-sm font-medium">{book.title}</span>
-            </div>
-          </Link>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -199,17 +53,14 @@ const LivrosDaBiblia = () => {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
-          {(catLoading || booksLoading) ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <LoadingSpinner />
             </div>
           ) : (
             <div className="max-w-7xl mx-auto space-y-12">
               {categories.map(category => {
-                const normalizedSlug = normalizeSlug(category.slug);
-                const categoryBooks = booksByCategory[normalizedSlug] || [];
-                
-                // Sempre renderize a categoria, mesmo que não tenha livros
+                const categoryBooks = booksByCategory[category.slug] || [];
                 return (
                   <section key={category.slug} className="mb-12">
                     <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
@@ -217,7 +68,7 @@ const LivrosDaBiblia = () => {
                       <p className="text-gray-300 mb-6">{category.description}</p>
                     )}
                     {categoryBooks.length > 0 ? (
-                      renderBookList(categoryBooks)
+                      <BookGrid books={categoryBooks} />
                     ) : (
                       <p className="text-gray-400">Nenhum livro cadastrado para esta categoria.</p>
                     )}
