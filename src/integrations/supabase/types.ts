@@ -140,6 +140,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bible_suggestions: {
+        Row: {
+          book_slug: string
+          created_at: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          label: string
+          prompt_override: string | null
+          updated_at: string | null
+          user_message: string
+        }
+        Insert: {
+          book_slug: string
+          created_at?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label: string
+          prompt_override?: string | null
+          updated_at?: string | null
+          user_message: string
+        }
+        Update: {
+          book_slug?: string
+          created_at?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label?: string
+          prompt_override?: string | null
+          updated_at?: string | null
+          user_message?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           book_slug: string | null
