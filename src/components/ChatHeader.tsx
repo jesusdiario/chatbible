@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,11 +56,7 @@ const ChatHeader = ({
 
         {/* Center section - Logo */}
         <div className={`absolute left-1/2 transform -translate-x-1/2 transition-all duration-300 ${isSidebarOpen ? 'md:left-[calc(50%+128px)]' : ''}`}>
-          <img 
-            src="/lovable-uploads/a70bfdc8-5c4c-4f43-8597-b7a62b57f00e.png" 
-            alt="Logo" 
-            className="h-8 w-8"
-          />
+          <h1 className="text-xl font-bold">BibleChat</h1>
         </div>
 
         {/* Right section - User menu */}

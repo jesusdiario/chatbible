@@ -11,6 +11,11 @@ const LivrosDaBiblia = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
 
+  const handleApiKeyChange = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+  };
+
   // Fetch categories
   const { data: categories = [], isLoading: catLoading, isError: catError, error: catErr } = useQuery({
     queryKey: ['bible_categories'],
@@ -23,11 +28,6 @@ const LivrosDaBiblia = () => {
     queryFn: getBibleBooks
   });
 
-  const handleApiKeyChange = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    localStorage.setItem('openai_api_key', newApiKey);
-  };
-
   // Group books by category
   const booksByCategory: Record<string, BibleBook[]> = {};
   books.forEach(book => {
@@ -38,7 +38,12 @@ const LivrosDaBiblia = () => {
     booksByCategory[book.category_slug].push(book);
   });
 
-  console.log({ categories, books, booksByCategory });
+  // Ensure books are sorted by display_order within each category
+  categories.forEach(cat => {
+    if (booksByCategory[cat.slug]) {
+      booksByCategory[cat.slug].sort((a, b) => a.display_order - b.display_order);
+    }
+  });
 
   if (catError || booksError) {
     return (

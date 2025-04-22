@@ -5,6 +5,7 @@ export interface BibleCategory {
   slug: string;
   title: string;
   description?: string;
+  display_order: number;
 }
 
 export interface BibleBook {
@@ -12,12 +13,14 @@ export interface BibleBook {
   title: string;
   image_url: string | null;
   category_slug: string;
+  display_order: number;
 }
 
 export async function getBibleCategories(): Promise<BibleCategory[]> {
   const { data, error } = await supabase
     .from('bible_categories')
-    .select('slug, title, description');
+    .select('slug, title, description, display_order')
+    .order('display_order', { ascending: true });
     
   if (error) {
     console.error('Error fetching bible categories:', error);
@@ -30,28 +33,21 @@ export async function getBibleCategories(): Promise<BibleCategory[]> {
 export async function getBibleBooks(): Promise<BibleBook[]> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*, bible_categories(slug)');
+    .select('slug, title, image_url, category_slug, display_order')
+    .order('display_order', { ascending: true });
 
   if (error) {
     console.error('Error fetching bible books:', error);
     throw error;
   }
 
-  // Transform the data to include category_slug from the joined table
-  const transformedData = data.map(book => ({
-    slug: book.slug,
-    title: book.title,
-    image_url: book.image_url,
-    category_slug: book.bible_categories?.slug || book.book_category
-  }));
-
-  return transformedData;
+  return data || [];
 }
 
 export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*, bible_categories(slug)')
+    .select('slug, title, image_url, category_slug, display_order')
     .eq('slug', slug)
     .single();
 
@@ -64,13 +60,5 @@ export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null
     throw error;
   }
 
-  // Transform the data to include category_slug
-  const book = data ? {
-    slug: data.slug,
-    title: data.title,
-    image_url: data.image_url,
-    category_slug: data.bible_categories?.slug || data.book_category
-  } : null;
-
-  return book;
+  return data;
 }

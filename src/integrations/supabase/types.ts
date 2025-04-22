@@ -53,6 +53,7 @@ export type Database = {
           book_category: Database["public"]["Enums"]["book_category"]
           category_id: string | null
           created_at: string
+          display_order: number
           id: string
           image_url: string | null
           slug: string
@@ -63,6 +64,7 @@ export type Database = {
           book_category: Database["public"]["Enums"]["book_category"]
           category_id?: string | null
           created_at?: string
+          display_order?: number
           id?: string
           image_url?: string | null
           slug: string
@@ -73,6 +75,7 @@ export type Database = {
           book_category?: Database["public"]["Enums"]["book_category"]
           category_id?: string | null
           created_at?: string
+          display_order?: number
           id?: string
           image_url?: string | null
           slug?: string
@@ -93,6 +96,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          display_order: number
           id: string
           slug: string
           title: string
@@ -101,6 +105,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          display_order?: number
           id?: string
           slug: string
           title: string
@@ -109,6 +114,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          display_order?: number
           id?: string
           slug?: string
           title?: string
