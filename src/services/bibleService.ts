@@ -4,25 +4,21 @@ import { supabase } from '@/integrations/supabase/client';
 export interface BibleCategory {
   slug: string;
   title: string;
-  display_order?: number;
+  description?: string;
 }
 
 export interface BibleBook {
   slug: string;
   title: string;
   image_url: string | null;
-  category_slug?: string;  // Make optional to accommodate both structures
-  book_category?: string;  // Added to match Supabase schema
-  category_id?: string;    // Added to match Supabase schema
-  display_order?: number;
+  category_slug: string;
 }
 
 export async function getBibleCategories(): Promise<BibleCategory[]> {
   const { data, error } = await supabase
     .from('bible_categories')
-    .select('*')
-    .order('display_order', { ascending: true });
-
+    .select('slug, title, description');
+    
   if (error) {
     console.error('Error fetching bible categories:', error);
     throw error;
@@ -34,8 +30,7 @@ export async function getBibleCategories(): Promise<BibleCategory[]> {
 export async function getBibleBooks(): Promise<BibleBook[]> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*, bible_categories(slug)')
-    .order('display_order', { ascending: true });
+    .select('*, bible_categories(slug)');
 
   if (error) {
     console.error('Error fetching bible books:', error);
@@ -44,7 +39,9 @@ export async function getBibleBooks(): Promise<BibleBook[]> {
 
   // Transform the data to include category_slug from the joined table
   const transformedData = data.map(book => ({
-    ...book,
+    slug: book.slug,
+    title: book.title,
+    image_url: book.image_url,
     category_slug: book.bible_categories?.slug || book.book_category
   }));
 
@@ -69,7 +66,9 @@ export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null
 
   // Transform the data to include category_slug
   const book = data ? {
-    ...data,
+    slug: data.slug,
+    title: data.title,
+    image_url: data.image_url,
     category_slug: data.bible_categories?.slug || data.book_category
   } : null;
 

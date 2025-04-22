@@ -12,13 +12,13 @@ const LivrosDaBiblia = () => {
   const [apiKey, setApiKey] = useState<string>('');
 
   // Fetch categories
-  const { data: categories = [], isLoading: catLoading } = useQuery({
+  const { data: categories = [], isLoading: catLoading, isError: catError, error: catErr } = useQuery({
     queryKey: ['bible_categories'],
     queryFn: getBibleCategories
   });
 
   // Fetch books
-  const { data: books = [], isLoading: booksLoading } = useQuery({
+  const { data: books = [], isLoading: booksLoading, isError: booksError, error: booksErr } = useQuery({
     queryKey: ['bible_books'],
     queryFn: getBibleBooks
   });
@@ -37,6 +37,32 @@ const LivrosDaBiblia = () => {
     }
     booksByCategory[book.category_slug].push(book);
   });
+
+  console.log({ categories, books, booksByCategory });
+
+  if (catError || booksError) {
+    return (
+      <div className="flex flex-col md:flex-row h-screen">
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onApiKeyChange={handleApiKeyChange}
+        />
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+          <ChatHeader 
+            isSidebarOpen={isSidebarOpen} 
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+          <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
+            <div className="p-4 bg-red-900 rounded">
+              <p className="font-bold">Falha ao carregar dados:</p>
+              <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(catErr || booksErr, null, 2)}</pre>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
