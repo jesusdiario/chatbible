@@ -1,29 +1,39 @@
-
+// src/services/lexiconService.ts
 import { supabase } from '@/integrations/supabase/client';
 
-interface LexiconResponse {
-  reply: string;
+/**
+ * Resposta do Assistant via Edge Function
+ */
+export interface AssistantResponse {
+  threadId: string;
+  response: string;
 }
 
+/**
+ * Envia mensagem ao Assistant e retorna a resposta junto ao threadId atualizado.
+ */
 export async function queryLexicon(
-  word: string,
-  messages: { role: string; content: string }[]
-): Promise<LexiconResponse> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  message: string,
+  threadId?: string
+): Promise<AssistantResponse> {
+  // Certifica que o usuário está autenticado
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    throw new Error('User not authenticated');
+    throw new Error('Usuário não autenticado');
   }
-  
+
+  // Chama a Edge Function 'lexicon'
   const { data, error } = await supabase.functions.invoke('lexicon', {
-    body: { 
-      messages,
-      userId: user.id,
-      word,
-      assistantId: 'asst_YLwvqvZmSOMwxaku53jtKAlt'
-    }
+    body: JSON.stringify({ message, threadId })
   });
 
-  if (error) throw error;
-  return data as LexiconResponse;
+  if (error) {
+    throw error;
+  }
+
+  // Retorna o threadId e a resposta do Assistant
+  return data as AssistantResponse;
 }
