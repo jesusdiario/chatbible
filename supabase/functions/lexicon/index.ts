@@ -6,12 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configurações OpenAI
+// OpenAI & Assistants API config
 const API_KEY = Deno.env.get('OPENAI_API_KEY')!;
-// Use a base path /v1 e deixe o header beta para habilitar v2 dos Assistants API
 const API_BASE = 'https://api.openai.com/v1';
 const ASSISTANT_ID = 'asst_YLwvqvZmSOMwxaku53jtKAlt';
 const BETA_HEADER = { 'OpenAI-Beta': 'assistants=v2' };
+// Se desejar instruções de sistema extras, configure aqui, senão remova esta linha para usar instruções definidas no portal
+const SYSTEM_INSTRUCTIONS = "";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,9 +23,14 @@ serve(async (req) => {
     const { userId, word } = await req.json();
     if (!word) throw new Error('Parâmetro "word" é obrigatório');
 
-    // 1) Cria o run via threads.runs endpoint (v1 path)
-    const createRes = await fetch(
-      `${API_BASE}/threads/runs`,
+    // 1) Criar thread com mensagens iniciais
+    const threadPayload: any = { messages: [{ role: 'user', content: word }] };
+    if (SYSTEM_INSTRUCTIONS) {
+      threadPayload.messages.unshift({ role: 'system', content: SYSTEM_INSTRUCTIONS });
+    }
+
+    const threadRes = await fetch(
+      `${API_BASE}/assistants/${ASSISTANT_ID}/threads`,
       {
         method: 'POST',
         headers: {
@@ -32,46 +38,58 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           ...BETA_HEADER
         },
-        body: JSON.stringify({
-          assistant_id: ASSISTANT_ID,
-          instructions: word
-        })
+        body: JSON.stringify(threadPayload)
       }
     );
-
-    if (!createRes.ok) {
-      const errText = await createRes.text();
-      throw new Error(`Falha ao criar run: ${errText}`);
+    if (!threadRes.ok) {
+      const text = await threadRes.text();
+      throw new Error(`Falha ao criar thread: ${text}`);
     }
+    const thread = await threadRes.json();
+    const threadId = thread.id;
+    console.log('Thread criado:', threadId);
 
-    const run = await createRes.json();
-    console.log('Run criado:', run);
-    const threadId = run.thread_id;
+    // 2) Disparar run (invocar o Assistente sobre o thread)
+    const runRes = await fetch(
+      `${API_BASE}/threads/${threadId}/runs`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+          ...BETA_HEADER
+        },
+        body: JSON.stringify({})
+      }
+    );
+    if (!runRes.ok) {
+      const text = await runRes.text();
+      throw new Error(`Falha ao criar run: ${text}`);
+    }
+    const run = await runRes.json();
     const runId = run.id;
+    console.log('Run iniciado:', runId);
 
-    // 2) Polling do status até completion
-    let attempts = 0;
+    // 3) Polling até conclusão, tratando tools se houver
     let status = run.status;
-
+    let attempts = 0;
     while (status !== 'completed' && attempts < 60) {
-      const statRes = await fetch(
+      const statusRes = await fetch(
         `${API_BASE}/threads/${threadId}/runs/${runId}`,
         { headers: { 'Authorization': `Bearer ${API_KEY}`, ...BETA_HEADER } }
       );
-
-      if (!statRes.ok) {
-        const errText = await statRes.text();
-        throw new Error(`Erro ao consultar status: ${errText}`);
+      if (!statusRes.ok) {
+        const text = await statusRes.text();
+        throw new Error(`Erro polling status: ${text}`);
       }
+      const st = await statusRes.json();
+      status = st.status;
 
-      const statJson = await statRes.json();
-      status = statJson.status;
-
-      // Handle tool actions
-      if (statJson.required_actions) {
-        for (const action of statJson.required_actions) {
-          if (action.type === 'tool_call' && action.tool.tool_name === 'file_system') {
-            const content = await Deno.readTextFile(action.parameters.path);
+      // Ferramentas (ex: file_system)
+      if (st.required_actions) {
+        for (const act of st.required_actions) {
+          if (act.type === 'tool_call' && act.tool.tool_name === 'file_system') {
+            const content = await Deno.readTextFile(act.parameters.path);
             await fetch(
               `${API_BASE}/threads/${threadId}/runs/${runId}/tool-outputs`,
               {
@@ -81,70 +99,56 @@ serve(async (req) => {
                   'Content-Type': 'application/json',
                   ...BETA_HEADER
                 },
-                body: JSON.stringify({
-                  tool_outputs: [{ tool_call_id: action.tool_call_id, output: content }]
-                })
+                body: JSON.stringify({ tool_outputs: [{ tool_call_id: act.tool_call_id, output: content }] })
               }
             );
           }
         }
       }
-
-      if (statJson.status === 'failed') {
-        throw new Error('Run falhou');
+      if (['failed','cancelled','expired'].includes(status)) {
+        throw new Error(`Run ${status}`);
       }
-      if (['cancelled', 'expired'].includes(statJson.status)) {
-        throw new Error(`Run ${statJson.status}`);
-      }
-
       await new Promise(r => setTimeout(r, 1000));
       attempts++;
     }
-
     if (status !== 'completed') {
-      throw new Error('Timeout aguardando run completion');
+      throw new Error('Timeout esperando run');
     }
 
-    // 3) Lista mensagens
+    // 4) Listar mensagens e extrair resposta
     const msgRes = await fetch(
       `${API_BASE}/threads/${threadId}/messages`,
       { headers: { 'Authorization': `Bearer ${API_KEY}`, ...BETA_HEADER } }
     );
-
     if (!msgRes.ok) {
-      const errText = await msgRes.text();
-      throw new Error(`Falha ao listar mensagens: ${errText}`);
+      const text = await msgRes.text();
+      throw new Error(`Falha ao listar mensagens: ${text}`);
     }
-
     const msgs = await msgRes.json();
-    console.log('Messages:', msgs);
-    const assistantMsg = msgs.data.find((m:any) => m.role === 'assistant');
+    const assistantMsg = msgs.data.find((m: any) => m.role === 'assistant');
     if (!assistantMsg) throw new Error('Nenhuma mensagem do assistente');
-
-    const textObj = assistantMsg.content.find((c:any) => c.type === 'text');
+    const textObj = assistantMsg.content.find((c: any) => c.type === 'text');
     const reply = textObj?.text?.value;
-    if (!reply) throw new Error('Conteúdo de texto não encontrado');
+    if (!reply) throw new Error('Texto da resposta não encontrado');
 
-    // 4) Persiste em Supabase
+    // 5) Salvar no Supabase
     const supa = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-
-    const { error: insertError } = await supa
+    const { error: insertErr } = await supa
       .from('lexicon_queries')
       .insert({ user_id: userId, word, response: { reply } });
-
-    if (insertError) {
-      console.error('Erro ao inserir no Supabase:', insertError);
+    if (insertErr) {
+      console.error('Erro ao inserir no Supabase:', insertErr);
       throw new Error('Falha ao salvar consulta');
     }
 
-    console.log('Consulta salva no Supabase');
+    console.log('Consulta salva');
     return new Response(JSON.stringify({ reply }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (e) {
-    console.error('Erro na função de léxico:', e);
+    console.error('Erro função léxico:', e);
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
