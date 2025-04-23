@@ -6,6 +6,7 @@ import { Message } from '@/types/chat';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import MessageList from '@/components/MessageList';
+import { queryLexicon, AssistantResponse } from '@/services/lexiconService';
 import { sendToAssistant } from "@/services/lexiconService";
 
 export default function Lexicon() {
@@ -17,6 +18,7 @@ export default function Lexicon() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!word.trim() || isLoading) return;
+    const { threadId: newThreadId, response } = await queryLexicon(userMessage, storedThreadId);
 
     setIsLoading(true);
     const userMessage: Message = { role: 'user', content: word };
