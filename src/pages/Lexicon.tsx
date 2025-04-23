@@ -15,40 +15,40 @@ export default function Lexicon() {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>(undefined);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!word.trim() || isLoading) return;
-    const { threadId: newThreadId, response } = await queryLexicon(userMessage, storedThreadId);
+  cconst handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!word.trim() || isLoading) return;
 
-    setIsLoading(true);
-    const userMessage: Message = { role: 'user', content: word };
+  setIsLoading(true);
+  try {
+    // Chama o serviço já passando a palavra e o threadId atual (ou undefined na primeira vez)
+    const { threadId: newThreadId, response } = await queryLexicon(word, threadId);
 
-    // Adicionar mensagem do usuário imediatamente
-    setMessages(prev => [...prev, userMessage]);
+    // Atualiza o threadId para as próximas chamadas
+    setThreadId(newThreadId);
 
-    // Adicionar mensagem de "processando"
-    const processingMessage: Message = {
-      role: 'assistant',
-      content: 'Processando sua consulta...'
-    };
-    setMessages(prev => [...prev, processingMessage]);
+    // Aqui você faz o que precisa com a resposta, ex:
+    setMessages(prev => {
+      // remove mensagem de “processando” e adiciona a resposta real
+      const withoutProcessing = prev.filter(m => m.content !== 'Processando sua consulta...');
+      return [...withoutProcessing, { role: 'assistant', content: response }];
+    });
 
-    try {
-      // Envia ao Assistant e obtém novo threadId e a resposta
-      const { threadId: newThreadId, response } = await queryLexicon(word, threadId);
-
-      // Atualiza o threadId para próximas interações
-      setThreadId(newThreadId);
-
-      // Substituir mensagem de processamento pela resposta real
-      setMessages(prev => {
-        const withoutProcessing = prev.filter(m => m.content !== 'Processando sua consulta...');
-        return [...withoutProcessing, { role: 'assistant', content: response }];
-      });
-
-      setWord('');
-    } catch (error) {
-      console.error('Erro ao processar consulta:', error);
+    // limpa o input
+    setWord('');
+  } catch (err) {
+    console.error('Erro ao processar consulta:', err);
+    toast({
+      title: "Erro",
+      description: "Não foi possível processar sua consulta. Por favor, tente novamente.",
+      variant: "destructive",
+    });
+    // opcional: remover a mensagem de processando
+    setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
+  } finally {
+    setIsLoading(false);
+  }
+};
 
       // Remover mensagem de processamento em caso de erro
       setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
