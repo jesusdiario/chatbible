@@ -18,7 +18,7 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
   return (
     <div className="w-full max-w-3xl px-4 space-y-4">
       <div>
-        <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center text-text-primary">
+        <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
           Converse sobre {title}
         </h1>
         <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />

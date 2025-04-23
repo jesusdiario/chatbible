@@ -1,4 +1,3 @@
-
 import React, { createContext } from "react";
 import { BookOpen, FileText, MessageSquare, HelpCircle } from "lucide-react";
 
@@ -47,31 +46,31 @@ const ActionButtons: React.FC<ActionButtonsProps> = () => {
     <div>
       <div className="flex gap-2 flex-wrap justify-center mt-4">
         <button 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-chat-icon-hover disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
           onClick={handleAskAboutBook}
         >
-          <BookOpen className="h-4 w-4 text-icon-accent" />
+          <BookOpen className="h-4 w-4 text-green-400" />
           Me fale mais sobre este livro
         </button>
         <button 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-chat-icon-hover disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
           onClick={handleSummarizeBook}
         >
-          <FileText className="h-4 w-4 text-icon-accent" />
+          <FileText className="h-4 w-4 text-green-400" />
           Resuma este livro
         </button>
         <button 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-chat-icon-hover disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
           onClick={handleExplainConcepts}
         >
-          <MessageSquare className="h-4 w-4 text-icon-accent" />
+          <MessageSquare className="h-4 w-4 text-green-400" />
           Explique os principais conceitos
         </button>
         <button 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-chat-icon-hover disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
           onClick={handleGetHelp}
         >
-          <HelpCircle className="h-4 w-4 text-icon-accent" />
+          <HelpCircle className="h-4 w-4 text-green-400" />
           Preciso de ajuda
         </button>
       </div>
