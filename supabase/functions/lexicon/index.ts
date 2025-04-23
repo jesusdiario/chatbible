@@ -8,7 +8,8 @@ const corsHeaders = {
 
 // Configurações OpenAI
 const API_KEY = Deno.env.get('OPENAI_API_KEY')!;
-const API_BASE = 'https://api.openai.com/v1beta';
+// Use a base path /v1 e deixe o header beta para habilitar v2 dos Assistants API
+const API_BASE = 'https://api.openai.com/v1';
 const ASSISTANT_ID = 'asst_YLwvqvZmSOMwxaku53jtKAlt';
 const BETA_HEADER = { 'OpenAI-Beta': 'assistants=v2' };
 
@@ -21,7 +22,7 @@ serve(async (req) => {
     const { userId, word } = await req.json();
     if (!word) throw new Error('Parâmetro "word" é obrigatório');
 
-    // 1) Cria o run via threads.runs endpoint
+    // 1) Cria o run via threads.runs endpoint (v1 path)
     const createRes = await fetch(
       `${API_BASE}/threads/runs`,
       {
@@ -130,7 +131,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Insere e confere erros
     const { error: insertError } = await supa
       .from('lexicon_queries')
       .insert({ user_id: userId, word, response: { reply } });
