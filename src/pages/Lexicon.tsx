@@ -21,24 +21,38 @@ export default function Lexicon() {
     setIsLoading(true);
     const userMessage: Message = { role: 'user', content: word };
     
+    // Adicionar mensagem do usuário imediatamente
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Adicionar mensagem de "processando"
+    const processingMessage: Message = { 
+      role: 'assistant', 
+      content: 'Processando sua consulta...'
+    };
+    
+    setMessages(prev => [...prev, processingMessage]);
+    
     try {
       const systemMessage = { 
         role: 'system', 
         content: 'Você é um assistente especializado em léxico bíblico. Forneça definições precisas e contexto histórico.'
       };
       
-      const allMessages = [...messages, userMessage];
-      setMessages(prev => [...prev, userMessage]); // Mostrar mensagem do usuário imediatamente
+      const { reply } = await queryLexicon(word, [systemMessage, userMessage]);
       
-      const { reply } = await queryLexicon(word, [systemMessage, ...allMessages]);
+      // Substituir mensagem de processamento pela resposta real
+      setMessages(prev => {
+        const filteredMessages = prev.filter(m => m.content !== 'Processando sua consulta...');
+        return [...filteredMessages, { role: 'assistant', content: reply }];
+      });
       
-      const assistantMessage: Message = { role: 'assistant', content: reply };
-      
-      setMessages(prev => [...prev.filter(m => m.content !== 'Processando sua consulta...'), assistantMessage]);
       setWord('');
     } catch (error) {
       console.error('Erro ao processar consulta:', error);
+      
+      // Remover mensagem de processamento em caso de erro
       setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
+      
       toast({
         title: "Erro",
         description: "Não foi possível processar sua consulta. Por favor, tente novamente.",

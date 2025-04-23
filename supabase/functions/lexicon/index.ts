@@ -16,7 +16,7 @@ serve(async (req) => {
   try {
     const { messages, userId, word, assistantId } = await req.json()
 
-    // Configurar o cliente OpenAI com o cabeçalho beta para v2
+    // Configurar API OpenAI com cabeçalho beta para v2
     const openai = new OpenAI({ 
       apiKey: Deno.env.get('OPENAI_API_KEY')!,
       defaultHeaders: {
@@ -24,45 +24,92 @@ serve(async (req) => {
       }
     })
     
-    // Create a thread
-    const thread = await openai.beta.threads.create();
+    console.log(`Creating thread for lexicon query: "${word}"`);
+
+    // Create a thread with v2 API
+    const thread = await openai.beta.threads.create({});
+    console.log(`Thread created: ${thread.id}`);
 
     // Add the user's message to the thread
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
       content: word
     });
+    console.log("Added user message to thread");
 
-    // Run the assistant on the thread
+    // Run the assistant on the thread with v2 API
+    console.log(`Starting assistant run with assistant ID: ${assistantId}`);
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: assistantId
     });
 
     // Wait for the run to complete
     let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-    while (runStatus.status !== 'completed') {
+    console.log(`Initial run status: ${runStatus.status}`);
+    
+    let attempts = 0;
+    const maxAttempts = 60; // Maximum 60 seconds of waiting
+    
+    while (runStatus.status !== 'completed' && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      attempts++;
       
-      if (runStatus.status === 'failed') {
-        throw new Error('Assistant run failed: ' + JSON.stringify(runStatus.last_error));
+      if (attempts % 5 === 0) {
+        console.log(`Run status after ${attempts} seconds: ${runStatus.status}`);
       }
       
-      // Adicionar verificação para outros status de falha
+      if (runStatus.status === 'failed') {
+        const errorDetails = JSON.stringify(runStatus.last_error || {});
+        console.error(`Assistant run failed: ${errorDetails}`);
+        throw new Error(`Assistant run failed: ${errorDetails}`);
+      }
+      
+      // Check for other failure states
       if (['cancelled', 'expired', 'failed'].includes(runStatus.status)) {
-        throw new Error(`Assistant run ${runStatus.status}: ${JSON.stringify(runStatus.last_error)}`);
+        const errorDetails = JSON.stringify(runStatus.last_error || {});
+        console.error(`Assistant run ${runStatus.status}: ${errorDetails}`);
+        throw new Error(`Assistant run ${runStatus.status}: ${errorDetails}`);
       }
     }
 
+    if (attempts >= maxAttempts) {
+      console.error("Run timed out after waiting too long");
+      throw new Error("Run timed out after waiting too long");
+    }
+
     // Get the latest message from the assistant
-    const threadMessages = await openai.beta.threads.messages.list(thread.id);
-    const lastMessage = threadMessages.data[0];
+    console.log("Retrieving assistant response");
+    const threadsListResponse = await openai.beta.threads.messages.list(thread.id);
     
-    if (!lastMessage || !lastMessage.content || lastMessage.content.length === 0) {
-      throw new Error('No response received from assistant');
+    // Log the response structure to debug
+    console.log(`Response received with ${threadsListResponse.data.length} messages`);
+    
+    // Find the assistant's message (there might be multiple messages)
+    const assistantMessages = threadsListResponse.data.filter(msg => msg.role === 'assistant');
+    
+    if (!assistantMessages.length) {
+      console.error("No assistant messages found in the response");
+      throw new Error("No assistant messages found in the response");
     }
     
-    const reply = lastMessage.content[0].text.value;
+    const lastMessage = assistantMessages[0];
+    
+    if (!lastMessage.content || lastMessage.content.length === 0) {
+      console.error("Assistant message has no content");
+      throw new Error("No response content received from assistant");
+    }
+    
+    // Make sure we're extracting text content correctly
+    const textContent = lastMessage.content.find(item => item.type === 'text');
+    
+    if (!textContent || !textContent.text || !textContent.text.value) {
+      console.error("No text content found in the assistant's response");
+      throw new Error("No text content found in the assistant's response");
+    }
+    
+    const reply = textContent.text.value;
+    console.log(`Successful response received: ${reply.substring(0, 50)}...`);
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -78,6 +125,8 @@ serve(async (req) => {
         word,
         response: { reply }
       })
+    
+    console.log("Query stored in database");
 
     return new Response(
       JSON.stringify({ reply }),
