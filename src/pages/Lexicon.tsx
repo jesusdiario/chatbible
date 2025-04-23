@@ -6,8 +6,7 @@ import { Message } from '@/types/chat';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import MessageList from '@/components/MessageList';
-import { queryLexicon, AssistantResponse } from '@/services/lexiconService';
-import { sendToAssistant } from "@/services/lexiconService";
+import { queryLexicon } from '@/services/lexiconService';
 
 export default function Lexicon() {
   const [word, setWord] = useState('');
@@ -15,48 +14,42 @@ export default function Lexicon() {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | undefined>(undefined);
 
-  cconst handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!word.trim() || isLoading) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!word.trim() || isLoading) return;
 
-  setIsLoading(true);
-  try {
-    // Chama o serviço já passando a palavra e o threadId atual (ou undefined na primeira vez)
-    const { threadId: newThreadId, response } = await queryLexicon(word, threadId);
+    setIsLoading(true);
 
-    // Atualiza o threadId para as próximas chamadas
-    setThreadId(newThreadId);
+    // Adiciona a mensagem do usuário ao histórico
+    const userMessage: Message = { role: 'user', content: word };
+    setMessages(prev => [...prev, userMessage]);
 
-    // Aqui você faz o que precisa com a resposta, ex:
-    setMessages(prev => {
-      // remove mensagem de “processando” e adiciona a resposta real
-      const withoutProcessing = prev.filter(m => m.content !== 'Processando sua consulta...');
-      return [...withoutProcessing, { role: 'assistant', content: response }];
-    });
+    // Exibe mensagem de processamento
+    const processingMessage: Message = { role: 'assistant', content: 'Processando sua consulta...' };
+    setMessages(prev => [...prev, processingMessage]);
 
-    // limpa o input
-    setWord('');
-  } catch (err) {
-    console.error('Erro ao processar consulta:', err);
-    toast({
-      title: "Erro",
-      description: "Não foi possível processar sua consulta. Por favor, tente novamente.",
-      variant: "destructive",
-    });
-    // opcional: remover a mensagem de processando
-    setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      // Chama o serviço com a palavra e thread atual
+      const { threadId: newThreadId, response } = await queryLexicon(word, threadId);
+      // Atualiza o threadId para continuar o contexto
+      setThreadId(newThreadId);
 
-      // Remover mensagem de processamento em caso de erro
+      // Substitui a mensagem de processamento pela resposta do Assistente
+      setMessages(prev => {
+        const withoutProcessing = prev.filter(m => m.content !== 'Processando sua consulta...');
+        return [...withoutProcessing, { role: 'assistant', content: response }];
+      });
+
+      setWord('');
+    } catch (error) {
+      console.error('Erro ao processar consulta:', error);
+      // Remove a mensagem de processamento
       setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
 
       toast({
         title: 'Erro',
         description: 'Não foi possível processar sua consulta. Por favor, tente novamente.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
