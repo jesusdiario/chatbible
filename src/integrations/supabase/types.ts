@@ -253,6 +253,30 @@ export type Database = {
           },
         ]
       }
+      lexicon_queries: {
+        Row: {
+          created_at: string
+          id: string
+          response: Json
+          user_id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          response: Json
+          user_id: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          response?: Json
+          user_id?: string
+          word?: string
+        }
+        Relationships: []
+      }
       message_counts: {
         Row: {
           count: number
