@@ -144,7 +144,7 @@ const LivrosDaBibliaBook = () => {
           onChatSelect={handleChatSelect}
           currentPath={window.location.pathname}
         />
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+        <main className={`flex-1 transition-all duration-300 bg-app-bg ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
           <ChatHeader 
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}

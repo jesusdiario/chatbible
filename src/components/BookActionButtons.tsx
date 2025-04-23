@@ -26,7 +26,7 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center mt-4">Carregando sugestões...</div>;
+    return <div className="flex justify-center mt-4 text-text-primary">Carregando sugestões...</div>;
   }
 
   return (
@@ -36,10 +36,10 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
         return (
           <button 
             key={suggestion.id} 
-            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-white/20 px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-chat-icon-hover disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
             onClick={() => handleButtonClick(suggestion)}
           >
-            {IconComponent && <IconComponent className="h-4 w-4 text-green-400" />}
+            {IconComponent && <IconComponent className="h-4 w-4 text-icon-accent" />}
             {suggestion.label}
           </button>
         );
