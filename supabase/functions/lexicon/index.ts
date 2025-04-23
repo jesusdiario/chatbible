@@ -7,9 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Cabeçalho necessário para usar Assistants API v2
-const BETA_HEADER = { 'OpenAI-Beta': 'assistants=v2' };
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -25,33 +22,27 @@ serve(async (req) => {
       throw new Error('assistantId não fornecido na requisição nem em DEFAULT_ASSISTANT_ID');
     }
 
-    // Inicializa cliente OpenAI
+    // Inicializa cliente OpenAI com header global para v2
     const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY')!,
-      // defaultHeaders não está funcionando para v2 em algumas versões
-      // Vamos enviar extra_headers em cada chamada abaixo
+      baseOptions: {
+        headers: { 'OpenAI-Beta': 'assistants=v2' }
+      }
     });
 
     console.log(`Criando run para assistant ${assistantId} com query: ${word}`);
-    // Cria o run com header v2
-    const run = await openai.beta.threads.runs.create(
-      {
-        assistant_id: assistantId,
-        instructions: word
-      },
-      { extra_headers: BETA_HEADER }
-    );
+    // Cria o run
+    const run = await openai.beta.threads.runs.create({
+      assistant_id: assistantId,
+      instructions: word
+    });
     console.log('Run criado:', JSON.stringify(run, null, 2));
 
     const threadId = run.thread_id!;
     const runId = run.id;
 
-    // Polling manual, passando extra_headers em cada chamada
-    let runStatus = await openai.beta.threads.runs.retrieve(
-      threadId,
-      runId,
-      { extra_headers: BETA_HEADER }
-    );
+    // Polling manual
+    let runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
     let attempts = 0;
     const maxAttempts = 60;
     while (runStatus.status !== 'completed' && attempts < maxAttempts) {
@@ -60,23 +51,16 @@ serve(async (req) => {
           if (action.type === 'tool_call' && action.tool.tool_name === 'file_system') {
             const toolCallId = action.tool_call_id;
             const path = action.parameters.path;
-            console.log(`Enviando conteúdo de arquivo para tool_call_id ${toolCallId}, path: ${path}`);
+            console.log(`Enviando arquivo para tool_call_id ${toolCallId}, path: ${path}`);
             const fileContent = await Deno.readTextFile(path);
-            await openai.beta.threads.runs.submitToolOutputs(
-              threadId,
-              runId,
-              { tool_outputs: [{ tool_call_id: toolCallId, output: fileContent }] },
-              { extra_headers: BETA_HEADER }
-            );
+            await openai.beta.threads.runs.submitToolOutputs(threadId, runId, {
+              tool_outputs: [{ tool_call_id: toolCallId, output: fileContent }]
+            });
           }
         }
       }
       await new Promise(res => setTimeout(res, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(
-        threadId,
-        runId,
-        { extra_headers: BETA_HEADER }
-      );
+      runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
       attempts++;
       if (['failed', 'cancelled', 'expired'].includes(runStatus.status)) {
         throw new Error(`Run ${runStatus.status}: ${JSON.stringify(runStatus.last_error)}`);
@@ -86,11 +70,8 @@ serve(async (req) => {
       throw new Error('Run expirou após aguardar 60 segundos');
     }
 
-    // Recupera resposta, listando mensagens com header v2
-    const msgs = await openai.beta.threads.messages.list(
-      threadId,
-      { extra_headers: BETA_HEADER }
-    );
+    // Recupera resposta
+    const msgs = await openai.beta.threads.messages.list(threadId);
     console.log(`Mensagens no thread: ${msgs.data.length}`);
 
     const assistantMsg = msgs.data.find(m => m.role === 'assistant');
@@ -100,12 +81,11 @@ serve(async (req) => {
     const reply = textPart.text.value;
     console.log(`Resposta: ${reply.substring(0, 50)}...`);
 
-    // Persistência no Supabase usando Service Role Key
+    // Persistência no Supabase com Service Role Key
     const supa = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-    // Verifica tabela
     try {
       await supa.from('lexicon_queries').select('user_id').limit(1);
     } catch {
