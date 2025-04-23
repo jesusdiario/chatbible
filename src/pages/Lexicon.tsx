@@ -7,6 +7,7 @@ import { queryLexicon } from '@/services/lexiconService';
 import { Message } from '@/types/chat';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import MessageList from '@/components/MessageList';
 
 export default function Lexicon() {
   const [word, setWord] = useState('');
@@ -27,16 +28,20 @@ export default function Lexicon() {
       };
       
       const allMessages = [...messages, userMessage];
+      setMessages(prev => [...prev, userMessage]); // Mostrar mensagem do usuário imediatamente
+      
       const { reply } = await queryLexicon(word, [systemMessage, ...allMessages]);
       
       const assistantMessage: Message = { role: 'assistant', content: reply };
       
-      setMessages(prev => [...prev, userMessage, assistantMessage]);
+      setMessages(prev => [...prev.filter(m => m.content !== 'Processando sua consulta...'), assistantMessage]);
       setWord('');
     } catch (error) {
+      console.error('Erro ao processar consulta:', error);
+      setMessages(prev => prev.filter(m => m.content !== 'Processando sua consulta...'));
       toast({
         title: "Erro",
-        description: "Não foi possível processar sua consulta.",
+        description: "Não foi possível processar sua consulta. Por favor, tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -48,22 +53,15 @@ export default function Lexicon() {
     <div className="flex flex-col h-screen">
       <header className="border-b p-4">
         <h1 className="text-2xl font-bold">Léxico Bíblico</h1>
+        <p className="text-sm text-muted-foreground">Consulte termos e palavras bíblicas em seus idiomas originais</p>
       </header>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-lg ${
-                message.role === 'assistant'
-                  ? 'bg-secondary ml-4'
-                  : 'bg-primary mr-4'
-              }`}
-            >
-              {message.content}
-            </div>
-          ))}
+      <ScrollArea className="flex-1">
+        <div className="max-w-3xl mx-auto p-4">
+          <MessageList 
+            messages={messages} 
+            isTyping={isLoading}
+          />
         </div>
       </ScrollArea>
 
@@ -72,7 +70,7 @@ export default function Lexicon() {
           type="text"
           value={word}
           onChange={(e) => setWord(e.target.value)}
-          placeholder="Digite uma palavra para pesquisar..."
+          placeholder="Digite uma palavra ou termo para pesquisar..."
           disabled={isLoading}
           className="flex-1"
         />

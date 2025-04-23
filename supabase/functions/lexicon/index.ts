@@ -16,7 +16,13 @@ serve(async (req) => {
   try {
     const { messages, userId, word, assistantId } = await req.json()
 
-    const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY')! })
+    // Configurar o cliente OpenAI com o cabeçalho beta para v2
+    const openai = new OpenAI({ 
+      apiKey: Deno.env.get('OPENAI_API_KEY')!,
+      defaultHeaders: {
+        'OpenAI-Beta': 'assistants=v2'
+      }
+    })
     
     // Create a thread
     const thread = await openai.beta.threads.create();
@@ -39,13 +45,23 @@ serve(async (req) => {
       runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
       
       if (runStatus.status === 'failed') {
-        throw new Error('Assistant run failed');
+        throw new Error('Assistant run failed: ' + JSON.stringify(runStatus.last_error));
+      }
+      
+      // Adicionar verificação para outros status de falha
+      if (['cancelled', 'expired', 'failed'].includes(runStatus.status)) {
+        throw new Error(`Assistant run ${runStatus.status}: ${JSON.stringify(runStatus.last_error)}`);
       }
     }
 
     // Get the latest message from the assistant
     const threadMessages = await openai.beta.threads.messages.list(thread.id);
     const lastMessage = threadMessages.data[0];
+    
+    if (!lastMessage || !lastMessage.content || lastMessage.content.length === 0) {
+      throw new Error('No response received from assistant');
+    }
+    
     const reply = lastMessage.content[0].text.value;
 
     // Create Supabase client
