@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { queryLexicon } from '@/services/lexiconService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { queryLexicon, AssistantResponse } from '@/services/lexiconService';
 import { Message } from '@/types/chat';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
