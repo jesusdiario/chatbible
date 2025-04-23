@@ -44,8 +44,8 @@ serve(async (req) => {
     }
 
     // Get the latest message from the assistant
-    const messages = await openai.beta.threads.messages.list(thread.id);
-    const lastMessage = messages.data[0];
+    const threadMessages = await openai.beta.threads.messages.list(thread.id);
+    const lastMessage = threadMessages.data[0];
     const reply = lastMessage.content[0].text.value;
 
     // Create Supabase client
