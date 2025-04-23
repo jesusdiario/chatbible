@@ -14,16 +14,39 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId, word } = await req.json()
+    const { messages, userId, word, assistantId } = await req.json()
 
     const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY')! })
     
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-    })
+    // Create a thread
+    const thread = await openai.beta.threads.create();
 
-    const reply = completion.choices[0].message.content
+    // Add the user's message to the thread
+    await openai.beta.threads.messages.create(thread.id, {
+      role: "user",
+      content: word
+    });
+
+    // Run the assistant on the thread
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: assistantId
+    });
+
+    // Wait for the run to complete
+    let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    while (runStatus.status !== 'completed') {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      
+      if (runStatus.status === 'failed') {
+        throw new Error('Assistant run failed');
+      }
+    }
+
+    // Get the latest message from the assistant
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    const lastMessage = messages.data[0];
+    const reply = lastMessage.content[0].text.value;
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -50,6 +73,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in lexicon function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
