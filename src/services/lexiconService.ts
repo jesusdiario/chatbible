@@ -1,13 +1,29 @@
-// src/services/lexiconService.ts
-export async function sendToAssistant(
-  message: string,
-  threadId?: string
-): Promise<{ threadId: string; response: string }> {
-  const res = await fetch("/functions/lexicon", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, threadId })
+
+import { supabase } from '@/integrations/supabase/client';
+
+interface LexiconResponse {
+  reply: string;
+}
+
+export async function queryLexicon(
+  word: string,
+  messages: { role: string; content: string }[]
+): Promise<LexiconResponse> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+  
+  const { data, error } = await supabase.functions.invoke('lexicon', {
+    body: { 
+      messages,
+      userId: user.id,
+      word,
+      assistantId: 'asst_YLwvqvZmSOMwxaku53jtKAlt'
+    }
   });
-  if (!res.ok) throw new Error("Erro ao chamar o Assistant");
-  return res.json();
+
+  if (error) throw error;
+  return data as LexiconResponse;
 }
