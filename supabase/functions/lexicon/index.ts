@@ -13,14 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const assistantId = body.assistantId || Deno.env.get('DEFAULT_ASSISTANT_ID');
-    const userId = body.userId;
-    const word = body.word;
-
-    if (!assistantId) {
-      throw new Error('assistantId não fornecido na requisição nem em DEFAULT_ASSISTANT_ID');
-    }
+    const { userId, word } = await req.json();
+    // ID fixa do Assistant a ser usado
+    const assistantId = 'asst_YLwvqvZmSOMwxaku53jtKAlt';
 
     // Inicializa cliente OpenAI com header global para v2
     const openai = new OpenAI({
