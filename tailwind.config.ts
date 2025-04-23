@@ -19,18 +19,21 @@ export default {
     },
     extend: {
       colors: {
+        'app-bg': '#212121',
+        'sidebar-bg': '#171717',
+        'icon-accent': '#48DE7F',
+        'text-primary': '#ffffff',
+        'chat-footer-bg': '#ffffff',
+        'chat-input-bg': '#2F2F2F',
+        'chat-icon-hover': '#374151',
+        'send-btn-bg': '#10A37F',
+        'send-btn-hover': '#0E8C6E',
+        
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        chatgpt: {
-          sidebar: "#171717", // para sidebar
-          main: "#212121",    // para headers/topbar/botões principais
-          secondary: "#444654", // para popover, dropdown e dialogs
-          hover: "#2A2B32",
-          border: "#4E4F60"
-        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
