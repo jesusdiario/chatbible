@@ -7,6 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import MessageList from '@/components/MessageList';
 import { queryLexicon } from '@/services/lexiconService';
+import { sendToAssistant } from "@/services/lexiconService";
 
 export default function Lexicon() {
   const [word, setWord] = useState('');
