@@ -8,10 +8,11 @@ const corsHeaders = {
 
 // OpenAI & Assistants API config
 const API_KEY = Deno.env.get('OPENAI_API_KEY')!;
-const API_BASE = 'https://api.openai.com/v1';
+// Usar o endpoint v1beta para Assistants API v2
+const API_BASE = 'https://api.openai.com/v1beta';
 const ASSISTANT_ID = 'asst_YLwvqvZmSOMwxaku53jtKAlt';
 const BETA_HEADER = { 'OpenAI-Beta': 'assistants=v2' };
-// Se desejar instruções de sistema extras, configure aqui, senão remova esta linha para usar instruções definidas no portal
+// Instruções opcionais de sistema
 const SYSTEM_INSTRUCTIONS = "";
 
 serve(async (req) => {
