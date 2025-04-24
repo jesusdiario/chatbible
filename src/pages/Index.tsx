@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
 import MessageList from "@/components/MessageList";
 import EmptyChatState from "@/components/EmptyChatState";
+import ChatHistoryList from "@/components/ChatHistoryList"; // Import the ChatHistoryList component
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useChatState } from "@/hooks/useChatState";
@@ -143,11 +144,21 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <EmptyChatState
-                title="Nova Conversa"
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-              />
+              <>
+                <EmptyChatState
+                  title="Nova Conversa"
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                />
+                {/* Display chat history below the empty state */}
+                <div className="w-full max-w-3xl mx-auto px-4 mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Histórico de Conversas</h2>
+                  <ChatHistoryList 
+                    chatHistory={chatHistory} 
+                    onChatSelect={handleChatSelect}
+                  />
+                </div>
+              </>
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
