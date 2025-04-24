@@ -5,14 +5,14 @@ import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
 import MessageList from "@/components/MessageList";
-import EmptyChatState from "@/components/EmptyChatState";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Message } from "@/types/chat";
+import { categorizeChatHistory } from "@/types/chat";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -115,6 +115,7 @@ const Index = () => {
       const messages = await loadChatMessages(chatId);
       if (messages) {
         setMessages(messages);
+        navigate(`/chat/${chatId}`);
       }
     } catch (err: any) {
       toast({
@@ -125,6 +126,8 @@ const Index = () => {
     }
   };
 
+  const timeframes = categorizeChatHistory(chatHistory);
+
   return (
     <div className="flex h-screen flex-col md:flex-row">
       <ErrorBoundary>
@@ -132,7 +135,6 @@ const Index = () => {
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           onApiKeyChange={() => {}}
-          chatHistory={chatHistory}
           onChatSelect={handleChatSelect}
           currentPath={window.location.pathname}
         />
@@ -143,11 +145,51 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <EmptyChatState
-                title="Nova Conversa"
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-              />
+              <div className="w-full max-w-3xl mx-auto px-4">
+                <h1 className="text-2xl font-bold mb-4">Histórico de Conversas</h1>
+                {timeframes.length === 0 ? (
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-4">Nenhuma conversa ainda.</p>
+                    <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-6 mb-8">
+                      {timeframes.map(timeframe => (
+                        <div key={timeframe.title}>
+                          <h2 className="text-sm text-gray-500 mb-2">{timeframe.title}</h2>
+                          <ul className="space-y-2">
+                            {timeframe.items.map(chat => (
+                              <li
+                                key={chat.id}
+                                onClick={() => handleChatSelect(chat.slug || '')}
+                                className="p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h3 className="font-medium text-gray-200">{chat.title}</h3>
+                                    {chat.last_message && (
+                                      <p className="text-sm text-gray-400 mt-1 line-clamp-2">
+                                        {chat.last_message}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <time className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                                    {new Date(chat.lastAccessed).toLocaleDateString()}
+                                  </time>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="sticky bottom-4">
+                      <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
