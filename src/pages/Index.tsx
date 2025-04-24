@@ -8,7 +8,6 @@ import MessageList from "@/components/MessageList";
 import EmptyChatState from "@/components/EmptyChatState";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import ChatHistoryList from "@/components/ChatHistoryList";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,17 +143,11 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <>
-                <EmptyChatState
-                  title="Nova Conversa"
-                  onSendMessage={handleSendMessage}
-                  isLoading={isLoading}
-                />
-                <section className="w-full max-w-3xl mx-auto px-4 mt-8">
-                  <h2 className="text-xl font-semibold mb-4">Histórico de Conversas</h2>
-                  <ChatHistoryList chatHistory={chatHistory} />
-                </section>
-              </>
+              <EmptyChatState
+                title="Nova Conversa"
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+              />
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
