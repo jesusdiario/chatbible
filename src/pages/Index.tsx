@@ -1,5 +1,6 @@
+
 import React from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
@@ -12,7 +13,6 @@ import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Message } from "@/types/chat";
-import { formatRelativeTime } from "@/utils/dateUtils";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -143,38 +143,11 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <>
-                <EmptyChatState
-                  title="Nova Conversa"
-                  onSendMessage={handleSendMessage}
-                  isLoading={isLoading}
-                />
-
-                <section className="mt-8 w-full max-w-3xl mx-auto px-4">
-                  <h2 className="text-xl font-semibold mb-4">Histórico de Conversas</h2>
-                  {chatHistory.length > 0 ? (
-                    <ul className="space-y-2">
-                      {chatHistory.map((chat) => (
-                        <li key={chat.id}>
-                          <Link
-                            to={`/chat/${chat.slug}`}
-                            className="flex justify-between items-center p-3 bg-chatgpt-secondary rounded hover:bg-chatgpt-hover transition-colors"
-                          >
-                            <span className="text-white">{chat.title}</span>
-                            <time className="text-sm text-gray-400">
-                              {formatRelativeTime(new Date(chat.lastAccessed))}
-                            </time>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-center text-gray-400">
-                      Nenhuma conversa anterior.
-                    </p>
-                  )}
-                </section>
-              </>
+              <EmptyChatState
+                title="Nova Conversa"
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+              />
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
