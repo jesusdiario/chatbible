@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -7,6 +8,7 @@ import MessageList from "@/components/MessageList";
 import EmptyChatState from "@/components/EmptyChatState";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ChatHistoryList from "@/components/ChatHistoryList";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
