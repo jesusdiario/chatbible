@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -143,11 +142,17 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <EmptyChatState
-                title="Nova Conversa"
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-              />
+              <>
+                <EmptyChatState
+                  title="Nova Conversa"
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                />
+                <section className="w-full max-w-3xl mx-auto px-4 mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Histórico de Conversas</h2>
+                  <ChatHistoryList chatHistory={chatHistory} />
+                </section>
+              </>
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
