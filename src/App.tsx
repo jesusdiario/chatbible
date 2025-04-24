@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -16,7 +17,7 @@ import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 import Lexicon from "@/pages/Lexicon";
-import CoursesPage from "@/pages/CoursesPage";
+import Courses from "@/pages/Courses"; // Fixed import path
 
 const queryClient = new QueryClient();
 
@@ -101,7 +102,7 @@ const App = () => {
             } />
             <Route path="/courses" element={
               <ProtectedRoute>
-                <CoursesPage />
+                <Courses />
               </ProtectedRoute>
             } />
           </Routes>
