@@ -1,3 +1,4 @@
+// src/pages/Index.tsx
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -32,25 +33,23 @@ const Index = () => {
 
   React.useEffect(() => {
     const loadExistingChat = async () => {
-      if (slug) {
-        setIsLoading(true);
-        try {
-          const loadedMessages = await loadChatMessages(slug);
-          if (loadedMessages) {
-            setMessages(loadedMessages);
-          }
-        } catch (error) {
-          toast({
-            title: "Erro",
-            description: "Erro ao carregar o histórico da conversa",
-            variant: "destructive",
-          });
-        } finally {
-          setIsLoading(false);
+      if (!slug) return;
+      setIsLoading(true);
+      try {
+        const loadedMessages = await loadChatMessages(slug);
+        if (loadedMessages) {
+          setMessages(loadedMessages);
         }
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar o histórico da conversa",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
-
     loadExistingChat();
   }, [slug, setMessages, setIsLoading]);
 
@@ -59,47 +58,45 @@ const Index = () => {
 
     setIsLoading(true);
     const userMessage: Message = { role: "user", content };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    
+    setMessages(prev => [...prev, userMessage]);
+
     try {
       const result = await sendChatMessage(content, messages, undefined, userId, slug);
       setMessages(result.messages);
-      
+
       if (!slug) {
-        navigate(`/chat/${result.slug}`);
+        navigate(`/chat/${result.slug}`, { replace: true });
       }
 
       if (userId) {
         const { data: updatedHistory } = await supabase
-          .from('chat_history')
-          .select('*')
-          .eq('user_id', userId)
-          .order('last_accessed', { ascending: false });
+          .from("chat_history")
+          .select("id, slug, title, book_slug, last_message, last_accessed")
+          .eq("user_id", userId)
+          .order("last_accessed", { ascending: false });
 
         if (updatedHistory) {
-          const formattedHistory = updatedHistory.map(item => ({
+          const formatted = updatedHistory.map(item => ({
             id: item.id,
+            slug: item.slug,
             title: item.title,
-            lastAccessed: new Date(item.last_accessed),
-            user_id: item.user_id,
-            book_slug: item.book_slug,
-            last_message: item.last_message,
-            slug: item.slug
+            bookSlug: item.book_slug,
+            lastMessage: item.last_message,
+            lastAccessed: new Date(item.last_accessed).toLocaleString(),
           }));
-          setChatHistory(formattedHistory);
+          setChatHistory(formatted);
         }
       }
     } catch (err: any) {
       toast({
-        title: "Erro",
-        description: err?.message || "Erro inesperado ao enviar mensagem",
+        title: "Erro ao enviar",
+        description: err.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
-      const errorMessage: Message = { 
-        role: "assistant", 
-        content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
-      };
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: `Erro: ${err.message || "falha ao enviar"}` },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -108,16 +105,14 @@ const Index = () => {
   const handleChatSelect = async (chatId: string) => {
     if (chatId === 'new') {
       setMessages([]);
-      navigate('/');
+      navigate("/", { replace: true });
       return;
     }
-
     try {
-      const messages = await loadChatMessages(chatId);
-      if (messages) {
-        setMessages(messages);
-      }
-    } catch (err: any) {
+      const msgs = await loadChatMessages(chatId);
+      if (msgs) setMessages(msgs);
+      navigate(`/chat/${chatId}`);
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao carregar o histórico da conversa",
@@ -126,9 +121,10 @@ const Index = () => {
     }
   };
 
-  const categorizedHistory = React.useMemo(() => {
-    return categorizeChatHistory(chatHistory);
-  }, [chatHistory]);
+  const categorizedHistory = React.useMemo(
+    () => categorizeChatHistory(chatHistory),
+    [chatHistory]
+  );
 
   return (
     <div className="flex h-screen flex-col md:flex-row">
@@ -141,12 +137,25 @@ const Index = () => {
           onChatSelect={handleChatSelect}
           currentPath={window.location.pathname}
         />
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+
+        <main
+          className={`flex-1 transition-all duration-300 ${
+            isSidebarOpen ? "ml-0 md:ml-64" : "ml-0"
+          }`}
+        >
           <ChatHeader
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
-          <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
+
+          {/* Espaçamento ajustado para 16 (64px) */}
+          <div
+            className={`flex h-full flex-col ${
+              messages.length === 0
+                ? "items-center justify-center"
+                : "justify-between"
+            } pt-16 pb-4`}
+          >
             {messages.length === 0 ? (
               <div className="w-full space-y-8">
                 <EmptyChatState
@@ -155,15 +164,22 @@ const Index = () => {
                   isLoading={isLoading}
                 />
                 {chatHistory.length > 0 && (
-                  <ChatHistoryList 
-                    chatHistory={categorizedHistory}
-                    onChatSelect={handleChatSelect}
-                  />
+                  <div className="px-4">
+                    <h1 className="text-2xl font-bold mb-4">Histórico</h1>
+                    <ChatHistoryList
+                      chatHistory={categorizedHistory}
+                      onChatSelect={handleChatSelect}
+                    />
+                  </div>
                 )}
               </div>
             ) : (
               <>
-                {isLoading && <LoadingSpinner />}
+                {isLoading && (
+                  <div className="flex justify-center py-4">
+                    <LoadingSpinner />
+                  </div>
+                )}
                 <MessageList messages={messages} />
                 <div className="w-full max-w-3xl mx-auto px-4 py-2">
                   <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
