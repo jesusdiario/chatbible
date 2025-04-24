@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
 import Sidebar from "@/components/Sidebar";
 import ChatInput from "@/components/ChatInput";
@@ -12,7 +12,7 @@ import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Message } from "@/types/chat";  // Tipo Message para tipar as mensagens
+import { Message, ChatHistory } from "@/types/chat";  // Tipo Message e ChatHistory
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -29,28 +29,55 @@ const Index = () => {
     setChatHistory
   } = useChatState({ slug });
 
-  // Carrega histórico ao enviar mensagem ou ao entrar em conversa existente
-  useEffect(() => {
-    if (slug) {
-      setIsLoading(true);
-      loadChatMessages(slug)
-        .then(loaded => {
-          if (loaded) setMessages(loaded);
-        })
-        .catch(() => {
-          toast({
-            title: "Erro",
-            description: "Não foi possível carregar a conversa.",
-            variant: "destructive",
-          });
-        })
-        .finally(() => setIsLoading(false));
+  // ─── Função para buscar todo o histórico de chats do usuário ───
+  const fetchChatHistory = async () => {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from("chat_history")
+      .select("id, slug, title, last_message, book_slug, last_accessed")
+      .eq("user_id", userId)
+      .order("last_accessed", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar histórico:", error);
+      return;
     }
+    const formatted: ChatHistory[] = (data || []).map((item: any) => ({
+      id: item.id,
+      slug: item.slug,
+      title: item.title,
+      lastMessage: item.last_message,
+      bookSlug: item.book_slug,
+      lastAccessed: new Date(item.last_accessed).toLocaleString(),
+    }));
+    setChatHistory(formatted);
+  };
+
+  // ─── Efeito: carrega mensagens se for chat existente ───
+  useEffect(() => {
+    if (!slug) return;
+    setIsLoading(true);
+    loadChatMessages(slug)
+      .then(loaded => loaded && setMessages(loaded))
+      .catch(() => {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar a conversa.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => setIsLoading(false));
   }, [slug]);
+
+  // ─── Efeito: carrega histórico na montagem e sempre que userId mudar ───
+  useEffect(() => {
+    fetchChatHistory();
+  }, [userId]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
     setIsLoading(true);
+
     const userMsg: Message = { role: "user", content };
     setMessages(prev => [...prev, userMsg]);
 
@@ -62,26 +89,8 @@ const Index = () => {
         navigate(`/chat/${result.slug}`, { replace: true });
       }
 
-      // Atualiza o histórico do usuário
-      if (userId) {
-        const { data: updatedHistory } = await supabase
-          .from("chat_history")
-          .select("id,title,slug,book_slug,last_accessed")
-          .eq("user_id", userId)
-          .order("last_accessed", { ascending: false });
-
-        if (updatedHistory) {
-          setChatHistory(
-            updatedHistory.map(h => ({
-              id: h.id,
-              title: h.title,
-              slug: h.slug,
-              book_slug: h.book_slug,
-              lastAccessed: new Date(h.last_accessed).toLocaleString(),
-            }))
-          );
-        }
-      }
+      // após enviar, atualiza também o histórico
+      await fetchChatHistory();
     } catch (err: any) {
       toast({
         title: "Erro ao enviar",
@@ -106,7 +115,6 @@ const Index = () => {
         ? `/livros-da-biblia/${bookSlug}/${chatSlug}`
         : `/chat/${chatSlug}`;
       navigate(path);
-      onChatSelect?.(chatId);
     }
     if (window.innerWidth < 768) setIsSidebarOpen(false);
   };
@@ -138,12 +146,12 @@ const Index = () => {
                   isLoading={isLoading}
                 />
 
-                {/* Histórico de conversas */}
+                {/* ─── Histórico ─── */}
                 <div className="w-full max-w-3xl mx-auto px-4 mt-8">
                   <h1 className="text-2xl font-bold mb-4">Histórico</h1>
                   <ChatHistoryList
                     chatHistory={chatHistory}
-                    onChatSelect={(id) => handleChatSelect(id)}
+                    onChatSelect={(id, bookSlug, chatSlug) => handleChatSelect(id, bookSlug, chatSlug)}
                   />
                 </div>
               </>
