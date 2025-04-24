@@ -182,6 +182,35 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          course_id: string | null
+          id: string
+          issued_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          id?: string
+          issued_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          id?: string
+          issued_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_history: {
         Row: {
           book_slug: string | null
@@ -218,6 +247,71 @@ export type Database = {
         }
         Relationships: []
       }
+      course_progress: {
+        Row: {
+          completed_lessons: Json | null
+          course_id: string | null
+          id: string
+          last_access: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_lessons?: Json | null
+          course_id?: string | null
+          id?: string
+          last_access?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_lessons?: Json | null
+          course_id?: string | null
+          id?: string
+          last_access?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          language: string | null
+          level: string
+          title: string
+          total_hours: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          language?: string | null
+          level: string
+          title: string
+          total_hours?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          language?: string | null
+          level?: string
+          title?: string
+          total_hours?: number | null
+        }
+        Relationships: []
+      }
       custom_pages: {
         Row: {
           category_id: string | null
@@ -249,6 +343,76 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "bible_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedbacks: {
+        Row: {
+          comment: string | null
+          course_id: string | null
+          id: string
+          rating: number | null
+          submitted_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          course_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          course_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedbacks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          duration: number | null
+          id: string
+          position: number
+          section_id: string | null
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          duration?: number | null
+          id?: string
+          position: number
+          section_id?: string | null
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          duration?: number | null
+          id?: string
+          position?: number
+          section_id?: string | null
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
         ]
@@ -403,6 +567,35 @@ export type Database = {
         }
         Relationships: []
       }
+      sections: {
+        Row: {
+          course_id: string | null
+          id: string
+          position: number
+          title: string
+        }
+        Insert: {
+          course_id?: string | null
+          id?: string
+          position: number
+          title: string
+        }
+        Update: {
+          course_id?: string | null
+          id?: string
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           amount: number
@@ -469,6 +662,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          display_name: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          display_name?: string | null
+          id: string
+          role: string
+        }
+        Update: {
+          display_name?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -498,6 +709,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
