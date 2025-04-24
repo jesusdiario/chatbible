@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ChatHeader from "@/components/ChatHeader";
@@ -8,11 +7,13 @@ import MessageList from "@/components/MessageList";
 import EmptyChatState from "@/components/EmptyChatState";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ChatHistoryList from "@/components/ChatHistoryList";
 import { useChatState } from "@/hooks/useChatState";
 import { sendChatMessage, loadChatMessages } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Message } from "@/types/chat";
+import { categorizeChatHistory } from "@/types/chat";
 
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -125,6 +126,10 @@ const Index = () => {
     }
   };
 
+  const categorizedHistory = React.useMemo(() => {
+    return categorizeChatHistory(chatHistory);
+  }, [chatHistory]);
+
   return (
     <div className="flex h-screen flex-col md:flex-row">
       <ErrorBoundary>
@@ -143,11 +148,19 @@ const Index = () => {
           />
           <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
             {messages.length === 0 ? (
-              <EmptyChatState
-                title="Nova Conversa"
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-              />
+              <div className="w-full space-y-8">
+                <EmptyChatState
+                  title="Nova Conversa"
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                />
+                {chatHistory.length > 0 && (
+                  <ChatHistoryList 
+                    chatHistory={categorizedHistory}
+                    onChatSelect={handleChatSelect}
+                  />
+                )}
+              </div>
             ) : (
               <>
                 {isLoading && <LoadingSpinner />}
