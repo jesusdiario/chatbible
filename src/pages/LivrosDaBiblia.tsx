@@ -31,7 +31,7 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
     <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} onApiKeyChange={onApiKeyChange} />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen flex justify-center items-center">
+      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-black min-h-screen flex justify-center items-center">
         <LoadingSpinner />
       </div>
     </main>
