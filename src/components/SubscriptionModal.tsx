@@ -54,19 +54,19 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
           <ul className="mb-6 space-y-3">
             <li className="flex items-start">
               <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-              <span>Até 100 mensagens por mês</span>
+              <span>Até 200 mensagens por mês</span>
             </li>
             <li className="flex items-start">
               <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-              <span>Respostas mais rápidas</span>
+              <span>Acesso ao Construtor de Estudo</span>
+            </li>
+            <li className="flex items-start">
+              <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
+              <span>Acesso ao Construtor de Pregação</span>
             </li>
             <li className="flex items-start">
               <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
               <span>Renovação automática mensal</span>
-            </li>
-            <li className="flex items-start">
-              <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-              <span>Suporte prioritário</span>
             </li>
           </ul>
           
