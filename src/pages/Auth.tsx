@@ -93,9 +93,9 @@ const Auth = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Senha</Label>
+              <Label htmlFor="password" className="text-dark">Senha</Label>
               <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="border-slate-600 text-white pr-10 bg-zinc-950" />
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="border-slate-600 text-dark pr-10 bg-[#ffffff]-950" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dark">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -109,13 +109,13 @@ const Auth = () => {
                 </Label>
               </div>}
             
-            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-white-800">
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]-800">
               {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline text-sm" type="button">
+            <button onClick={() => setIsLogin(!isLogin)} className="text-[#4483f4] hover:underline text-sm" type="button">
               {isLogin ? "Não tem uma conta? Crie agora" : "Já tem uma conta? Entre"}
             </button>
           </div>
