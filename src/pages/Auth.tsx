@@ -81,7 +81,7 @@ const Auth = () => {
           <p className="text-dark-500 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
         </div>
 
-        <div className="rounded-lg shadow-xl p-6 border border-slate-700 bg-[#ffffff]">
+        <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff]">
           <h2 className="text-xl font-semibold text-dark mb-6">
             {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
