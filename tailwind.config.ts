@@ -31,7 +31,7 @@ export default {
           secondary: "#f9f9f9", // popover, dropdown claro
           hover: "#f0f0f0",
           border: "#e5e5e5",
-          accent: "#10a37f", // cor primária ChatGPT
+          accent: "#4483F4", // cor primária ChatGPT
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
