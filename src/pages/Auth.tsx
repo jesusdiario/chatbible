@@ -75,13 +75,13 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="/public/lovable-uploads/logo-jd-bible-chat.png" alt="Logo" className="w-[80px] h-[80px]" />
+            <img src="/public/lovable-uploads/logo-jd-bible-chat.png" alt="Logo" className="w-[50px] h-[50px]" />
           </div>
           <h1 className="text-3xl font-bold text-dark">BibleGPT</h1>
           <p className="text-gray-400 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
         </div>
 
-        <div className="rounded-lg shadow-xl p-6 border border-slate-700 bg-white">
+        <div className="rounded-lg shadow-xl p-6 border border-slate-700 bg-[#ffffff]">
           <h2 className="text-xl font-semibold text-dark mb-6">
             {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
@@ -96,7 +96,7 @@ const Auth = () => {
               <Label htmlFor="password" className="text-white">Senha</Label>
               <div className="relative">
                 <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="border-slate-600 text-white pr-10 bg-zinc-950" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dark">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -109,7 +109,7 @@ const Auth = () => {
                 </Label>
               </div>}
             
-            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-indigo-800">
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-white-800">
               {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
