@@ -78,7 +78,7 @@ export default {
             a: {
               color: '#4483F4',
               '&:hover': {
-                color: '##2771f5',
+                color: '#2771f5',
               },
             },
             h1: {
