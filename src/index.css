@@ -3,8 +3,72 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 215 25% 27%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 27%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 27%;
+    
+    --primary: 160 83% 35%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 215 25% 27%;
+    
+    --muted: 210 20% 98%;
+    --muted-foreground: 215 25% 40%;
+    
+    --accent: 210 20% 98%;
+    --accent-foreground: 215 25% 27%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 160 83% 35%;
+    
+    --radius: 0.75rem;
+  }
+  
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 0 0% 100%;
+    
+    --card: 222 47% 11%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 222 47% 11%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 160 83% 35%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 217 32% 18%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 217 32% 18%;
+    --muted-foreground: 215 25% 70%;
+    
+    --accent: 217 32% 18%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 217 32% 18%;
+    --input: 217 32% 18%;
+    --ring: 160 83% 35%;
+  }
+}
+
 body {
-  @apply bg-chatgpt-main text-white;
+  @apply bg-background text-foreground;
 }
 
 .sidebar-item {
@@ -12,7 +76,20 @@ body {
 }
 
 .action-button {
-  @apply flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-chatgpt-hover/50 border border-transparent hover:border-chatgpt-border transition-all duration-200;
+  @apply flex items-center gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-chatgpt-hover/50 border border-transparent hover:border-chatgpt-border transition-all duration-200;
+}
+
+/* Componentes modernizados */
+.card-modern {
+  @apply bg-white rounded-2xl shadow-sm border border-chatgpt-border p-5;
+}
+
+.button-modern {
+  @apply bg-chatgpt-accent text-white rounded-md py-2.5 px-4 font-medium transition-all hover:bg-opacity-90;
+}
+
+.input-modern {
+  @apply bg-white border border-chatgpt-border rounded-md px-4 py-2.5 focus:ring-2 focus:ring-chatgpt-accent/50 focus:outline-none;
 }
 
 /* Animação de digitação */
@@ -26,7 +103,7 @@ body {
   display: inline-block;
   width: 8px;
   height: 8px;
-  background-color: #A0A0A0;
+  background-color: #10a37f;
   border-radius: 50%;
   margin: 0 2px;
   animation: typing-bounce 1.4s infinite ease-in-out both;

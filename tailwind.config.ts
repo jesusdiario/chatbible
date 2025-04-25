@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,11 +26,12 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         chatgpt: {
-          sidebar: "#171717", // para sidebar
-          main: "#212121",    // para headers/topbar/botões principais
-          secondary: "#444654", // para popover, dropdown e dialogs
-          hover: "#2A2B32",
-          border: "#4E4F60"
+          sidebar: "#f7f7f8", // sidebar claro
+          main: "#ffffff",    // header/topbar claro
+          secondary: "#f9f9f9", // popover, dropdown claro
+          hover: "#f0f0f0",
+          border: "#e5e5e5",
+          accent: "#10a37f", // cor primária ChatGPT
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -65,33 +67,37 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        heading: ["Inter", "system-ui", "sans-serif"],
+      },
       typography: {
         DEFAULT: {
           css: {
-            color: '#fff',
+            color: '#2e2e2e',
             a: {
-              color: '#3182ce',
+              color: '#10a37f',
               '&:hover': {
-                color: '#2c5282',
+                color: '#0e8c6d',
               },
             },
             h1: {
-              color: '#fff',
+              color: '#2e2e2e',
             },
             h2: {
-              color: '#fff',
+              color: '#2e2e2e',
             },
             h3: {
-              color: '#fff',
+              color: '#2e2e2e',
             },
             strong: {
-              color: '#fff',
+              color: '#2e2e2e',
             },
             code: {
-              color: '#fff',
+              color: '#2e2e2e',
             },
             pre: {
-              backgroundColor: '#1a202c',
+              backgroundColor: '#f7f7f8',
             },
           },
         },
