@@ -14,7 +14,7 @@ const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar
     <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} onApiKeyChange={onApiKeyChange} />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
+      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
         <div className="p-4 bg-red-900 rounded">
           <p className="font-bold">Falha ao carregar dados:</p>
           <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(error, null, 2)}</pre>
