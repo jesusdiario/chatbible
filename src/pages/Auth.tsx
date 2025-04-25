@@ -75,7 +75,7 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="/lovable-uploads/logo-jd-bible-chat.png" alt="Logo" className="w-[50px] h-[50px]" />
+            <img src="/public/lovable-uploads/logo-jd-bible-chat.png" alt="Logo" className="w-[50px] h-[50px]" />
           </div>
           <h1 className="text-3xl font-bold text-dark">BibleGPT</h1>
           <p className="text-gray-400 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
