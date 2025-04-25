@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import ChatHeader from "@/components/ChatHeader";
@@ -19,6 +19,9 @@ const LivrosDaBibliaBook = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
+  const messageProcessingRef = useRef<boolean>(false);
+  const lastMessageRef = useRef<string>('');
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   const { bookDetails, loadingBook } = useBibleBook(book);
   const {
@@ -35,6 +38,9 @@ const LivrosDaBibliaBook = () => {
     if (!content.trim()) return;
     
     setIsLoading(true);
+    messageProcessingRef.current = true;
+    lastMessageRef.current = content;
+
     const userMessage: Message = { role: "user", content };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     
@@ -49,18 +55,20 @@ const LivrosDaBibliaBook = () => {
         messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== "")), 
         book, 
         userId || undefined, 
-        slug
+        slug,
+        undefined,
+        (chunk) => {
+          setMessages(prevMsgs => {
+            const newMsgs = [...prevMsgs];
+            // Atualizamos apenas a última mensagem do assistente com o conteúdo incremental
+            const lastMsg = newMsgs[newMsgs.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.content = (lastMsg.content || '') + chunk;
+            }
+            return newMsgs;
+          });
+        }
       );
-      
-      setMessages(prevMsgs => {
-        const newMsgs = [...prevMsgs];
-        // Substituímos apenas a última mensagem do assistente com o conteúdo completo
-        newMsgs[newMsgs.length - 1] = { 
-          role: "assistant", 
-          content: result.messages[result.messages.length - 1].content 
-        };
-        return newMsgs;
-      });
       
       if (!slug && book) {
         navigate(`/livros-da-biblia/${book}/${result.slug}`);
@@ -103,6 +111,7 @@ const LivrosDaBibliaBook = () => {
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+      messageProcessingRef.current = false;
     }
   };
 
@@ -126,37 +135,20 @@ const LivrosDaBibliaBook = () => {
     }
   };
 
-  // Adicionar evento para detectar quando o navegador perde foco
+  // Gerenciar mudanças de visibilidade da página
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && messages.length > 0 && slug) {
-        // Forçar persistência quando o usuário sai da aba
-        const asyncPersist = async () => {
-          if (userId) {
-            try {
-              const lastMessage = messages[messages.length - 1]?.content || '';
-              const title = messages[0]?.content?.slice(0, 50) + (messages[0]?.content?.length > 50 ? '…' : '');
-              
-              await supabase
-                .from('chat_history')
-                .upsert({
-                  slug,
-                  user_id: userId,
-                  title,
-                  book_slug: book,
-                  last_message: lastMessage,
-                  last_accessed: new Date().toISOString(),
-                  messages: JSON.stringify(messages)
-                }, { 
-                  onConflict: 'slug' 
-                });
-            } catch (err) {
-              console.error('Error persisting messages on visibility change:', err);
+      // Quando a página volta a ficar visível
+      if (document.visibilityState === 'visible' && slug) {
+        // Se estava em processo de geração de mensagem, verifica se precisa recarregar
+        if (messageProcessingRef.current) {
+          // Recarregar as mensagens atuais do banco para obter estado atualizado
+          loadChatMessages(slug).then(updatedMessages => {
+            if (updatedMessages) {
+              setMessages(updatedMessages);
             }
-          }
-        };
-        
-        asyncPersist();
+          });
+        }
       }
     };
 
@@ -165,7 +157,7 @@ const LivrosDaBibliaBook = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [messages, userId, slug, book]);
+  }, [slug, setMessages]);
 
   if (loadingBook) {
     return <BookLoadingState 

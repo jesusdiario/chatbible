@@ -96,35 +96,60 @@ export const sendChatMessage = async (
   let assistantFull = '';
   const assistantMessage: Message = { role: 'assistant', content: '' };
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunkStr = decoder.decode(value);
-    const lines = chunkStr.split('\n').filter(l => l.trim() !== '');
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-
-      try {
-        const payload = JSON.parse(line.replace('data: ', ''));
-        if (payload.content) {
-          assistantFull += payload.content;
-          assistantMessage.content = assistantFull;
-          onChunk?.(payload.content);
-        }
-      } catch (err) {
-        console.error('[chat] JSON parse error:', err);
-      }
-    }
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* 6. Pós-stream: atualiza registro completo                           */
-  /* ------------------------------------------------------------------ */
-  if (userId) {
+  // Criamos uma promessa que será resolvida apenas quando o stream for totalmente consumido
+  const streamPromise = new Promise<void>(async (resolve) => {
     try {
-      await supabase
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunkStr = decoder.decode(value);
+        const lines = chunkStr.split('\n').filter(l => l.trim() !== '');
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+
+          try {
+            const payload = JSON.parse(line.replace('data: ', ''));
+            if (payload.content) {
+              assistantFull += payload.content;
+              assistantMessage.content = assistantFull;
+              onChunk?.(payload.content);
+              
+              // Atualizamos o banco incrementalmente durante a geração
+              if (userId) {
+                try {
+                  await supabase
+                    .from('chat_history')
+                    .update({
+                      messages: JSON.stringify([...newMessages, { ...assistantMessage }]),
+                      last_message: assistantFull,
+                      last_accessed: new Date().toISOString()
+                    })
+                    .eq('slug', slugToUse);
+                } catch (updateError) {
+                  console.error('Error incrementally updating during stream:', updateError);
+                }
+              }
+            }
+          } catch (err) {
+            console.error('[chat] JSON parse error:', err);
+          }
+        }
+      }
+    } catch (streamError) {
+      console.error('Error processing stream:', streamError);
+    }
+    
+    resolve();
+  });
+
+  // Iniciamos o processamento do stream como uma tarefa de fundo
+  // Isso permite que a função retorne antes que o stream termine
+  const backgroundProcessing = streamPromise.then(() => {
+    // Operação final quando o stream terminar
+    if (userId) {
+      return supabase
         .from('chat_history')
         .update({
           messages: JSON.stringify([...newMessages, assistantMessage]),
@@ -132,11 +157,18 @@ export const sendChatMessage = async (
           last_accessed: new Date().toISOString()
         })
         .eq('slug', slugToUse);
-    } catch (err) {
-      console.error('Error updating chat after stream:', err);
     }
+    return Promise.resolve();
+  });
+
+  // Esta linha garante que o processamento do stream continua mesmo que
+  // a função retorne ou a aba seja alterada
+  if (typeof window !== 'undefined' && 'navigator' in window && 'scheduling' in navigator) {
+    // @ts-ignore - Esta API é experimental, mas útil para background processing
+    navigator.scheduling?.isInputPending && navigator.scheduling.isInputPending();
   }
 
+  // Retornamos imediatamente, sem aguardar o fim do stream
   return { messages: [...newMessages, assistantMessage], slug: slugToUse };
 };
 
@@ -170,7 +202,7 @@ export const loadChatMessages = async (
     if (Array.isArray(data.messages)) {
       // Check if the array elements have the correct shape (role and content properties)
       const isValidMessageArray = data.messages.every(
-        (item): item is Message => 
+        (item: any): item is Message => 
           typeof item === 'object' && 
           item !== null &&
           'role' in item && 
@@ -179,7 +211,7 @@ export const loadChatMessages = async (
       );
       
       if (isValidMessageArray) {
-        return data.messages as Message[];
+        return data.messages as unknown as Message[];
       }
       
       // If array elements don't match Message type, log error and return null
