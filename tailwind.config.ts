@@ -30,7 +30,7 @@ export default {
           main: "#ffffff",    // header/topbar claro
           secondary: "#f9f9f9", // popover, dropdown claro
           hover: "#f0f0f0",
-          border: "#e5e5e5",
+          border: "#f7f7f8",
           accent: "#4483F4", // cor primária ChatGPT
         },
         primary: {
@@ -74,27 +74,27 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            color: '#2e2e2e',
+            color: '#000000',
             a: {
-              color: '#10a37f',
+              color: '#4483F4',
               '&:hover': {
-                color: '#0e8c6d',
+                color: '##2771f5',
               },
             },
             h1: {
-              color: '#2e2e2e',
+              color: '#000000',
             },
             h2: {
-              color: '#2e2e2e',
+              color: '#000000',
             },
             h3: {
-              color: '#2e2e2e',
+              color: '#000000',
             },
             strong: {
-              color: '#2e2e2e',
+              color: '#000000',
             },
             code: {
-              color: '#2e2e2e',
+              color: '#000000',
             },
             pre: {
               backgroundColor: '#f7f7f8',
