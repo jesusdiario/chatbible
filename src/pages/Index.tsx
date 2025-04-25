@@ -8,6 +8,7 @@ import { useSidebarControl } from "@/hooks/useSidebarControl";
 import { BibleCategorySection } from "@/components/BibleCategorySection";
 import { useChatState } from "@/hooks/useChatState";
 import ChatHistoryList from "@/components/ChatHistoryList";
+import { categorizeChatHistory } from "@/types/chat";
 
 const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar: () => void; onApiKeyChange: (k: string) => void }> = ({
   error, isSidebarOpen, onToggleSidebar, onApiKeyChange
@@ -66,6 +67,9 @@ const LivrosDaBiblia = () => {
     return <LoadingState isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} onApiKeyChange={setApiKey} />;
   }
 
+  // Processamos o histórico de chat usando a função categorizeChatHistory
+  const timeframedHistory = categorizeChatHistory(chatHistory);
+
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} onApiKeyChange={setApiKey} />
@@ -77,7 +81,7 @@ const LivrosDaBiblia = () => {
             
             {chatHistory && chatHistory.length > 0 && (
               <div className="mb-12">
-                <ChatHistoryList chatHistory={chatHistory} />
+                <ChatHistoryList chatHistory={timeframedHistory} />
               </div>
             )}
             

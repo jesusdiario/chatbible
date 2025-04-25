@@ -1,9 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Message, ChatHistory, ChatProps, ChatState } from '@/types/chat';
+import { Message, ChatHistory, ChatProps, ChatState, categorizeChatHistory, TimeframedHistory } from '@/types/chat';
 
-export const useChatState = ({ book, slug }: ChatProps): ChatState => {
+export const useChatState = (props?: ChatProps): ChatState => {
+  const book = props?.book;
+  const slug = props?.slug;
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
