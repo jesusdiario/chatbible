@@ -17,7 +17,7 @@ const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar
     <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} onApiKeyChange={onApiKeyChange} />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-foreground min-h-screen">
+      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-[#000000] min-h-screen">
         <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-red-800">
           <p className="font-medium">Falha ao carregar dados:</p>
           <pre className="mt-2 overflow-auto text-sm bg-white p-4 rounded-md">{JSON.stringify(error, null, 2)}</pre>
@@ -34,7 +34,7 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
     <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} onApiKeyChange={onApiKeyChange} />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-foreground min-h-screen flex justify-center items-center">
+      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-[#000000] min-h-screen flex justify-center items-center">
         <LoadingSpinner />
       </div>
     </main>
