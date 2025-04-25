@@ -126,7 +126,7 @@ const Sidebar = ({
                     </span>
                     <div className="flex flex-col">
                       <span>Atualizar plano</span>
-                      <span className="line-clamp-1 text-xs text-token-text-tertiary">Mais acesso aos melhores modelos</span>
+                      <span className="line-clamp-1 text-xs text-token-text-tertiary">Libere + Mensagens</span>
                     </div>
                   </div>
                 </span>
