@@ -25,8 +25,8 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
         {isTyping && (
           <div className="py-6">
             <div className="flex gap-4">
-              <div className="h-8 w-8 rounded-full bg-chatgpt-secondary flex items-center justify-center">
-                <span className="text-sm">AI</span>
+              <div className="h-8 w-8 rounded-full bg-[#F7F7F8] flex items-center justify-center">
+                <span className="text-sm">BC</span>
               </div>
               <div className="flex-1">
                 <div className="prose prose-invert max-w-none">
