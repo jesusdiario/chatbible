@@ -75,9 +75,9 @@ const LivrosDaBiblia = () => {
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} onApiKeyChange={setApiKey} />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-foreground min-h-screen">
+        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-dark min-h-screen">
           <div className="max-w-7xl mx-auto py-6">
-            <h1 className="text-3xl font-semibold text-center mb-8"></h1>
+            <h1 className="text-dark font-semibold text-center mb-8"></h1>
             
             {chatHistory && chatHistory.length > 0 && (
               <div className="mb-12">
