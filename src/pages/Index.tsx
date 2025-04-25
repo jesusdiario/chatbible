@@ -77,7 +77,7 @@ const LivrosDaBiblia = () => {
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
         <div className="pt-[60px] pb-4 px-4 md:px-8 bg-background text-foreground min-h-screen">
           <div className="max-w-7xl mx-auto py-6">
-            <h1 className="text-3xl font-semibold text-center mb-8">Explore a Bíblia</h1>
+            <h1 className="text-3xl font-semibold text-center mb-8"></h1>
             
             {chatHistory && chatHistory.length > 0 && (
               <div className="mb-12">
