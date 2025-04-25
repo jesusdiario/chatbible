@@ -158,9 +158,38 @@ export const loadChatMessages = async (
       return null;
     }
 
-    return data?.messages ? (typeof data.messages === 'string' 
-      ? JSON.parse(data.messages as string) 
-      : data.messages as Message[]) : null;
+    // Properly handle type conversion from Json to Message[]
+    if (!data?.messages) return null;
+    
+    // If it's already a string (serialized JSON), parse it
+    if (typeof data.messages === 'string') {
+      return JSON.parse(data.messages) as Message[];
+    }
+    
+    // If it's an array, make sure it's properly typed
+    if (Array.isArray(data.messages)) {
+      // Check if the array elements have the correct shape (role and content properties)
+      const isValidMessageArray = data.messages.every(
+        (item): item is Message => 
+          typeof item === 'object' && 
+          item !== null &&
+          'role' in item && 
+          'content' in item &&
+          (item.role === 'user' || item.role === 'assistant')
+      );
+      
+      if (isValidMessageArray) {
+        return data.messages as Message[];
+      }
+      
+      // If array elements don't match Message type, log error and return null
+      console.error('Invalid message format in database:', data.messages);
+      return null;
+    }
+    
+    // If it's neither a string nor an array, log error and return null
+    console.error('Unexpected message format in database:', data.messages);
+    return null;
   } catch (err) {
     console.error('Error parsing chat messages:', err);
     return null;
