@@ -32,7 +32,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose}></div>
-      <div className="relative z-10 w-full max-w-md rounded-lg bg-slate-900 p-6 shadow-lg">
+      <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
         <button 
           onClick={onClose}
           className="absolute right-4 top-4 rounded-full p-1 hover:bg-slate-800"
