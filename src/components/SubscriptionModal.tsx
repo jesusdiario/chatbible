@@ -86,7 +86,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
           </Button>
         </div>
         
-        <p className="text-xs text-center text-slate-500">
+        <p className="text-xs text-center text-accent">
           A assinatura será renovada automaticamente. Você pode cancelar a qualquer momento. 
           Pagamento processado com segurança via Stripe.
         </p>
