@@ -37,14 +37,14 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
                     code: ({node, className, children, ...props}) => {
                       const match = /language-(\w+)/.exec(className || '');
                       return !className ? (
-                        <code className="bg-gray-800 px-1 py-0.5 rounded text-sm" {...props}>
+                        <code className="bg-[#F7F7F8] px-1 py-0.5 rounded text-sm" {...props}>
                           {children}
                         </code>
                       ) : (
-                        <pre className="bg-gray-800 p-4 rounded-md overflow-x-auto my-4 group relative">
+                        <pre className="bg-[#F7F7F8] p-4 rounded-md overflow-x-auto my-4 group relative">
                           <button 
                             onClick={() => navigator.clipboard.writeText(String(children))}
-                            className="absolute top-2 right-2 bg-gray-700 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-2 right-2 bg-[#F7F7F8] p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                             aria-label="Copiar código"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
