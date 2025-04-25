@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Message, SendMessageResponse } from '@/types/chat';
 
@@ -37,25 +38,29 @@ export const sendChatMessage = async (
   const userMessage: Message = { role: 'user', content };
   const newMessages = [...messages, userMessage];
 
-  const systemPrompt = promptOverride ?? (await getPromptForBook(book));
+  const systemPrompt = promptOverride ?? await getPromptForBook(book);
   const slugToUse = slug ?? crypto.randomUUID();
 
   /* ------------------------------------------------------------------ */
   /* 2. Upsert PRE-stream : garante que nada se perca se a aba recarregar */
   /* ------------------------------------------------------------------ */
   if (userId) {
-    await supabase.from('chat_history').upsert(
-      {
-        slug: slugToUse,
-        user_id: userId,
-        title: content.slice(0, 50) + (content.length > 50 ? '…' : ''),
-        book_slug: book,
-        last_message: null,
-        last_accessed: new Date().toISOString(),
-        messages: JSON.stringify(newMessages) as any
-      },
-      { onConflict: 'slug' }
-    );
+    try {
+      await supabase.from('chat_history').upsert(
+        {
+          slug: slugToUse,
+          user_id: userId,
+          title: content.slice(0, 50) + (content.length > 50 ? '…' : ''),
+          book_slug: book,
+          last_message: null,
+          last_accessed: new Date().toISOString(),
+          messages: JSON.stringify(newMessages)
+        },
+        { onConflict: 'slug' }
+      );
+    } catch (err) {
+      console.error('Error pre-persisting chat:', err);
+    }
   }
 
   /* ------------------------------------------------------------------ */
@@ -118,14 +123,18 @@ export const sendChatMessage = async (
   /* 6. Pós-stream: atualiza registro completo                           */
   /* ------------------------------------------------------------------ */
   if (userId) {
-    await supabase
-      .from('chat_history')
-      .update({
-        messages: JSON.stringify([...newMessages, assistantMessage]) as any,
-        last_message: assistantFull,
-        last_accessed: new Date().toISOString()
-      })
-      .eq('slug', slugToUse);
+    try {
+      await supabase
+        .from('chat_history')
+        .update({
+          messages: JSON.stringify([...newMessages, assistantMessage]),
+          last_message: assistantFull,
+          last_accessed: new Date().toISOString()
+        })
+        .eq('slug', slugToUse);
+    } catch (err) {
+      console.error('Error updating chat after stream:', err);
+    }
   }
 
   return { messages: [...newMessages, assistantMessage], slug: slugToUse };
@@ -137,11 +146,23 @@ export const sendChatMessage = async (
 export const loadChatMessages = async (
   slug: string
 ): Promise<Message[] | null> => {
-  const { data } = await supabase
-    .from('chat_history')
-    .select('messages')
-    .eq('slug', slug)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('chat_history')
+      .select('messages')
+      .eq('slug', slug)
+      .single();
 
-  return data?.messages ? (JSON.parse(data.messages as string) as Message[]) : null;
+    if (error) {
+      console.error('Error loading chat messages:', error);
+      return null;
+    }
+
+    return data?.messages ? (typeof data.messages === 'string' 
+      ? JSON.parse(data.messages as string) 
+      : data.messages as Message[]) : null;
+  } catch (err) {
+    console.error('Error parsing chat messages:', err);
+    return null;
+  }
 };

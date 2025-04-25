@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import ChatHeader from "@/components/ChatHeader";
@@ -44,10 +44,17 @@ const LivrosDaBibliaBook = () => {
       const assistantMessage: Message = { role: "assistant", content: "" };
       setMessages(prevMsgs => [...prevMsgs, assistantMessage]);
       
-      const result = await sendChatMessage(content, messages.slice(0, -1), book, userId || undefined, slug);
+      const result = await sendChatMessage(
+        content, 
+        messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== "")), 
+        book, 
+        userId || undefined, 
+        slug
+      );
       
       setMessages(prevMsgs => {
         const newMsgs = [...prevMsgs];
+        // Substituímos apenas a última mensagem do assistente com o conteúdo completo
         newMsgs[newMsgs.length - 1] = { 
           role: "assistant", 
           content: result.messages[result.messages.length - 1].content 
@@ -118,6 +125,47 @@ const LivrosDaBibliaBook = () => {
       });
     }
   };
+
+  // Adicionar evento para detectar quando o navegador perde foco
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && messages.length > 0 && slug) {
+        // Forçar persistência quando o usuário sai da aba
+        const asyncPersist = async () => {
+          if (userId) {
+            try {
+              const lastMessage = messages[messages.length - 1]?.content || '';
+              const title = messages[0]?.content?.slice(0, 50) + (messages[0]?.content?.length > 50 ? '…' : '');
+              
+              await supabase
+                .from('chat_history')
+                .upsert({
+                  slug,
+                  user_id: userId,
+                  title,
+                  book_slug: book,
+                  last_message: lastMessage,
+                  last_accessed: new Date().toISOString(),
+                  messages: JSON.stringify(messages)
+                }, { 
+                  onConflict: 'slug' 
+                });
+            } catch (err) {
+              console.error('Error persisting messages on visibility change:', err);
+            }
+          }
+        };
+        
+        asyncPersist();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [messages, userId, slug, book]);
 
   if (loadingBook) {
     return <BookLoadingState 
