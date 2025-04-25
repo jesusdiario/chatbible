@@ -75,10 +75,10 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="public/lovable-uploads/logo-jd-bible-chat.png" alt="Logo" className="w-[80px] h-[80px]" />
+            <img src="https://jesusdiario.com.br/wp-content/uploads/2024/11/logo-jd.png" alt="Logo" className="w-[80px] h-[80px]" />
           </div>
-          <h1 className="text-3xl font-bold text-dark">BibleGPT</h1>
-          <p className="text-gray-400 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
+          <h1 className="text-3xl font-bold text-dark">BibleChat</h1>
+          <p className="text-dark-500 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
         </div>
 
         <div className="rounded-lg shadow-xl p-6 border border-slate-700 bg-[#ffffff]">
@@ -109,7 +109,7 @@ const Auth = () => {
                 </Label>
               </div>}
             
-            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]-800">
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]">
               {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
