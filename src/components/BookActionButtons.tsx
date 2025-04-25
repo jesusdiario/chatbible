@@ -36,10 +36,10 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
         return (
           <button 
             key={suggestion.id} 
-            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#4483f4] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
             onClick={() => handleButtonClick(suggestion)}
           >
-            {IconComponent && <IconComponent className="h-4 w-4 text-green-400" />}
+            {IconComponent && <IconComponent className="h-4 w-4 text-[#4483f4]-400" />}
             {suggestion.label}
           </button>
         );
