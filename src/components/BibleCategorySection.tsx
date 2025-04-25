@@ -12,7 +12,7 @@ export const BibleCategorySection: React.FC<BibleCategorySectionProps> = ({ cate
   <section className="mb-12" key={category.slug}>
     <h2 className="text-2xl md:text-3xl font-bold mt-6 mb-4">{category.title}</h2>
     {category.description && (
-      <p className="text-gray-300 mb-6">{category.description}</p>
+      <p className="text-dark-300 mb-6">{category.description}</p>
     )}
     {books.length > 0 ? (
       <BookGrid books={books} />
