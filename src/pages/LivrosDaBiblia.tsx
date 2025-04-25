@@ -68,7 +68,7 @@ const LivrosDaBiblia = () => {
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} onApiKeyChange={setApiKey} />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-white min-h-screen">
+        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
           <CategoriesList categories={categories} booksByCategory={booksByCategory} />
         </div>
       </main>
