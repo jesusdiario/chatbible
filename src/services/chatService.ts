@@ -2,6 +2,7 @@
 import { Message, SendMessageResponse } from '@/types/chat';
 import { persistChatMessages } from './persistenceService';
 import { getPromptForBook } from './promptService';
+import { supabase } from '@/integrations/supabase/client';
 
 export { loadChatMessages } from './persistenceService';
 
