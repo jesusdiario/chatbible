@@ -42,13 +42,13 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     messageProcessingRef.current = true;
     lastMessageRef.current = content;
 
-    const userMessage = { role: "user", content };
+    const userMessage: Message = { role: "user" as const, content };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     
     try {
       setIsTyping(true);
       
-      const assistantMessage = { role: "assistant", content: "" };
+      const assistantMessage: Message = { role: "assistant" as const, content: "" };
       setMessages(prevMsgs => [...prevMsgs, assistantMessage]);
       
       const result = await sendChatMessage(

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Message, SendMessageResponse } from '@/types/chat';
 
@@ -144,11 +143,9 @@ export const sendChatMessage = async (
     resolve();
   });
 
-  // Iniciamos o processamento do stream como uma tarefa de fundo
-  // Isso permite que a função retorne antes que o stream termine
+  // Fix the background processing Promise
   const backgroundProcessing = streamPromise.then(() => {
-    // Operação final quando o stream terminar
-    if (userId) {
+    if (userId && slugToUse) {
       return supabase
         .from('chat_history')
         .update({
@@ -156,9 +153,10 @@ export const sendChatMessage = async (
           last_message: assistantFull,
           last_accessed: new Date().toISOString()
         })
-        .eq('slug', slugToUse);
+        .eq('slug', slugToUse)
+        .then(() => ({ data: null, error: null }));
     }
-    return Promise.resolve();
+    return Promise.resolve({ data: null, error: null });
   });
 
   // Esta linha garante que o processamento do stream continua mesmo que
