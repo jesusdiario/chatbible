@@ -51,7 +51,7 @@ serve(async (req) => {
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
-    // Criar stream de resposta com tratamento de erros melhorado
+    // Criar stream de resposta
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
@@ -76,24 +76,16 @@ serve(async (req) => {
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: token })}\n\n`))
                 }
               } catch (err) {
-                // Continue o processamento mesmo com erros JSON individuais
                 console.error('Error parsing JSON:', err)
               }
             }
           }
         } catch (error) {
           console.error('Error in stream processing:', error)
-          // Em caso de erro, enviamos uma mensagem de erro mas não matamos o stream
-          try {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: "\n\nErro ao processar a resposta. Por favor, tente novamente." })}\n\n`))
-          } catch (enqueueError) {
-            // Se não conseguir nem enfileirar a mensagem de erro, aí sim finalizamos
-            controller.error(error)
-          }
+          controller.error(error)
         } finally {
-          // Sempre fechamos o controlador e liberamos o leitor
           controller.close()
-          reader?.releaseLock()
+          reader.releaseLock()
         }
       }
     })
