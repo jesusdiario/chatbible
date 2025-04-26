@@ -48,26 +48,19 @@ export const loadChatMessages = async (slug: string): Promise<Message[] | null> 
 
     if (!data?.messages) return null;
     
+    // Melhor manipulação dos diferentes formatos de dados possíveis
     if (typeof data.messages === 'string') {
-      return JSON.parse(data.messages) as Message[];
+      try {
+        const parsed = JSON.parse(data.messages);
+        return Array.isArray(parsed) ? parsed.map(convertToMessage) : null;
+      } catch (e) {
+        console.error('Error parsing JSON messages:', e);
+        return null;
+      }
     }
     
     if (Array.isArray(data.messages)) {
-      const isValidMessageArray = data.messages.every(
-        (item: any): item is Message => 
-          typeof item === 'object' && 
-          item !== null &&
-          'role' in item && 
-          'content' in item &&
-          (item.role === 'user' || item.role === 'assistant')
-      );
-      
-      if (isValidMessageArray) {
-        return data.messages as unknown as Message[];
-      }
-      
-      console.error('Invalid message format in database:', data.messages);
-      return null;
+      return data.messages.map(convertToMessage);
     }
     
     console.error('Unexpected message format in database:', data.messages);
@@ -77,3 +70,16 @@ export const loadChatMessages = async (slug: string): Promise<Message[] | null> 
     return null;
   }
 };
+
+// Função auxiliar para garantir que os objetos estejam no formato Message
+function convertToMessage(item: any): Message {
+  if (typeof item === 'object' && item !== null && 'role' in item && 'content' in item) {
+    return {
+      role: item.role === 'user' || item.role === 'assistant' ? item.role : 'assistant',
+      content: typeof item.content === 'string' ? item.content : String(item.content || '')
+    };
+  }
+  
+  // Em caso de dados inválidos, retorna uma mensagem padrão
+  return { role: 'assistant', content: 'Dados de mensagem inválidos' };
+}

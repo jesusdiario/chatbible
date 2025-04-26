@@ -26,33 +26,38 @@ export const useChatOperations = (
     lastMessageRef.current = content;
 
     const userMessage: Message = { role: "user", content };
-    setMessages(prev => [...prev, userMessage]);
+    
+    // Tipagem explícita para o atualizador do state
+    setMessages((prev: Message[]) => [...prev, userMessage]);
     
     try {
       setIsTyping(true);
       
       const assistantMessage: Message = { role: "assistant", content: "" };
-      setMessages(prev => [...prev, assistantMessage]);
+      
+      // Tipagem explícita para o atualizador do state
+      setMessages((prev: Message[]) => [...prev, assistantMessage]);
+      
+      const filteredMessages = messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== ""));
       
       const result = await sendChatMessage(
         content, 
-        messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== "")), 
+        filteredMessages, 
         book, 
         userId || undefined, 
         slug,
         undefined,
         (chunk) => {
-          // Verifica se a página está visível antes de atualizar a UI
-          if (document.visibilityState === 'visible') {
-            setMessages(prev => {
-              const newMsgs = [...prev];
-              const lastMsg = newMsgs[newMsgs.length - 1];
-              if (lastMsg && lastMsg.role === 'assistant') {
-                lastMsg.content = (lastMsg.content || '') + chunk;
-              }
-              return newMsgs;
-            });
-          }
+          // Não dependemos mais do estado de visibilidade aqui 
+          // O chatService.ts agora gerencia isso internamente
+          setMessages((prev: Message[]) => {
+            const newMsgs = [...prev];
+            const lastMsg = newMsgs[newMsgs.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.content = (lastMsg.content || '') + chunk;
+            }
+            return newMsgs;
+          });
         }
       );
       
@@ -66,7 +71,9 @@ export const useChatOperations = (
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      setMessages(prev => {
+      
+      // Tipagem explícita para o atualizador do state
+      setMessages((prev: Message[]) => {
         const newMsgs = [...prev];
         newMsgs[newMsgs.length - 1] = { 
           role: "assistant", 
@@ -78,11 +85,9 @@ export const useChatOperations = (
       setIsLoading(false);
       setIsTyping(false);
       
-      // Verificamos novamente o estado de visibilidade após completar
-      // e só atualizamos a flag se a página estiver visível
-      if (document.visibilityState === 'visible') {
-        messageProcessingRef.current = false;
-      }
+      // Sempre definimos como false após a conclusão
+      // independentemente do estado de visibilidade
+      messageProcessingRef.current = false;
     }
   }, [messages, book, userId, slug, navigate, setMessages, setIsLoading]);
 

@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { loadChatMessages } from '@/services/persistenceService';
@@ -33,19 +33,36 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     lastMessageRef
   } = useChatOperations(book, userId, slug, messages, setMessages, setIsLoading);
 
+  // Função para recarregar as mensagens quando necessário
+  const reloadMessages = useCallback(async () => {
+    if (!slug) return;
+    
+    try {
+      console.log("Recarregando mensagens do chat...");
+      const updatedMessages = await loadChatMessages(slug);
+      if (updatedMessages && updatedMessages.length > 0) {
+        console.log("Mensagens recarregadas com sucesso:", updatedMessages.length);
+        setMessages(updatedMessages);
+      }
+    } catch (error) {
+      console.error("Erro ao recarregar mensagens:", error);
+    }
+  }, [slug, setMessages]);
+
+  // Efeito para recarregar mensagens inicialmente
+  useEffect(() => {
+    if (slug) {
+      reloadMessages();
+    }
+  }, [slug, reloadMessages]);
+
   // Função de recarga otimizada para quando a página volta ao foco
   const handleVisibilityChange = useCallback(() => {
-    if (slug && messageProcessingRef.current) {
-      console.log("Reloading messages after visibility change");
-      loadChatMessages(slug).then(updatedMessages => {
-        if (updatedMessages) {
-          setMessages(updatedMessages);
-          // Marca que não está mais processando uma vez que carregamos as mensagens atualizadas
-          messageProcessingRef.current = false;
-        }
-      });
+    if (slug) {
+      console.log("Visibilidade alterada, verificando estado do chat");
+      reloadMessages();
     }
-  }, [slug, messageProcessingRef, setMessages]);
+  }, [slug, reloadMessages]);
 
   // Usa o hook de visibilidade aprimorado
   useVisibilityChange(handleVisibilityChange);
