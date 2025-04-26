@@ -63,7 +63,7 @@ export const loadChatMessages = async (slug: string): Promise<Message[] | null> 
       );
       
       if (isValidMessageArray) {
-        return data.messages as Message[];
+        return data.messages as unknown as Message[];
       }
       
       console.error('Invalid message format in database:', data.messages);

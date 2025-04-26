@@ -2,7 +2,7 @@
 import React from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
-import { loadChatMessages } from '@/services/chatService';
+import { loadChatMessages } from '@/services/persistenceService';
 import { BibleBook } from '@/types/bible';
 import BookChat from './BookChat';
 import { useChatOperations } from '@/hooks/useChatOperations';

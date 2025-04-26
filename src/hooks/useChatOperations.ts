@@ -6,11 +6,11 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 export const useChatOperations = (
-  book?: string,
-  userId?: string | null,
-  slug?: string,
+  book: string | undefined,
+  userId: string | null,
+  slug: string | undefined,
   messages: Message[],
-  setMessages: (messages: Message[]) => void,
+  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void,
   setIsLoading: (loading: boolean) => void
 ) => {
   const navigate = useNavigate();
@@ -42,8 +42,8 @@ export const useChatOperations = (
         slug,
         undefined,
         (chunk) => {
-          setMessages(prevMsgs => {
-            const newMsgs = [...prevMsgs];
+          setMessages(prev => {
+            const newMsgs = [...prev];
             const lastMsg = newMsgs[newMsgs.length - 1];
             if (lastMsg && lastMsg.role === 'assistant') {
               lastMsg.content = (lastMsg.content || '') + chunk;
@@ -63,8 +63,8 @@ export const useChatOperations = (
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      setMessages(prevMsgs => {
-        const newMsgs = [...prevMsgs];
+      setMessages(prev => {
+        const newMsgs = [...prev];
         newMsgs[newMsgs.length - 1] = { 
           role: "assistant", 
           content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
@@ -76,7 +76,7 @@ export const useChatOperations = (
       setIsTyping(false);
       messageProcessingRef.current = false;
     }
-  }, [messages, book, userId, slug, navigate, setMessages]);
+  }, [messages, book, userId, slug, navigate, setMessages, setIsLoading]);
 
   return {
     handleSendMessage,
