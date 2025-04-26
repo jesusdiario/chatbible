@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { loadChatMessages } from '@/services/persistenceService';
@@ -33,15 +33,22 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     lastMessageRef
   } = useChatOperations(book, userId, slug, messages, setMessages, setIsLoading);
 
-  useVisibilityChange(() => {
+  // Função de recarga otimizada para quando a página volta ao foco
+  const handleVisibilityChange = useCallback(() => {
     if (slug && messageProcessingRef.current) {
+      console.log("Reloading messages after visibility change");
       loadChatMessages(slug).then(updatedMessages => {
         if (updatedMessages) {
           setMessages(updatedMessages);
+          // Marca que não está mais processando uma vez que carregamos as mensagens atualizadas
+          messageProcessingRef.current = false;
         }
       });
     }
-  });
+  }, [slug, messageProcessingRef, setMessages]);
+
+  // Usa o hook de visibilidade aprimorado
+  useVisibilityChange(handleVisibilityChange);
 
   return (
     <BookChat

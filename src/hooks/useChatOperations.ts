@@ -26,7 +26,7 @@ export const useChatOperations = (
     lastMessageRef.current = content;
 
     const userMessage: Message = { role: "user", content };
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     
     try {
       setIsTyping(true);
@@ -42,14 +42,17 @@ export const useChatOperations = (
         slug,
         undefined,
         (chunk) => {
-          setMessages(prev => {
-            const newMsgs = [...prev];
-            const lastMsg = newMsgs[newMsgs.length - 1];
-            if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.content = (lastMsg.content || '') + chunk;
-            }
-            return newMsgs;
-          });
+          // Verifica se a página está visível antes de atualizar a UI
+          if (document.visibilityState === 'visible') {
+            setMessages(prev => {
+              const newMsgs = [...prev];
+              const lastMsg = newMsgs[newMsgs.length - 1];
+              if (lastMsg && lastMsg.role === 'assistant') {
+                lastMsg.content = (lastMsg.content || '') + chunk;
+              }
+              return newMsgs;
+            });
+          }
         }
       );
       
@@ -74,7 +77,12 @@ export const useChatOperations = (
     } finally {
       setIsLoading(false);
       setIsTyping(false);
-      messageProcessingRef.current = false;
+      
+      // Verificamos novamente o estado de visibilidade após completar
+      // e só atualizamos a flag se a página estiver visível
+      if (document.visibilityState === 'visible') {
+        messageProcessingRef.current = false;
+      }
     }
   }, [messages, book, userId, slug, navigate, setMessages, setIsLoading]);
 

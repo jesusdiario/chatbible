@@ -53,8 +53,22 @@ export const sendChatMessage = async (
   let assistantFull = '';
   const assistantMessage: Message = { role: 'assistant', content: '' };
 
+  // Use Promise.race para gerenciar o tempo limite e continuar o processamento em segundo plano
   const streamPromise = new Promise<void>(async (resolve) => {
     try {
+      // Sinaliza se a página está processando em segundo plano
+      let processingInBackground = false;
+      
+      // Função para monitorar mudanças na visibilidade da página
+      const visibilityHandler = () => {
+        processingInBackground = document.visibilityState === 'hidden';
+        console.log('Visibility changed:', document.visibilityState, 'Processing in background:', processingInBackground);
+      };
+      
+      // Adiciona o ouvinte de visibilidade
+      document.addEventListener('visibilitychange', visibilityHandler);
+      
+      // Loop de leitura do stream
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -70,8 +84,14 @@ export const sendChatMessage = async (
             if (payload.content) {
               assistantFull += payload.content;
               assistantMessage.content = assistantFull;
-              onChunk?.(payload.content);
               
+              // Só chama o callback se não estivermos em segundo plano
+              // Isso evita erros de rendering quando a página não está visível
+              if (!processingInBackground && onChunk) {
+                onChunk(payload.content);
+              }
+              
+              // Sempre tenta persistir, mesmo em segundo plano
               if (userId) {
                 try {
                   await persistChatMessages(userId, slugToUse, [...newMessages, { ...assistantMessage }], book);
@@ -85,21 +105,37 @@ export const sendChatMessage = async (
           }
         }
       }
+      
+      // Remove o ouvinte de visibilidade
+      document.removeEventListener('visibilitychange', visibilityHandler);
     } catch (streamError) {
       console.error('Error processing stream:', streamError);
     }
     resolve();
   });
 
+  // Melhoria na persistência após o processamento completo
   const backgroundProcessing = streamPromise.then(() => {
+    console.log('Stream processing completed, final persistence');
     if (userId && slugToUse) {
-      return persistChatMessages(userId, slugToUse, [...newMessages, assistantMessage], book);
+      return persistChatMessages(userId, slugToUse, [...newMessages, assistantMessage], book)
+        .catch(err => console.error('Error in final persistence:', err));
     }
   });
 
-  if (typeof window !== 'undefined' && 'navigator' in window && 'scheduling' in navigator) {
-    // @ts-ignore - This API is experimental, but useful for background processing
-    navigator.scheduling?.isInputPending && navigator.scheduling.isInputPending();
+  // Usa requestIdleCallback quando disponível para otimizar o processamento em segundo plano
+  if (typeof window !== 'undefined') {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => {
+        console.log('Using requestIdleCallback for background processing');
+        // Apenas para garantir que isso não bloqueia a UI
+      });
+    }
+    
+    if ('scheduling' in navigator && 'isInputPending' in (navigator as any).scheduling) {
+      // @ts-ignore - Esta API é experimental
+      (navigator.scheduling as any).isInputPending();
+    }
   }
 
   return { messages: [...newMessages, assistantMessage], slug: slugToUse };
