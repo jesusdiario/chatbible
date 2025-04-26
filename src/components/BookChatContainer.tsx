@@ -1,3 +1,4 @@
+
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BookChat from './BookChat';
@@ -5,6 +6,7 @@ import { loadChatMessages } from '@/services/chatService';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { BibleBook } from '@/types/bible';
+import { Message } from '@/types/chat';
 import { sendChatMessage } from '@/services/chatService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
