@@ -1,10 +1,14 @@
 
 import React from "react";
-import { Menu, User } from "lucide-react";
+import { Menu, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import ChatHistoryList from "@/components/ChatHistoryList";
+import { useQuery } from "@tanstack/react-query";
+import { categorizeChatHistory } from "@/types/chat";
 
 interface ChatHeaderProps {
   isSidebarOpen: boolean;
@@ -17,25 +21,39 @@ const ChatHeader = ({
   onToggleSidebar
 }: ChatHeaderProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
+  // Fetch chat history for the drawer
+  const { data: chatHistory = [] } = useQuery({
+    queryKey: ['chatHistory'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+      
+      const { data, error } = await supabase
+        .from('chat_history')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('last_accessed', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching chat history:', error);
+        return [];
+      }
+      
+      return data.map(item => ({
+        id: item.id,
+        title: item.title,
+        lastAccessed: new Date(item.last_accessed),
+        user_id: item.user_id,
+        book_slug: item.book_slug,
+        last_message: item.last_message,
+        slug: item.slug
+      }));
+    },
+  });
 
-  const handleChangePassword = () => {
-    toast({
-      title: "Alterar senha",
-      description: "Um email foi enviado com instruções para alterar sua senha."
-    });
-  };
-
-  const handleDeleteAccount = () => {
-    toast({
-      title: "Excluir conta",
-      description: "Em um ambiente de produção, sua conta seria excluída permanentemente.",
-      variant: "destructive"
-    });
-  };
+  const timeframes = categorizeChatHistory(chatHistory);
 
   return (
     <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
@@ -59,33 +77,24 @@ const ChatHeader = ({
           <h1 className="text-xl font-bold">BibleChat</h1>
         </div>
 
-        {/* Right section - User menu */}
+        {/* Right section - History drawer trigger */}
         <div className="flex items-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Drawer>
+            <DrawerTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-8 w-8 bg-chatgpt-main hover:bg-chatgpt-secondary"
+                className="hover:bg-chatgpt-secondary"
               >
-                <User className="h-4 w-4" />
+                <History className="h-5 w-5" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-chatgpt-secondary">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleChangePassword}>
-                <span>Alterar senha</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDeleteAccount} className="text-red-500">
-                <span>Excluir conta</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </DrawerTrigger>
+            <DrawerContent className="h-[80vh]">
+              <div className="mx-auto w-full max-w-lg p-6">
+                <ChatHistoryList chatHistory={timeframes} />
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
       </div>
     </header>

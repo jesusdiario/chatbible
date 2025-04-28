@@ -17,7 +17,8 @@ import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 import Lexicon from "@/pages/Lexicon";
-import Courses from "@/pages/Courses"; // Fixed import path
+import Courses from "@/pages/Courses";
+import Profile from "@/pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,11 @@ const App = () => {
             <Route path="/courses" element={
               <ProtectedRoute>
                 <Courses />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
           </Routes>
