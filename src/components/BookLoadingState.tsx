@@ -18,6 +18,7 @@ const BookLoadingState: React.FC<BookLoadingStateProps> = ({
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={onToggleSidebar}
+        onApiKeyChange={() => {}}
         chatHistory={[]}
         onChatSelect={() => {}}
         currentPath={window.location.pathname}
