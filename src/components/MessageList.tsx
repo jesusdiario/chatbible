@@ -10,12 +10,6 @@ interface MessageListProps {
 
 const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll suave para a última mensagem quando novas mensagens são adicionadas
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto px-4 pb-165">
