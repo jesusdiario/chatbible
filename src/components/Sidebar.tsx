@@ -1,3 +1,4 @@
+
 import { Menu, Globe, X, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";

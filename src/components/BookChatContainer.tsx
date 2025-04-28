@@ -6,6 +6,7 @@ import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { BibleBook } from '@/types/bible';
 import { useChatOperations } from '@/hooks/useChatOperations';
+import { supabase } from '@/integrations/supabase/client';  // Add the missing import
 
 interface BookChatContainerProps {
   bookDetails: BibleBook;
