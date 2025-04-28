@@ -1,3 +1,4 @@
+
 import { FC } from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
@@ -17,7 +18,7 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
         <div className={`flex-1 space-y-2 ${role === 'user' ? 'flex justify-end' : ''}`}>
           <div className={`${
             role === 'user' 
-              ? 'bg-gray-700/50 rounded-[20px] px-4 py-2 inline-block hover:bg-gray-700/70 transition-all duration-200' 
+              ? 'bg-[#F7F7F8] rounded-[20px] px-4 py-2 inline-block text-foreground hover:bg-gray-100 transition-all duration-200' 
               : 'prose prose-invert max-w-none'
           }`}>
             {role === 'user' ? (

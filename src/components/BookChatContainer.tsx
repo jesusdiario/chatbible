@@ -1,12 +1,11 @@
 
-import React from 'react';
-import BookChat from './BookChat';
-import { loadChatMessages } from '@/services/chatService';
+import React, { useCallback, useEffect } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
+import { loadChatMessages } from '@/services/persistenceService';
 import { BibleBook } from '@/types/bible';
+import BookChat from './BookChat';
 import { useChatOperations } from '@/hooks/useChatOperations';
-import { supabase } from '@/integrations/supabase/client';  // Add the missing import
 
 interface BookChatContainerProps {
   bookDetails: BibleBook;
@@ -23,52 +22,50 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     messages,
     setMessages,
     isLoading,
-    userId,
-    setChatHistory
+    setIsLoading,
+    userId
   } = useChatState({ book, slug });
 
   const {
-    isTyping,
     handleSendMessage,
-    messageProcessingRef
-  } = useChatOperations({ 
-    book, 
-    slug, 
-    userId,
-    onHistoryUpdate: async () => {
-      if (userId) {
-        const { data: chatHistory } = await supabase
-          .from('chat_history')
-          .select('*')
-          .eq('user_id', userId)
-          .order('last_accessed', { ascending: false });
+    isTyping,
+    messageProcessingRef,
+    lastMessageRef
+  } = useChatOperations(book, userId, slug, messages, setMessages, setIsLoading);
 
-        if (chatHistory) {
-          const formattedHistory = chatHistory.map(item => ({
-            id: item.id,
-            title: item.title,
-            lastAccessed: new Date(item.last_accessed),
-            user_id: item.user_id,
-            book_slug: item.book_slug,
-            last_message: item.last_message,
-            slug: item.slug
-          }));
-          setChatHistory(formattedHistory);
-        }
+  // Função para recarregar as mensagens quando necessário
+  const reloadMessages = useCallback(async () => {
+    if (!slug) return;
+    
+    try {
+      console.log("Recarregando mensagens do chat...");
+      const updatedMessages = await loadChatMessages(slug);
+      if (updatedMessages && updatedMessages.length > 0) {
+        console.log("Mensagens recarregadas com sucesso:", updatedMessages.length);
+        setMessages(updatedMessages);
       }
+    } catch (error) {
+      console.error("Erro ao recarregar mensagens:", error);
     }
-  });
+  }, [slug, setMessages]);
 
-  // Recarrega as mensagens quando a visibilidade da página muda
-  useVisibilityChange(() => {
-    if (slug && messageProcessingRef.current) {
-      loadChatMessages(slug).then(updatedMessages => {
-        if (updatedMessages) {
-          setMessages(updatedMessages);
-        }
-      });
+  // Efeito para recarregar mensagens inicialmente
+  useEffect(() => {
+    if (slug) {
+      reloadMessages();
     }
-  });
+  }, [slug, reloadMessages]);
+
+  // Função de recarga otimizada para quando a página volta ao foco
+  const handleVisibilityChange = useCallback(() => {
+    if (slug) {
+      console.log("Visibilidade alterada, verificando estado do chat");
+      reloadMessages();
+    }
+  }, [slug, reloadMessages]);
+
+  // Usa o hook de visibilidade aprimorado
+  useVisibilityChange(handleVisibilityChange);
 
   return (
     <BookChat
