@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -64,7 +63,6 @@ const AdminPages = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Verifica se o usuário é admin
   useEffect(() => {
     const checkAdminRole = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -91,7 +89,6 @@ const AdminPages = () => {
 
       setIsAdmin(data);
 
-      // Se não for admin, mostra uma mensagem toast
       if (!data) {
         toast({
           title: "Acesso Negado",
@@ -104,7 +101,6 @@ const AdminPages = () => {
     checkAdminRole();
   }, []);
 
-  // Busca todas as páginas
   const { data: pages, isLoading: isPagesLoading } = useQuery({
     queryKey: ['admin-pages'],
     queryFn: async () => {
@@ -119,7 +115,6 @@ const AdminPages = () => {
     enabled: isAdmin === true
   });
 
-  // Busca todas as categorias para o select
   const { data: categories, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
@@ -134,10 +129,8 @@ const AdminPages = () => {
     enabled: isAdmin === true
   });
 
-  // Mutation para adicionar uma nova página
   const addPageMutation = useMutation({
     mutationFn: async ({ title, slug, category_id }: { title: string; slug: string; category_id: string | null }) => {
-      // Verifica se o slug já existe
       const { data: existingPage } = await supabase
         .from('custom_pages')
         .select('id')
@@ -174,10 +167,8 @@ const AdminPages = () => {
     }
   });
 
-  // Mutation para atualizar uma página
   const updatePageMutation = useMutation({
     mutationFn: async ({ id, title, slug, category_id }: { id: string; title: string; slug: string; category_id: string | null }) => {
-      // Verifica se o slug já existe para outro registro
       const { data: existingPage } = await supabase
         .from('custom_pages')
         .select('id')
@@ -215,7 +206,6 @@ const AdminPages = () => {
     }
   });
 
-  // Mutation para excluir uma página
   const deletePageMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -292,7 +282,6 @@ const AdminPages = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  // Helper para gerar slug a partir do título
   const generateSlug = (title: string): string => {
     return title
       .toLowerCase()
@@ -321,11 +310,7 @@ const AdminPages = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-        onApiKeyChange={() => {}}
-      />
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
@@ -394,7 +379,6 @@ const AdminPages = () => {
         </div>
       </main>
 
-      {/* Diálogo para adicionar uma nova página */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-chatgpt-sidebar text-white">
           <DialogHeader>
@@ -456,7 +440,6 @@ const AdminPages = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo para editar uma página */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-chatgpt-sidebar text-white">
           <DialogHeader>
@@ -518,7 +501,6 @@ const AdminPages = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo para confirmar exclusão */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="bg-chatgpt-sidebar text-white">
           <DialogHeader>

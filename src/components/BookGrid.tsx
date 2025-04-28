@@ -2,74 +2,45 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BibleBook } from '@/services/bibleService';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { ChevronRight } from 'lucide-react';
 
 interface BookGridProps {
   books: BibleBook[];
 }
 
 export const BookGrid: React.FC<BookGridProps> = ({ books }) => {
-  const useCarousel = books.length > 6;
-
-  if (useCarousel) {
-    return (
-      <div className="relative">
-        <div className="overflow-hidden">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {books.map((book) => (
-                <CarouselItem key={book.slug} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/4 lg:basis-1/6">
-                  <BookCard book={book} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2 z-10" />
-            <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2 z-10" />
-          </Carousel>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {books.map((book) => (
-        <BookCard key={book.slug} book={book} />
+        <Link
+          to={`/livros-da-biblia/${book.slug}`}
+          key={book.slug}
+          className="block group"
+        >
+          <Card className="overflow-hidden hover:border-primary transition-colors">
+            <CardContent className="p-4 flex items-center space-x-4">
+              <Avatar className="h-16 w-16 rounded-full">
+                <AvatarImage
+                  src={book.image_url || `/images/covers/${book.slug}.jpg`}
+                  alt={`Capa de ${book.title}`}
+                  className="object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
+                  }}
+                />
+                <AvatarFallback>{book.title.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="font-medium">{book.title}</h3>
+                <p className="text-sm text-gray-500 line-clamp-1">Explore este livro bíblico</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );
 };
-
-const BookCard: React.FC<{ book: BibleBook }> = ({ book }) => (
-  <Link
-    to={`/livros-da-biblia/${book.slug}`}
-    className="block group"
-  >
-    <AspectRatio ratio={852/1185} className="bg-chatgpt-secondary rounded-lg overflow-hidden">
-      <img
-        src={book.image_url || `/images/covers/${book.slug}.jpg`}
-        alt={`Capa de ${book.title}`}
-        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        onError={(e) => {
-          (e.target as HTMLImageElement).src = "/images/covers/default.jpg";
-        }}
-      />
-    </AspectRatio>
-    <div className="p-2">
-      <span className="text-sm font-medium">{book.title}</span>
-    </div>
-  </Link>
-);

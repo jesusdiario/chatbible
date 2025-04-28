@@ -1,15 +1,17 @@
-import { Menu, Globe, ChevronDown, Key, X, MessageSquare } from "lucide-react";
+
+import { Menu, Search, X, MessageSquare, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
 import SubscriptionModal from "@/components/SubscriptionModal";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  onApiKeyChange: (apiKey: string) => void;
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
   currentPath?: string;
@@ -18,27 +20,12 @@ interface SidebarProps {
 const Sidebar = ({
   isOpen,
   onToggle,
-  onApiKeyChange,
   onChatSelect,
   chatHistory = [],
   currentPath
 }: SidebarProps) => {
-  const [apiKey, setApiKey] = useState("");
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const navigate = useNavigate();
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newApiKey = e.target.value;
-    setApiKey(newApiKey);
-    onApiKeyChange(newApiKey);
-  };
-
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
 
   const goToLivrosDaBiblia = () => {
     navigate('/livros-da-biblia');
@@ -60,72 +47,105 @@ const Sidebar = ({
   };
 
   return <>
-      <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-chatgpt-sidebar", isOpen ? "w-full md:w-64" : "w-0")}>
-        <nav className="flex h-full w-full flex-col px-3" aria-label="Histórico de Conversas">
-          <div className="flex justify-between flex h-[60px] items-center">
-            <button onClick={onToggle} className="h-10 rounded-lg px-2 text-foreground hover:bg-token-sidebar-surface-secondary">
+      <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", 
+                        "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
+        <nav className="flex h-full w-full flex-col p-4" aria-label="Histórico de Conversas">
+          <div className="flex justify-between items-center mb-6 mt-2">
+            <h1 className="text-xl font-bold">CHAT A.I+</h1>
+            <button onClick={onToggle} className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100">
               {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
 
-          <div className="flex-col flex-1 transition-opacity duration-500 relative -mr-2 pr-2 overflow-y-auto">
-            {isOpen && <div className="bg-token-sidebar-surface-primary pt-0">
-                <div className="flex flex-col gap-2 px-2 py-2">
-                  <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" onClick={goToLivrosDaBiblia}>
-                    <div className="h-6 w-6 flex items-center justify-center">
-                      <Globe className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm text-foreground">Livros da Bíblia</span>
-                  </div>
-                </div>
+          {isOpen && (
+            <>
+              <div className="flex gap-2 mb-6">
+                <Button 
+                  onClick={() => navigate('/chat/new')}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> New chat
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => console.log('Search clicked')}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-gray-500">Your conversations</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-blue-600 hover:bg-transparent hover:text-blue-800"
+                  onClick={() => console.log('Clear all clicked')}
+                >
+                  Clear All
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-1">
                 {timeframes && timeframes.length > 0 ? (
-                  <div className="mt-4 flex flex-col gap-4">
+                  <div className="space-y-2">
                     {timeframes.map(timeframe => (
                       <div key={timeframe.title}>
-                        <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                        {timeframe.items.map(item => (
-                          <div 
-                            key={item.id} 
-                            className={cn(
-                              "group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer",
-                              currentPath?.includes(item.slug || '') && "bg-token-sidebar-surface-secondary"
-                            )}
-                            onClick={() => handleChatClick(item.id, item.slug || '', item.book_slug)}
-                          >
-                            <div className="h-6 w-6 flex items-center justify-center">
-                              <MessageSquare className="h-4 w-4" />
-                            </div>
-                            <span className="text-sm truncate">{item.title}</span>
-                          </div>
-                        ))}
+                        <span className="text-xs text-gray-500 pl-2">{timeframe.title}</span>
+                        <div className="space-y-1 mt-2">
+                          {timeframe.items.map(item => (
+                            <TooltipProvider key={item.id}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button 
+                                    className={cn(
+                                      "w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left",
+                                      currentPath?.includes(item.slug || '') 
+                                        ? "bg-gray-100" 
+                                        : "hover:bg-gray-50"
+                                    )}
+                                    onClick={() => handleChatClick(item.id, item.slug || '', item.book_slug)}
+                                  >
+                                    <MessageSquare className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                                    <span className="text-sm truncate">{item.title}</span>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">{item.title}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ))}
+                        </div>
+                        <Separator className="my-3" />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-4 px-3 py-2 text-xs text-muted-foreground">
+                  <div className="text-xs text-center text-gray-500 py-4">
                     Nenhuma conversa recente
                   </div>
                 )}
-              </div>}
-          </div>
+              </div>
+            </>
+          )}
 
-          {isOpen && <div className="flex flex-col py-2 border-t border-border bg-chatgpt-sidebar">
-              <button className="group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left w-full min-w-[200px]" onClick={() => setShowSubscriptionModal(true)}>
-                <span className="flex w-full flex-row flex-wrap-reverse justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-token-border-light">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-sm">
-                        <path fillRule="evenodd" clipRule="evenodd" d="M12.5001 3.44338C12.1907 3.26474 11.8095 3.26474 11.5001 3.44338L4.83984 7.28868C4.53044 7.46731 4.33984 7.79744 4.33984 8.1547V15.8453C4.33984 16.2026 4.53044 16.5327 4.83984 16.7113L11.5001 20.5566C11.8095 20.7353 12.1907 20.7353 12.5001 20.5566L19.1604 16.7113C19.4698 16.5327 19.6604 16.2026 19.6604 15.8453V8.1547C19.6604 7.79744 19.4698 7.46731 19.1604 7.28868L12.5001 3.44338Z" fill="currentColor" />
-                      </svg>
-                    </span>
-                    <div className="flex flex-col">
-                      <span>Atualizar plano</span>
-                      <span className="line-clamp-1 text-xs text-token-text-tertiary">Libere + Mensagens</span>
-                    </div>
-                  </div>
-                </span>
+          {isOpen && (
+            <div className="mt-auto pt-3 border-t">
+              <button 
+                className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-100"
+                onClick={() => setShowSubscriptionModal(true)}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-xs">UP</span>
+                </div>
+                <div className="text-left">
+                  <div className="text-sm font-medium">Upgrade Pro</div>
+                  <div className="text-xs text-gray-500">Libere + Mensagens</div>
+                </div>
               </button>
-            </div>}
+            </div>
+          )}
         </nav>
       </div>
       

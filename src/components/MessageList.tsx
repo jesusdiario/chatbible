@@ -18,10 +18,53 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="w-full max-w-3xl mx-auto px-4 pb-165">
-        {messages.map((message, index) => (
-          <Message key={index} {...message} />
-        ))}
+      <div className="w-full max-w-4xl mx-auto px-4 pb-24">
+        {messages.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-4">CHAT A.I+</h1>
+              <p className="text-xl mb-8">Good day! How may I assist you today?</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                {[
+                  {
+                    title: '"Explain"',
+                    icon: "📚",
+                    description: "Quantum computing in simple terms"
+                  },
+                  {
+                    title: '"How to"',
+                    icon: "🔍",
+                    description: "Make a search engine platform like google"
+                  },
+                  {
+                    title: '"Remember"',
+                    icon: "🧠",
+                    description: "quantum computing in simple terms"
+                  },
+                  {
+                    title: '"Allows"',
+                    icon: "✅",
+                    description: "User to provide follow-up corrections"
+                  }
+                ].map((card, index) => (
+                  <div key={index} className="border rounded-lg p-4 flex items-start gap-3 hover:bg-gray-50 cursor-pointer">
+                    <div className="text-2xl">{card.icon}</div>
+                    <div>
+                      <h3 className="font-semibold">{card.title}</h3>
+                      <p className="text-sm text-gray-500">{card.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <Message key={index} {...message} />
+          ))
+        )}
+        
         {isTyping && (
           <div className="py-6">
             <div className="flex gap-4">
