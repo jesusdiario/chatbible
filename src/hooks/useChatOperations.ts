@@ -1,57 +1,54 @@
 
-import { useCallback, useRef, useState } from 'react';
-import { Message } from '@/types/chat';
-import { sendChatMessage } from '@/services/chatService';
-import { toast } from '@/hooks/use-toast';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+import { Message, SendMessageResponse } from '@/types/chat';
+import { sendChatMessage } from '@/services/chatService';
 
-export const useChatOperations = (
-  book: string | undefined,
-  userId: string | null,
-  slug: string | undefined,
-  messages: Message[],
-  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void,
-  setIsLoading: (loading: boolean) => void
-) => {
+interface UseChatOperationsProps {
+  book?: string;
+  slug?: string;
+  userId: string | null;
+  onHistoryUpdate?: () => void;
+}
+
+export function useChatOperations({ 
+  book, 
+  slug, 
+  userId,
+  onHistoryUpdate 
+}: UseChatOperationsProps) {
   const navigate = useNavigate();
-  const messageProcessingRef = useRef<boolean>(false);
-  const lastMessageRef = useRef<string>('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const messageProcessingRef = useRef<boolean>(false);
 
   const handleSendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isLoading) return;
     
     setIsLoading(true);
     messageProcessingRef.current = true;
-    lastMessageRef.current = content;
 
     const userMessage: Message = { role: "user", content };
-    
-    // Tipagem explícita para o atualizador do state
-    setMessages((prev: Message[]) => [...prev, userMessage]);
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
     try {
       setIsTyping(true);
       
       const assistantMessage: Message = { role: "assistant", content: "" };
-      
-      // Tipagem explícita para o atualizador do state
-      setMessages((prev: Message[]) => [...prev, assistantMessage]);
-      
-      const filteredMessages = messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== ""));
+      setMessages(prevMsgs => [...prevMsgs, assistantMessage]);
       
       const result = await sendChatMessage(
         content, 
-        filteredMessages, 
+        messages.filter(m => m.role === "user" || (m.role === "assistant" && m.content.trim() !== "")), 
         book, 
         userId || undefined, 
         slug,
         undefined,
         (chunk) => {
-          // Não dependemos mais do estado de visibilidade aqui 
-          // O chatService.ts agora gerencia isso internamente
-          setMessages((prev: Message[]) => {
-            const newMsgs = [...prev];
+          setMessages(prevMsgs => {
+            const newMsgs = [...prevMsgs];
             const lastMsg = newMsgs[newMsgs.length - 1];
             if (lastMsg && lastMsg.role === 'assistant') {
               lastMsg.content = (lastMsg.content || '') + chunk;
@@ -61,8 +58,12 @@ export const useChatOperations = (
         }
       );
       
-      if (!slug && book) {
+      if (!slug && book && result.slug) {
         navigate(`/livros-da-biblia/${book}/${result.slug}`);
+      }
+
+      if (onHistoryUpdate) {
+        onHistoryUpdate();
       }
 
     } catch (err: any) {
@@ -71,10 +72,8 @@ export const useChatOperations = (
         description: err?.message || "Erro inesperado ao enviar mensagem",
         variant: "destructive",
       });
-      
-      // Tipagem explícita para o atualizador do state
-      setMessages((prev: Message[]) => {
-        const newMsgs = [...prev];
+      setMessages(prevMsgs => {
+        const newMsgs = [...prevMsgs];
         newMsgs[newMsgs.length - 1] = { 
           role: "assistant", 
           content: "Ocorreu um erro: " + (err?.message || "Erro inesperado") 
@@ -84,17 +83,17 @@ export const useChatOperations = (
     } finally {
       setIsLoading(false);
       setIsTyping(false);
-      
-      // Sempre definimos como false após a conclusão
-      // independentemente do estado de visibilidade
       messageProcessingRef.current = false;
     }
-  }, [messages, book, userId, slug, navigate, setMessages, setIsLoading]);
+  }, [messages, book, userId, slug, navigate, isLoading, onHistoryUpdate]);
 
   return {
-    handleSendMessage,
+    messages,
+    setMessages,
+    isLoading,
+    setIsLoading,
     isTyping,
     messageProcessingRef,
-    lastMessageRef
+    handleSendMessage
   };
-};
+}

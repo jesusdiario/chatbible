@@ -1,7 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export const getPromptForBook = async (bookSlug?: string): Promise<string | null> => {
+export const getPromptForBook = async (
+  bookSlug?: string
+): Promise<string | null> => {
   if (!bookSlug) return null;
 
   const { data } = await supabase

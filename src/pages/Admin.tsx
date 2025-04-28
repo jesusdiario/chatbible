@@ -105,8 +105,9 @@ const Admin = () => {
     <div className="flex flex-col md:flex-row h-screen">
       <Sidebar 
         isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-        onApiKeyChange={() => {}}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        chatHistory={[]}
+        currentPath={window.location.pathname}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader 

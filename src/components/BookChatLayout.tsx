@@ -21,7 +21,6 @@ const BookChatLayout: React.FC<BookChatLayoutProps> = ({
         <Sidebar 
           isOpen={isSidebarOpen} 
           onToggle={onToggleSidebar}
-          onApiKeyChange={() => {}}
           chatHistory={[]}
           onChatSelect={() => {}}
           currentPath={window.location.pathname}
