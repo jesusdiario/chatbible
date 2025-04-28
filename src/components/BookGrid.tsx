@@ -12,7 +12,7 @@ interface BookGridProps {
 
 export const BookGrid: React.FC<BookGridProps> = ({ books }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {books.map((book) => (
         <Link
           to={`/livros-da-biblia/${book.slug}`}
@@ -34,7 +34,6 @@ export const BookGrid: React.FC<BookGridProps> = ({ books }) => {
               </Avatar>
               <div className="flex-1">
                 <h3 className="font-medium">{book.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-1">Explore este livro bíblico</p>
               </div>
               <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
             </CardContent>

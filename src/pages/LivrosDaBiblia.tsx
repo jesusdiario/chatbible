@@ -11,7 +11,13 @@ const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar
   error, isSidebarOpen, onToggleSidebar
 }) => (
   <div className="flex flex-col md:flex-row h-screen">
-    <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} />
+    <Sidebar 
+      isOpen={isSidebarOpen} 
+      onToggle={onToggleSidebar} 
+      chatHistory={[]}
+      onChatSelect={() => {}}
+      currentPath={window.location.pathname}
+    />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
       <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
@@ -28,7 +34,13 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
   isSidebarOpen, onToggleSidebar
 }) => (
   <div className="flex flex-col md:flex-row h-screen">
-    <Sidebar isOpen={isSidebarOpen} onToggle={onToggleSidebar} />
+    <Sidebar 
+      isOpen={isSidebarOpen} 
+      onToggle={onToggleSidebar}
+      chatHistory={[]}
+      onChatSelect={() => {}}
+      currentPath={window.location.pathname}
+    />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
       <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-black min-h-screen flex justify-center items-center">
@@ -65,7 +77,13 @@ const LivrosDaBiblia = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onToggle={toggleSidebar}
+        chatHistory={[]}
+        onChatSelect={() => {}}
+        currentPath={window.location.pathname}
+      />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
         <div className="pt-[60px] pb-4 px-4 md:px-8 bg-gray-50 text-dark min-h-screen">
