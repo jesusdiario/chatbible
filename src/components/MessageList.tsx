@@ -1,49 +1,32 @@
-
-import { FC, useRef, useEffect } from 'react';
-import Message from './Message';
-import { Message as MessageType } from '@/types/chat';
-
-interface MessageListProps {
-  messages: MessageType[];
-  isTyping?: boolean;
-}
-
+import { FC, useRef, useEffect, useState, UIEvent } from 'react';
+…
 const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef      = useRef<HTMLDivElement>(null);
+  const messagesEndRef    = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);   // ⬅️ NEW
 
-  // Auto-scroll suave para a última mensagem quando novas mensagens são adicionadas
+  /* 1. Decide quando deve rolar */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (autoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, autoScroll]);
+
+  /* 2. Monitora se o usuário subiu a página */
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setAutoScroll(distanceFromBottom < 80); // só “cola” se estiver a < 80 px do fim
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="w-full max-w-3xl mx-auto px-4 pb-165">
-        {messages.map((message, index) => (
-          <Message key={index} {...message} />
-        ))}
-        {isTyping && (
-          <div className="py-6">
-            <div className="flex gap-4">
-              <div className="h-8 w-8 rounded-full bg-[#F7F7F8] flex items-center justify-center">
-                <span className="text-sm">BC</span>
-              </div>
-              <div className="flex-1">
-                <div className="prose prose-invert max-w-none">
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 overflow-y-auto"
+    >
+      …
+      <div ref={messagesEndRef} />
     </div>
   );
 };
-
-export default MessageList;
