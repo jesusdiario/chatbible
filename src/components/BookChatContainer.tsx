@@ -1,3 +1,4 @@
+
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BookChat from './BookChat';
@@ -36,7 +37,7 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   } = useChatState({ book, slug });
 
   const handleSendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isLoading) return;
     
     setIsLoading(true);
     messageProcessingRef.current = true;
@@ -113,8 +114,9 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
       setIsTyping(false);
       messageProcessingRef.current = false;
     }
-  }, [messages, book, userId, slug, navigate, setMessages, setChatHistory]);
+  }, [messages, book, userId, slug, navigate, setMessages, setChatHistory, isLoading]);
 
+  // Recarrega as mensagens quando a visibilidade da página muda
   useVisibilityChange(() => {
     if (slug && messageProcessingRef.current) {
       loadChatMessages(slug).then(updatedMessages => {
