@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Message } from '@/types/chat';
+import { Message, ChatHistoryRecord } from '@/types/chat';
 
 export const persistChatMessages = async (
   messages: Message[],
@@ -48,30 +48,25 @@ export const loadChatMessages = async (
 
     if (!data?.messages) return null;
     
-    if (typeof data.messages === 'string') {
-      return JSON.parse(data.messages) as Message[];
-    }
+    const parsedMessages = typeof data.messages === 'string' 
+      ? JSON.parse(data.messages) 
+      : data.messages;
     
-    if (Array.isArray(data.messages)) {
-      const isValidMessageArray = data.messages.every(
-        (item: any): item is Message => 
-          typeof item === 'object' && 
-          item !== null &&
-          'role' in item && 
-          'content' in item &&
-          (item.role === 'user' || item.role === 'assistant')
+    // Type validation
+    const isValidMessageArray = Array.isArray(parsedMessages) &&
+      parsedMessages.every((msg: any): msg is Message => 
+        msg &&
+        typeof msg === 'object' &&
+        (msg.role === 'user' || msg.role === 'assistant') &&
+        typeof msg.content === 'string'
       );
-      
-      if (isValidMessageArray) {
-        return data.messages as Message[];
-      }
-      
-      console.error('Invalid message format in database:', data.messages);
+    
+    if (!isValidMessageArray) {
+      console.error('Invalid message format in database');
       return null;
     }
     
-    console.error('Unexpected message format in database:', data.messages);
-    return null;
+    return parsedMessages;
   } catch (err) {
     console.error('Error parsing chat messages:', err);
     return null;

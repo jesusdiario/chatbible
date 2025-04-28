@@ -1,10 +1,7 @@
-
 import { Menu, Globe, X, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   isOpen: boolean;
