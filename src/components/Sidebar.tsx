@@ -1,8 +1,9 @@
 
-import { Menu, Globe, X, MessageSquare } from "lucide-react";
+import { MessageSquare, Globe, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
+import ChatHistoryList from "./ChatHistoryList";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,13 +13,13 @@ interface SidebarProps {
   currentPath?: string;
 }
 
-const Sidebar = ({
+const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onToggle,
   onChatSelect,
   chatHistory = [],
   currentPath
-}: SidebarProps) => {
+}) => {
   const navigate = useNavigate();
 
   const goToLivrosDaBiblia = () => {
@@ -47,14 +48,14 @@ const Sidebar = ({
         "bg-chatgpt-sidebar",
         isOpen ? "w-full md:w-64" : "w-0"
       )}>
-        <nav className="flex h-full w-full flex-col px-3" aria-label="Histórico de Conversas">
-          <div className="flex justify-between flex h-[60px] items-center">
+        <nav className="flex h-full w-full flex-col" aria-label="Histórico de Conversas">
+          <div className="flex justify-between flex h-[60px] items-center px-3">
             <button 
               onClick={onToggle} 
               className="h-10 rounded-lg px-2 text-token-text-secondary hover:bg-token-sidebar-surface-secondary"
               aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isOpen ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
             </button>
           </div>
 
@@ -63,7 +64,10 @@ const Sidebar = ({
               <div className="bg-token-sidebar-surface-primary">
                 <div className="flex flex-col gap-2 px-2 py-2">
                   <div 
-                    className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer" 
+                    className={cn(
+                      "group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer",
+                      currentPath === '/livros-da-biblia' && "bg-token-sidebar-surface-secondary"
+                    )}
                     onClick={goToLivrosDaBiblia}
                   >
                     <div className="h-6 w-6 flex items-center justify-center">
@@ -73,36 +77,13 @@ const Sidebar = ({
                   </div>
                 </div>
 
-                {timeframes && timeframes.length > 0 ? (
-                  <div className="mt-4 flex flex-col gap-4">
-                    {timeframes.map(timeframe => (
-                      <div key={timeframe.title}>
-                        <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                        {timeframe.items.map(item => (
-                          <div 
-                            key={item.id} 
-                            className={cn(
-                              "group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer",
-                              currentPath?.includes(item.slug || '') && "bg-token-sidebar-surface-secondary"
-                            )}
-                            onClick={() => handleChatClick(item.id, item.slug || '', item.book_slug)}
-                          >
-                            <div className="h-6 w-6 flex items-center justify-center">
-                              <MessageSquare className="h-4 w-4" />
-                            </div>
-                            <span className="text-sm truncate" title={item.title}>
-                              {item.title}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-4 px-3 py-2 text-xs text-gray-500">
-                    Nenhuma conversa recente
-                  </div>
-                )}
+                <div className="mt-4">
+                  <ChatHistoryList 
+                    chatHistory={timeframes} 
+                    onChatSelect={onChatSelect}
+                    currentPath={currentPath}
+                  />
+                </div>
               </div>
             </div>
           )}
