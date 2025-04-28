@@ -6,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 export { loadChatMessages } from './persistenceService';
 
+// ...imports e loadChatMessages permanecem iguais
+
 export const sendChatMessage = async (
   content: string,
   messages: Message[],
@@ -27,10 +29,7 @@ export const sendChatMessage = async (
     }
   }
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-
+  const { data: { session } } = await supabase.auth.getSession();
   const systemPrompt = promptOverride ?? await getPromptForBook(book);
 
   const response = await fetch(
@@ -47,80 +46,57 @@ export const sendChatMessage = async (
 
   if (!response.body) throw new Error('No stream returned from edge-function');
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
+  const reader   = response.body.getReader();
+  const decoder  = new TextDecoder();
   let assistantFull = '';
   const assistantMessage: Message = { role: 'assistant', content: '' };
 
-  // Esta Promise representa o processamento do stream completo
-  const streamPromise = new Promise<void>(async (resolve) => {
+  /** PROCESSAMENTO DO STREAM **/
+  await (async () => {
     try {
-      // Controle de visibilidade e processamento em segundo plano
-      let processingInBackground = document.visibilityState === 'hidden';
-      let pauseUiUpdates = false;
-      
-      // Monitoramento de visibilidade
-      const visibilityHandler = () => {
-        const isHidden = document.visibilityState === 'hidden';
-        console.log(`Visibility changed: ${document.visibilityState} Processing in background: ${isHidden}`);
-        processingInBackground = isHidden;
-        
-        // Não pausamos mais as atualizações de UI,
-        // apenas mudamos a forma como são processadas
-      };
-      
-      // Adiciona o ouvinte de visibilidade
+      // Apenas logamos mudanças de visibilidade agora
+      const visibilityHandler = () =>
+        console.log('[chat] visibility:', document.visibilityState);
       document.addEventListener('visibilitychange', visibilityHandler);
-      
-      // Armazena chunks recebidos durante modo background
-      let bufferedChunks = '';
-      let lastPersistTime = Date.now();
-      const PERSIST_INTERVAL = 2000; // 2 segundos
 
-      // Função que persiste as mensagens periodicamente
-      const persistMessages = async () => {
-        if (userId && assistantFull && (Date.now() - lastPersistTime > PERSIST_INTERVAL)) {
-          try {
-            const messagesWithAssistant = [...newMessages, { ...assistantMessage, content: assistantFull }];
-            await persistChatMessages(userId, slugToUse, messagesWithAssistant, book);
-            lastPersistTime = Date.now();
-            return true;
-          } catch (err) {
-            console.error('Error during periodic persistence:', err);
-            return false;
-          }
+      let lastPersist = Date.now();
+      const PERSIST_EACH = 2000; // 2 s
+
+      const persistIfNeeded = async () => {
+        if (
+          userId &&
+          assistantFull &&
+          Date.now() - lastPersist > PERSIST_EACH
+        ) {
+          await persistChatMessages(
+            userId,
+            slugToUse,
+            [...newMessages, { ...assistantMessage, content: assistantFull }],
+            book
+          ).catch((err) =>
+            console.error('Error during periodic persistence:', err)
+          );
+          lastPersist = Date.now();
         }
-        return false;
       };
 
-      // Loop de leitura do stream
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunkStr = decoder.decode(value);
-        const lines = chunkStr.split('\n').filter(l => l.trim() !== '');
-
-        for (const line of lines) {
+        const chunk = decoder.decode(value);
+        for (const line of chunk.split('\n').filter(Boolean)) {
           if (!line.startsWith('data: ')) continue;
-
           try {
             const payload = JSON.parse(line.replace('data: ', ''));
             if (payload.content) {
-              // Sempre atualizamos o conteúdo completo
               assistantFull += payload.content;
               assistantMessage.content = assistantFull;
-              
-              // Atualiza UI somente se estiver visível
-              if (!processingInBackground && onChunk) {
-                onChunk(payload.content);
-              } else {
-                bufferedChunks += payload.content;
-              }
-              
-              // Persistência periódica mesmo em background
-              await persistMessages();
+
+              /** ⬇️  SEMPRE atualiza a UI */
+              onChunk?.(payload.content);
+
+              await persistIfNeeded();
             }
           } catch (err) {
             console.error('[chat] JSON parse error:', err);
@@ -128,47 +104,24 @@ export const sendChatMessage = async (
         }
       }
 
-      // Aplicar todos os chunks acumulados quando estiver em modo background
-      if (bufferedChunks && onChunk && processingInBackground) {
-        onChunk(bufferedChunks);
-      }
-      
-      // Remove o ouvinte de visibilidade
       document.removeEventListener('visibilitychange', visibilityHandler);
-    } catch (streamError) {
-      console.error('Error processing stream:', streamError);
+    } catch (streamErr) {
+      console.error('Error processing stream:', streamErr);
     }
-    resolve();
-  });
+  })();
 
-  // Processamento em segundo plano e persistência final
-  const completeProcessing = streamPromise.then(() => {
-    console.log('Stream processing completed, final persistence');
-    if (userId && slugToUse) {
-      return persistChatMessages(userId, slugToUse, [...newMessages, { ...assistantMessage, content: assistantFull }], book)
-        .catch(err => console.error('Error in final persistence:', err));
-    }
-  });
-
-  // Usa workers ou idle callbacks quando disponíveis
-  if (typeof window !== 'undefined') {
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => {
-        console.log('Using requestIdleCallback for background processing');
-      });
-    }
-    
-    if ('scheduling' in navigator && 'isInputPending' in (navigator as any).scheduling) {
-      // Apenas verificação, não usamos o resultado diretamente
-      (navigator as any).scheduling.isInputPending();
-    }
+  /** Persistência final */
+  if (userId) {
+    await persistChatMessages(
+      userId,
+      slugToUse,
+      [...newMessages, { ...assistantMessage, content: assistantFull }],
+      book
+    ).catch((err) => console.error('Error in final persistence:', err));
   }
 
-  // Aguarda o processamento do stream antes de retornar
-  await streamPromise;
-
-  return { 
-    messages: [...newMessages, { ...assistantMessage, content: assistantFull }], 
-    slug: slugToUse 
+  return {
+    messages: [...newMessages, { ...assistantMessage, content: assistantFull }],
+    slug: slugToUse
   };
 };
