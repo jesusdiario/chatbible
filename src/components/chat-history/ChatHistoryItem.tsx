@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MessageCircle, Pin, Calendar } from 'lucide-react';
+import { MessageCircle, Pin, Calendar, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ChatHistory } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -10,13 +10,14 @@ import { deleteChat, toggleChatPin, updateChatTitle } from '@/services/persisten
 import ChatHistoryActionsMenu from './ChatHistoryActionsMenu';
 import DeleteDialog from './DeleteDialog';
 import RenameDialog from './RenameDialog';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatHistoryItemProps {
   chat: ChatHistory;
   onSelect?: (slug: string) => void;
   onDelete?: (chatId: string) => void;
   onHistoryUpdated?: () => void;
-  isAccessible?: boolean;
 }
 
 const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
@@ -24,7 +25,6 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
   onSelect,
   onDelete,
   onHistoryUpdated,
-  isAccessible = true
 }) => {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,13 +32,16 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(chat.title);
+  const { subscribed } = useSubscription();
+  
+  // Check if chat is accessible
+  const isAccessible = !chat.subscription_required || subscribed;
   
   // Format date for display
   const formattedDate = format(new Date(chat.lastAccessed), 'PP', { locale: ptBR });
   
   const handleClick = () => {
     // Navigate to the chat page with the slug
-    // This now directs to our new ChatPage component
     if (onSelect) {
       onSelect(chat.slug || '');
     } else {
@@ -115,11 +118,13 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
       >
         <div className={cn(
           "h-10 w-10 rounded-full border flex items-center justify-center flex-shrink-0",
-          chat.book_slug ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"
+          chat.book_slug ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200",
+          !isAccessible && "border-amber-200 bg-amber-50"
         )}>
           <MessageCircle className={cn(
             "h-5 w-5",
-            chat.book_slug ? "text-blue-500" : "text-gray-500"
+            chat.book_slug ? "text-blue-500" : "text-gray-500",
+            !isAccessible && "text-amber-500"
           )} />
         </div>
         
@@ -127,14 +132,29 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
           <div className="flex items-center gap-2">
             <h3 className="font-medium truncate">
               {chat.title}
-              {!isAccessible && <span className="ml-1 text-xs text-gray-500">(Premium)</span>}
             </h3>
             {chat.pinned && <Pin className="h-3 w-3 text-blue-500 flex-shrink-0" />}
+            
+            {!isAccessible && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex-shrink-0">
+                      <Lock className="h-3 w-3 text-amber-500" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Conteúdo premium - Faça upgrade para acessar o histórico completo</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
           
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <Calendar className="h-3 w-3" />
             <span>{formattedDate}</span>
+            {!isAccessible && <span className="text-amber-500 ml-1">(Premium)</span>}
           </div>
         </div>
         

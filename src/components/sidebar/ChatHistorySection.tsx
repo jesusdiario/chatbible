@@ -1,9 +1,11 @@
+
 import React from "react";
-import { History, Pin } from "lucide-react";
+import { History, Pin, Lock } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { ChatHistory } from "@/types/chat";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface ChatHistorySectionProps {
   chatHistory?: ChatHistory[];
@@ -21,6 +23,7 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
   subscribed
 }) => {
   const navigate = useNavigate();
+  const { startCheckout } = useSubscription();
   const hasChatHistory = chatHistory && chatHistory.length > 0;
   
   // Get pinned chats
@@ -48,6 +51,10 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
     }
   };
 
+  const handleUpgradeClick = () => {
+    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Use your premium plan price ID
+  };
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
@@ -65,10 +72,26 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
       </div>
       
       {!hasChatHistory && (
-        <div className="px-3 py-4 text-sm text-gray-500 text-center">
+        <div className="px-3 py-4 text-sm text-gray-500">
           {subscribed 
             ? "Você não tem conversas salvas ainda."
-            : "Histórico de chat disponível apenas para usuários PRO."}
+            : (
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="flex items-center gap-1">
+                  <Lock className="h-4 w-4 text-amber-500" />
+                  <span>Histórico limitado no plano gratuito</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={handleUpgradeClick}
+                >
+                  Fazer upgrade
+                </Button>
+              </div>
+            )
+          }
         </div>
       )}
       
@@ -78,20 +101,26 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
             <Pin className="h-3 w-3 text-gray-500 mr-1" />
             <span className="text-xs text-gray-500">Fixados</span>
           </div>
-          {pinnedChats.map((chat) => (
-            <div key={chat.id} className="mb-1">
-              <button 
-                onClick={() => handleChatClick(chat)} 
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg truncate", 
-                  currentPath === `/chat/${chat.slug}` ? "bg-gray-100" : "hover:bg-gray-50"
-                )}
-              >
-                <History className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                <span className="truncate">{chat.title}</span>
-              </button>
-            </div>
-          ))}
+          {pinnedChats.map((chat) => {
+            const isAccessible = !chat.subscription_required || subscribed;
+            
+            return (
+              <div key={chat.id} className="mb-1">
+                <button 
+                  onClick={() => handleChatClick(chat)} 
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg truncate", 
+                    currentPath === `/chat/${chat.slug}` ? "bg-gray-100" : "hover:bg-gray-50",
+                    !isAccessible && "text-amber-700"
+                  )}
+                >
+                  <History className={cn("h-4 w-4 text-gray-500 flex-shrink-0", !isAccessible && "text-amber-500")} />
+                  <span className="truncate">{chat.title}</span>
+                  {!isAccessible && <Lock className="h-3 w-3 text-amber-500 ml-auto flex-shrink-0" />}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
       
@@ -102,20 +131,40 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
               <span className="text-xs text-gray-500">Recentes</span>
             </div>
           )}
-          {recentChats.map((chat) => (
-            <div key={chat.id} className="mb-1">
-              <button 
-                onClick={() => handleChatClick(chat)} 
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg truncate", 
-                  currentPath === `/chat/${chat.slug}` ? "bg-gray-100" : "hover:bg-gray-50"
-                )}
-              >
-                <History className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                <span className="truncate">{chat.title}</span>
-              </button>
-            </div>
-          ))}
+          {recentChats.map((chat) => {
+            const isAccessible = !chat.subscription_required || subscribed;
+            
+            return (
+              <div key={chat.id} className="mb-1">
+                <button 
+                  onClick={() => handleChatClick(chat)} 
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg truncate", 
+                    currentPath === `/chat/${chat.slug}` ? "bg-gray-100" : "hover:bg-gray-50",
+                    !isAccessible && "text-amber-700"
+                  )}
+                >
+                  <History className={cn("h-4 w-4 text-gray-500 flex-shrink-0", !isAccessible && "text-amber-500")} />
+                  <span className="truncate">{chat.title}</span>
+                  {!isAccessible && <Lock className="h-3 w-3 text-amber-500 ml-auto flex-shrink-0" />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {hasChatHistory && !subscribed && (
+        <div className="mt-2 px-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs flex items-center gap-1 border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800"
+            onClick={handleUpgradeClick}
+          >
+            <Lock className="h-3 w-3" />
+            Libere o histórico completo
+          </Button>
         </div>
       )}
     </div>

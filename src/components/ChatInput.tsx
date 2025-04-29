@@ -2,9 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { useMessageCount } from '@/hooks/useMessageCount';
 import MessageCounter from './MessageCounter';
+import { useSubscription } from '@/hooks/useSubscription';
+import { toast } from '@/components/ui/use-toast';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -15,15 +17,30 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage, loading } = useMessageCount();
+  const { messageCount, messageLimit, canSendMessage, loading, increment, daysUntilReset } = useMessageCount();
+  const { startCheckout } = useSubscription();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim() || isLoading || !canSendMessage) return;
+    if (!message.trim() || isLoading) return;
     
+    if (!canSendMessage) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Send message
     onSend(message.trim());
-    incrementMessageCount(); // Incrementa o contador quando uma mensagem é enviada
+    
+    // Increment counter
+    increment();
+    
+    // Clear input
     setMessage('');
     
     // Reset textarea height
@@ -55,6 +72,10 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
     adjustTextareaHeight();
   }, [message]);
 
+  const handleUpgradeClick = () => {
+    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Pass the premium plan price ID
+  };
+
   return (
     <form onSubmit={handleSubmit} className="relative w-full">
       <div className="relative rounded-md shadow-sm border">
@@ -75,16 +96,31 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
             type="submit" 
             disabled={!message.trim() || isLoading || !canSendMessage}
           >
-            <Send className="h-4 w-4" />
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       </div>
       
-      <MessageCounter currentCount={messageCount} limit={MESSAGE_LIMIT} isLoading={loading} />
+      <MessageCounter 
+        currentCount={messageCount} 
+        limit={messageLimit} 
+        isLoading={loading} 
+        daysUntilReset={daysUntilReset}
+      />
       
       {!canSendMessage && !loading && (
-        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-          Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium.
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md text-sm">
+          <p className="text-red-700 mb-2">
+            Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.
+          </p>
+          <Button 
+            onClick={handleUpgradeClick} 
+            variant="default" 
+            size="sm" 
+            className="w-full"
+          >
+            Fazer upgrade para Premium
+          </Button>
         </div>
       )}
     </form>

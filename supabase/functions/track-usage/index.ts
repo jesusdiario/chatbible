@@ -61,6 +61,42 @@ serve(async (req) => {
     // Calcular custo total estimado
     const estimatedCost = totalTokens * costPerToken;
 
+    // Verificar se o usuário pode enviar outra mensagem
+    const { data: userData, error: userDataError } = await supabaseClient
+      .from('message_counts')
+      .select('count')
+      .eq('user_id', user.id)
+      .single();
+      
+    // Verificar assinatura do usuário
+    const { data: subData, error: subError } = await supabaseClient
+      .from('subscribers')
+      .select('subscribed, subscription_tier')
+      .eq('user_id', user.id)
+      .single();
+      
+    // Buscar limites do plano
+    const { data: planData } = await supabaseClient
+      .from('subscription_plans')
+      .select('message_limit')
+      .eq('name', subData?.subscription_tier || 'Gratuito')
+      .single();
+      
+    const messageLimit = planData?.message_limit || 10;
+    const isSubscribed = subData?.subscribed || false;
+      
+    if (userData && userData.count >= messageLimit && !isSubscribed) {
+      return new Response(JSON.stringify({ 
+        error: "Limite de mensagens excedido",
+        limitExceeded: true,
+        currentCount: userData.count,
+        limit: messageLimit
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
     // Gravar registro de uso
     const { data, error } = await supabaseClient.from("api_usage").insert({
       user_id: user.id,
@@ -79,7 +115,13 @@ serve(async (req) => {
     // Incrementar contador de mensagens
     await supabaseClient.rpc('increment_message_count', { user_id_param: user.id });
 
-    return new Response(JSON.stringify({ success: true, cost: estimatedCost }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      cost: estimatedCost,
+      messageCount: userData ? userData.count + 1 : 1,
+      messageLimit,
+      canSendMore: userData ? userData.count + 1 < messageLimit || isSubscribed : true
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
