@@ -2,8 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useProfileManagement } from "@/hooks/useProfileManagement";
 
 interface ProfileFormProps {
   userId: string;
@@ -22,7 +21,7 @@ const ProfileForm = ({
 }: ProfileFormProps) => {
   const [editableName, setEditableName] = React.useState(displayName);
   const [isSaving, setIsSaving] = React.useState(false);
-  const { toast } = useToast();
+  const { updateDisplayName } = useProfileManagement(userId);
 
   // Atualiza o estado local quando as props mudam (ex: quando os dados são carregados do DB)
   React.useEffect(() => {
@@ -34,35 +33,13 @@ const ProfileForm = ({
     
     setIsSaving(true);
     try {
-      // Usando upsert para criar ou atualizar o perfil
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: userId,
-          display_name: editableName,
-          role: 'user' // Adicionando o campo role obrigatório
-        }, {
-          onConflict: 'id'
-        });
+      const success = await updateDisplayName(editableName);
       
-      if (error) {
-        console.error('Erro ao atualizar nome:', error);
-        throw error;
+      if (success) {
+        onDisplayNameChange(editableName);
       }
-      
-      onDisplayNameChange(editableName);
-      
-      toast({
-        title: "Nome atualizado",
-        description: "Seu nome de exibição foi atualizado com sucesso."
-      });
-    } catch (error: any) {
-      console.error('Erro completo:', error);
-      toast({
-        title: "Erro ao atualizar nome",
-        description: error.message,
-        variant: "destructive"
-      });
+    } catch (error) {
+      console.error('Erro ao salvar o nome:', error);
     } finally {
       setIsSaving(false);
     }

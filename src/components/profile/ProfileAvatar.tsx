@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { supabase } from "@/integrations/supabase/client";
+import { useProfileManagement } from "@/hooks/useProfileManagement";
 
 interface ProfileAvatarProps {
   userId: string;
@@ -19,6 +19,7 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useFileUpload();
   const [isUploading, setIsUploading] = useState(false);
+  const { updateAvatarUrl } = useProfileManagement(userId);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,29 +35,13 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         bucket: 'avatars'
       });
       
-      // Atualiza o perfil do usuário com a nova URL do avatar usando upsert
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: userId,
-          avatar_url: publicUrl,
-          role: 'user' // Adicionando o campo role obrigatório
-        }, {
-          onConflict: 'id'
-        });
+      // Atualiza o perfil do usuário com a nova URL do avatar
+      const success = await updateAvatarUrl(publicUrl);
       
-      if (error) {
-        console.error('Erro ao atualizar avatar no perfil:', error);
-        throw error;
+      if (success) {
+        // Chama o callback para atualizar o estado no componente pai
+        onAvatarChange(publicUrl);
       }
-      
-      // Chama o callback para atualizar o estado no componente pai
-      onAvatarChange(publicUrl);
-      
-      toast({
-        title: "Foto atualizada",
-        description: "Sua foto de perfil foi atualizada com sucesso."
-      });
     } catch (error: any) {
       console.error('Erro completo:', error);
       toast({
