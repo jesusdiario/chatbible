@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { TimeframedHistory } from '@/types/chat';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Loader2 } from 'lucide-react';
-import ChatHistoryItem from './ChatHistoryItem';
+import ChatHistoryItem from './chat-history/ChatHistoryItem';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EmptyState from './EmptyState';
