@@ -6,36 +6,42 @@ type VisibilityCallback = () => void;
 export const useVisibilityChange = (onVisibilityChange: VisibilityCallback) => {
   const visibilityTimeoutRef = useRef<number | null>(null);
   const lastVisibilityState = useRef<string>(document.visibilityState);
+  const pausedRef = useRef<boolean>(false);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       const currentState = document.visibilityState;
       
-      // Só executamos ações quando houver mudança real no estado de visibilidade
+      // Log state changes for debugging
+      console.log(`Visibility changed from ${lastVisibilityState.current} to ${currentState}`);
+      
+      // Only execute actions when there's a real change in visibility state
       if (currentState !== lastVisibilityState.current) {
-        console.log(`Visibility changed from ${lastVisibilityState.current} to ${currentState}`);
         lastVisibilityState.current = currentState;
         
-        // Limpar qualquer timeout pendente
+        // Clear any pending timeout
         if (visibilityTimeoutRef.current !== null) {
           window.clearTimeout(visibilityTimeoutRef.current);
+          visibilityTimeoutRef.current = null;
         }
 
-        // Se a página voltar a ficar visível, aguarde um pequeno intervalo
-        // antes de atualizar para evitar múltiplas atualizações
-        if (currentState === 'visible') {
+        // We'll only invoke the callback if explicitly requested via props
+        // and only when returning to visible state (not when leaving)
+        if (currentState === 'visible' && !pausedRef.current && onVisibilityChange) {
+          // Add a small delay to avoid multiple rapid visibility changes
           visibilityTimeoutRef.current = window.setTimeout(() => {
+            console.log('Invoking visibility change callback');
             onVisibilityChange();
             visibilityTimeoutRef.current = null;
-          }, 300); // reduzido para tornar a resposta mais rápida
+          }, 300);
         }
       }
     };
 
-    // Verificar o estado inicial
-    handleVisibilityChange();
-
+    // Attach event listener for visibility changes
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup on unmount
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (visibilityTimeoutRef.current !== null) {
@@ -43,4 +49,10 @@ export const useVisibilityChange = (onVisibilityChange: VisibilityCallback) => {
       }
     };
   }, [onVisibilityChange]);
+
+  // Return a control function to pause/resume the visibility callback
+  return {
+    pause: () => { pausedRef.current = true; },
+    resume: () => { pausedRef.current = false; }
+  };
 };

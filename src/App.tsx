@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { detectReloadTriggers } from "@/utils/debugUtils";
 
 // Importação dos componentes de páginas
 import Auth from "@/pages/Auth";
@@ -20,13 +21,27 @@ import Lexicon from "@/pages/Lexicon";
 import Courses from "@/pages/Courses";
 import Profile from "@/pages/Profile";
 
-const queryClient = new QueryClient();
+// Configure the query client with settings to prevent unnecessary fetches
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Prevent refetching data when window regains focus
+      staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
+      retry: false, // Don't retry failed requests automatically
+    },
+  },
+});
 
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Enable debug tools in development
+    if (import.meta.env.DEV) {
+      detectReloadTriggers();
+    }
+
     // Verificar sessão atual
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -35,6 +50,7 @@ const App = () => {
 
     // Ouvir mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event);
       setSession(session);
     });
 

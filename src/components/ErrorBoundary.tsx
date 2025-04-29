@@ -9,6 +9,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -17,11 +18,19 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    // Log the error to the console
+    console.error('Uncaught error in component:', error);
+    console.error('Component stack trace:', errorInfo.componentStack);
+    
+    this.setState({
+      error,
+      errorInfo
+    });
   }
 
   public render() {
@@ -33,8 +42,20 @@ class ErrorBoundary extends Component<Props, State> {
           <p className="text-gray-600 text-center mb-4">
             Ocorreu um erro inesperado. Por favor, tente novamente.
           </p>
+          <details className="mb-4 text-sm max-w-full overflow-auto">
+            <summary className="cursor-pointer text-blue-500">Detalhes técnicos</summary>
+            <p className="mt-2 text-red-600">{this.state.error?.toString()}</p>
+            {this.state.errorInfo && (
+              <pre className="mt-2 p-2 bg-gray-100 rounded overflow-x-auto">
+                {this.state.errorInfo.componentStack}
+              </pre>
+            )}
+          </details>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              console.log('Manual page reload requested by user');
+              window.location.reload();
+            }}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Recarregar página
@@ -48,4 +69,3 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
-
