@@ -1,29 +1,32 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Menu, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { useLocation } from "react-router-dom";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ChatHistoryList from "@/components/ChatHistoryList";
 import { useQuery } from "@tanstack/react-query";
 import { categorizeChatHistory } from "@/types/chat";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatHeaderProps {
   isSidebarOpen: boolean;
-  onNewChat?: () => void;
-  onToggleSidebar?: () => void;
+  onToggleSidebar: () => void;
 }
 
 const ChatHeader = ({
   isSidebarOpen,
   onToggleSidebar
 }: ChatHeaderProps) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const location = useLocation();
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  
+  // Don't render on auth page
+  if (location.pathname === "/auth") {
+    return null;
+  }
 
-  // Fetch chat history for the drawer
+  // Fetch chat history
   const { data: chatHistory = [] } = useQuery({
     queryKey: ['chatHistory'],
     queryFn: async () => {
@@ -54,22 +57,21 @@ const ChatHeader = ({
   });
 
   const timeframes = categorizeChatHistory(chatHistory);
+  const toggleHistorySidebar = () => setIsHistoryOpen(!isHistoryOpen);
 
   return (
     <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
       <div className="flex h-[60px] items-center justify-between px-4">
         {/* Left section - Menu toggle */}
         <div className="flex items-center">
-          {onToggleSidebar && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onToggleSidebar}
-              className="hover:bg-chatgpt-secondary"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleSidebar}
+            className="hover:bg-chatgpt-secondary"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
 
         {/* Center section - Logo */}
@@ -77,24 +79,25 @@ const ChatHeader = ({
           <h1 className="text-xl font-bold">BibleChat</h1>
         </div>
 
-        {/* Right section - History drawer trigger */}
+        {/* Right section - History sidebar */}
         <div className="flex items-center">
-          <Drawer>
-            <DrawerTrigger asChild>
+          <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+            <SheetTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="hover:bg-chatgpt-secondary"
+                onClick={toggleHistorySidebar}
               >
                 <History className="h-5 w-5" />
               </Button>
-            </DrawerTrigger>
-            <DrawerContent className="h-[80vh]">
-              <div className="mx-auto w-full max-w-lg p-6">
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] p-0">
+              <div className="h-full overflow-y-auto">
                 <ChatHistoryList chatHistory={timeframes} />
               </div>
-            </DrawerContent>
-          </Drawer>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
