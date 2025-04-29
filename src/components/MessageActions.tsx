@@ -59,12 +59,11 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
       setIsPlayingAudio(true);
       toast({ title: "Preparando áudio...", description: "Aguarde enquanto sintetizamos a fala" });
       
-      // Limit text length to prevent issues with large messages
-      const textToSynthesize = content.length > 4000 
-        ? content.substring(0, 4000) + "... (texto completo disponível para leitura)"
-        : content;
-      
-      const result = await synthesizeSpeech(textToSynthesize);
+      // No length limiting - send the full text to the Edge Function
+      const result = await synthesizeSpeech(content, {
+        voice: "ash",
+        model: "tts-1"
+      });
       
       // Play the audio using our hook
       setBase64Source(result.audio);

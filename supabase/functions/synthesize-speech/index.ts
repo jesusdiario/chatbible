@@ -19,14 +19,15 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
-    // Get the text and voice from the request
-    const { text, voice = 'alloy', model = 'tts-1' } = await req.json();
+    // Get the text and voice/model from the request
+    const { text, voice = 'ash', model = 'tts-1' } = await req.json();
 
     if (!text || typeof text !== 'string') {
       throw new Error('Text is required and must be a string');
     }
 
-    console.log(`Synthesizing speech for text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
+    console.log(`Synthesizing speech with voice: ${voice}, model: ${model}`);
+    console.log(`Text length: ${text.length} characters`);
 
     // Send to OpenAI's TTS API
     const response = await fetch('https://api.openai.com/v1/audio/speech', {

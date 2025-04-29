@@ -11,7 +11,7 @@ export interface SynthesisResult {
 }
 
 export interface SynthesisOptions {
-  voice?: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
+  voice?: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer' | 'ash';
   model?: 'tts-1' | 'tts-1-hd';
 }
 
@@ -66,7 +66,7 @@ export const synthesizeSpeech = async (
     const { data, error } = await supabase.functions.invoke('synthesize-speech', {
       body: {
         text,
-        voice: options?.voice || 'alloy',
+        voice: options?.voice || 'ash',
         model: options?.model || 'tts-1',
       },
     });
