@@ -65,8 +65,7 @@ const UsageSection = () => {
                 </div>
                 <Progress 
                   value={percentUsed} 
-                  className={`h-2 ${isHighUsage ? "bg-red-100" : isMediumUsage ? "bg-amber-100" : ""}`} 
-                  indicatorClassName={isHighUsage ? "bg-red-500" : isMediumUsage ? "bg-amber-500" : undefined}
+                  className={`h-2 ${isHighUsage ? "bg-red-100" : isMediumUsage ? "bg-amber-100" : ""}`}
                 />
                 
                 {isHighUsage && subscriptionTier === "Gratuito" && (

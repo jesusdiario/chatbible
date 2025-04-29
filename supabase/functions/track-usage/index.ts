@@ -112,15 +112,42 @@ serve(async (req) => {
       throw new Error(`Erro ao registrar uso: ${error.message}`);
     }
 
-    // Incrementar contador de mensagens
-    await supabaseClient.rpc('increment_message_count', { user_id_param: user.id });
+    // Incrementar contador de mensagens - atualizado para não usar RPC
+    const { data: messageCountData } = await supabaseClient
+      .from('message_counts')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+      
+    let newCount = 1;
+    
+    if (messageCountData) {
+      newCount = messageCountData.count + 1;
+      await supabaseClient
+        .from('message_counts')
+        .update({ 
+          count: newCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+    } else {
+      await supabaseClient
+        .from('message_counts')
+        .insert([{ 
+          user_id: user.id,
+          count: 1,
+          last_reset_time: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 
       cost: estimatedCost,
-      messageCount: userData ? userData.count + 1 : 1,
+      messageCount: newCount,
       messageLimit,
-      canSendMore: userData ? userData.count + 1 < messageLimit || isSubscribed : true
+      canSendMore: newCount < messageLimit || isSubscribed
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -1,86 +1,133 @@
-
 import React, { useState } from 'react';
-import { MessageCircle, Pin, Calendar, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { ChatHistory } from '@/types/chat';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import {
+  MoreHorizontal,
+  Trash2,
+  ChevronRight,
+  Pin,
+  Edit
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { deleteChat, toggleChatPin, updateChatTitle } from '@/services/persistenceService';
-import ChatHistoryActionsMenu from './ChatHistoryActionsMenu';
-import DeleteDialog from './DeleteDialog';
-import RenameDialog from './RenameDialog';
-import { useSubscription } from '@/hooks/useSubscription';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChatHistory } from '@/types/chat';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger, 
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatHistoryItemProps {
   chat: ChatHistory;
-  onSelect?: (slug: string) => void;
-  onDelete?: (chatId: string) => void;
+  onSelect: (slug: string) => void;
+  onDelete: (id: string) => void;
   onHistoryUpdated?: () => void;
+  isAccessible?: boolean;
 }
 
-const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
-  chat,
-  onSelect,
+const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ 
+  chat, 
+  onSelect, 
   onDelete,
   onHistoryUpdated,
+  isAccessible = true 
 }) => {
-  const navigate = useNavigate();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(chat.title);
-  const { subscribed } = useSubscription();
-  
-  // Check if chat is accessible
-  const isAccessible = !chat.subscription_required || subscribed;
-  
-  // Format date for display
-  const formattedDate = format(new Date(chat.lastAccessed), 'PP', { locale: ptBR });
-  
-  const handleClick = () => {
-    // Navigate to the chat page with the slug
-    if (onSelect) {
-      onSelect(chat.slug || '');
-    } else {
-      navigate(`/chat/${chat.slug}`);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSelect = () => {
+    if (!isAccessible) {
+      toast({
+        title: "Acesso restrito",
+        description: "Faça upgrade para o plano premium para acessar o histórico completo.",
+        variant: "destructive",
+      });
+      return;
     }
+    onSelect(chat.slug || '');
   };
-  
+
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      const success = await deleteChat(chat.id);
       
-      if (success) {
-        if (onDelete) {
-          onDelete(chat.id);
-        }
+      // Marcar como excluído no banco de dados
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ is_deleted: true })
+        .eq('id', chat.id);
         
-        if (onHistoryUpdated) {
-          onHistoryUpdated();
-        }
-      }
-    } catch (err) {
-      console.error('Error deleting chat:', err);
+      if (error) throw error;
+      
+      onDelete(chat.id);
+      toast({
+        title: "Chat excluído",
+        description: "O chat foi removido do seu histórico.",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir chat:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o chat. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
     }
   };
-  
+
   const handleTogglePin = async () => {
     try {
       setIsUpdating(true);
-      const success = await toggleChatPin(chat.slug || '', !chat.pinned);
       
-      if (success && onHistoryUpdated) {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ pinned: !chat.pinned })
+        .eq('id', chat.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: chat.pinned ? "Chat desafixado" : "Chat fixado",
+        description: chat.pinned ? "O chat foi removido dos fixados." : "O chat foi adicionado aos fixados.",
+      });
+      
+      if (onHistoryUpdated) {
         onHistoryUpdated();
       }
-    } catch (err) {
-      console.error('Error toggling pin status:', err);
+    } catch (error) {
+      console.error('Erro ao fixar/desafixar chat:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do chat. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -94,103 +141,174 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
     
     try {
       setIsUpdating(true);
-      const success = await updateChatTitle(chat.slug || '', newTitle);
       
-      if (success && onHistoryUpdated) {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ title: newTitle })
+        .eq('id', chat.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Chat renomeado",
+        description: "O título do chat foi atualizado.",
+      });
+      
+      if (onHistoryUpdated) {
         onHistoryUpdated();
       }
-    } catch (err) {
-      console.error('Error renaming chat:', err);
+    } catch (error) {
+      console.error('Erro ao renomear chat:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível renomear o chat. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setIsUpdating(false);
       setIsRenameDialogOpen(false);
     }
   };
-  
+
   return (
     <>
-      <div 
-        className={cn(
-          "flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer relative group",
-          !isAccessible && "opacity-70"
-        )}
-        onClick={handleClick}
-      >
-        <div className={cn(
-          "h-10 w-10 rounded-full border flex items-center justify-center flex-shrink-0",
-          chat.book_slug ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200",
-          !isAccessible && "border-amber-200 bg-amber-50"
-        )}>
-          <MessageCircle className={cn(
-            "h-5 w-5",
-            chat.book_slug ? "text-blue-500" : "text-gray-500",
-            !isAccessible && "text-amber-500"
-          )} />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium truncate">
-              {chat.title}
-            </h3>
-            {chat.pinned && <Pin className="h-3 w-3 text-blue-500 flex-shrink-0" />}
-            
-            {!isAccessible && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex-shrink-0">
-                      <Lock className="h-3 w-3 text-amber-500" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Conteúdo premium - Faça upgrade para acessar o histórico completo</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+      <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+        isAccessible ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-70'
+      }`}>
+        <div 
+          className="flex-1 min-w-0"
+          onClick={handleSelect}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              {chat.pinned && <Pin className="h-3 w-3 text-blue-600" />}
+              <p className="text-sm font-medium text-gray-800 truncate">{chat.title}</p>
+            </div>
+            <span className="text-xs text-gray-500">
+              {formatDistanceToNow(new Date(chat.lastAccessed), { 
+                addSuffix: true, 
+                locale: ptBR 
+              })}
+            </span>
           </div>
           
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Calendar className="h-3 w-3" />
-            <span>{formattedDate}</span>
-            {!isAccessible && <span className="text-amber-500 ml-1">(Premium)</span>}
-          </div>
+          {chat.last_message && (
+            <p className="text-xs text-gray-500 truncate">{chat.last_message}</p>
+          )}
         </div>
         
-        <div 
-          onClick={(e) => e.stopPropagation()}
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <ChatHistoryActionsMenu
-            isPinned={chat.pinned || false}
-            isUpdating={isUpdating}
-            onRename={() => {
-              setNewTitle(chat.title);
-              setIsRenameDialogOpen(true);
-            }}
-            onTogglePin={handleTogglePin}
-            onDelete={() => setIsDeleteDialogOpen(true)}
-          />
+        <div className="flex items-center">
+          {!isAccessible && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="mr-2 text-xs px-2 py-1 h-auto"
+              onClick={() => window.location.href = '/profile?tab=subscription'}
+            >
+              Upgrade
+            </Button>
+          )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Ações</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => setIsRenameDialogOpen(true)}
+                disabled={isUpdating}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Renomear
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={handleTogglePin}
+                disabled={isUpdating}
+              >
+                <Pin className="h-4 w-4 mr-2" />
+                {chat.pinned ? 'Desafixar' : 'Fixar'}
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem 
+                className="text-red-600 focus:text-red-600" 
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {isAccessible && (
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          )}
         </div>
       </div>
       
-      <DeleteDialog
-        isOpen={isDeleteDialogOpen}
-        setIsOpen={setIsDeleteDialogOpen}
-        isDeleting={isDeleting}
-        onDelete={handleDelete}
-      />
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conversa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta conversa? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
-      <RenameDialog
-        isOpen={isRenameDialogOpen}
-        setIsOpen={setIsRenameDialogOpen}
-        title={chat.title}
-        newTitle={newTitle}
-        setNewTitle={setNewTitle}
-        isUpdating={isUpdating}
-        onRename={handleRename}
-      />
+      {/* Rename Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renomear conversa</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Novo título"
+              className="w-full"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRenameDialogOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleRename}
+              disabled={isUpdating || !newTitle.trim() || newTitle === chat.title}
+            >
+              {isUpdating ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
