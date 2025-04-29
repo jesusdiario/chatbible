@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -6,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Google } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -14,19 +17,17 @@ const Auth = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { toast } = useToast();
   const navigate = useNavigate();
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isLogin) {
         // Login
-        const {
-          error
-        } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
@@ -43,9 +44,7 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        const {
-          error
-        } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -71,7 +70,32 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) throw error;
+      
+      // No need to navigate here as the OAuth redirect will handle this
+    } catch (error: any) {
+      toast({
+        title: "Erro de autenticação",
+        description: error.message || "Ocorreu um erro ao tentar autenticar com Google.",
+        variant: "destructive"
+      });
+      setGoogleLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
@@ -85,6 +109,22 @@ const Auth = () => {
           <h2 className="text-xl font-semibold text-dark mb-6">
             {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
+          
+          <Button 
+            onClick={handleGoogleSignIn} 
+            disabled={googleLoading} 
+            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6"
+          >
+            <Google size={18} />
+            {googleLoading ? "Processando..." : "Continuar com Google"}
+          </Button>
+          
+          <div className="relative my-6">
+            <Separator />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+              ou
+            </span>
+          </div>
           
           <form onSubmit={handleAuth} className="space-y-4">
             <div className="space-y-2">
@@ -121,6 +161,8 @@ const Auth = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Auth;
