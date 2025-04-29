@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Trash2, Pin, Edit } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ChatHistoryActionsMenuProps {
   chatId: string;
@@ -36,8 +37,6 @@ const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
     
     try {
       setIsUpdating(true);
-      
-      const { supabase } = await import('@/integrations/supabase/client');
       
       const { error } = await supabase
         .from('chat_history')
