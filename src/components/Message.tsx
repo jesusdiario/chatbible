@@ -19,7 +19,7 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
           <div className={`${
             role === 'user' 
               ? 'bg-[#F7F7F8] rounded-[20px] px-4 py-2 inline-block text-foreground hover:bg-gray-100 transition-all duration-200' 
-              : 'prose prose-invert max-w-none'
+              : 'prose max-w-none text-black'
           }`}>
             {role === 'user' ? (
               content
@@ -28,17 +28,17 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-4" {...props} />,
-                    h2: ({node, ...props}) => <h2 className="text-xl font-bold my-3" {...props} />,
-                    h3: ({node, ...props}) => <h3 className="text-lg font-bold my-2" {...props} />,
-                    p: ({node, ...props}) => <p className="my-2" {...props} />,
-                    strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
-                    em: ({node, ...props}) => <em className="italic" {...props} />,
-                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-400 pl-4 italic my-2" {...props} />,
+                    h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-4 text-black" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-xl font-bold my-3 text-black" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-lg font-bold my-2 text-black" {...props} />,
+                    p: ({node, ...props}) => <p className="my-2 text-black" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-bold text-black" {...props} />,
+                    em: ({node, ...props}) => <em className="italic text-black" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-400 pl-4 italic my-2 text-black" {...props} />,
                     code: ({node, className, children, ...props}) => {
                       const match = /language-(\w+)/.exec(className || '');
                       return !className ? (
-                        <code className="bg-[#F7F7F8] px-1 py-0.5 rounded text-sm" {...props}>
+                        <code className="bg-[#F7F7F8] px-1 py-0.5 rounded text-sm text-black" {...props}>
                           {children}
                         </code>
                       ) : (
@@ -53,15 +53,16 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
                               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
                           </button>
-                          <code className={className} {...props}>
+                          <code className={`${className} text-black`} {...props}>
                             {children}
                           </code>
                         </pre>
                       );
                     },
-                    ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                    ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                    li: ({node, ...props}) => <li className="my-1" {...props} />
+                    ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2 text-black" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2 text-black" {...props} />,
+                    li: ({node, ...props}) => <li className="my-1 text-black" {...props} />,
+                    a: ({node, ...props}) => <a className="text-blue-600 hover:underline text-black" {...props} />
                   }}
                 >
                   {content}
