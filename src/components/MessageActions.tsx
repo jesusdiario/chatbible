@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clipboard, Download, Volume2 } from 'lucide-react';
+import { Clipboard, Download, StopCircle, Volume2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { synthesizeSpeech } from '@/services/audioService';
@@ -15,7 +15,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   
   // Fix: Pass undefined as the initial source, then the options object
-  const { setBase64Source } = useAudio(undefined, { 
+  const { setBase64Source, stop, isPlaying } = useAudio(undefined, { 
     onEnded: () => setIsPlayingAudio(false),
     autoPlay: true
   });
@@ -54,7 +54,15 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
     }
   };
 
-  const handlePlayAudio = async () => {
+  const handleToggleAudio = async () => {
+    // Se já estiver tocando, parar o áudio
+    if (isPlaying) {
+      stop();
+      setIsPlayingAudio(false);
+      toast({ title: "Áudio parado", description: "A narração foi interrompida" });
+      return;
+    }
+    
     try {
       setIsPlayingAudio(true);
       toast({ title: "Preparando áudio...", description: "Aguarde enquanto sintetizamos a fala" });
@@ -118,11 +126,15 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
         variant="ghost"
         size="icon"
         className="h-8 w-8"
-        onClick={handlePlayAudio}
-        disabled={isPlayingAudio}
-        title="Ouvir resposta"
+        onClick={handleToggleAudio}
+        disabled={isPlayingAudio && !isPlaying} // Desativa apenas durante o carregamento inicial
+        title={isPlaying ? "Parar narração" : "Ouvir resposta"}
       >
-        <Volume2 className={`h-4 w-4 ${isPlayingAudio ? 'text-primary animate-pulse' : ''}`} />
+        {isPlaying ? (
+          <StopCircle className="h-4 w-4 text-primary" />
+        ) : (
+          <Volume2 className={`h-4 w-4 ${isPlayingAudio ? 'animate-pulse' : ''}`} />
+        )}
       </Button>
     </div>
   );
