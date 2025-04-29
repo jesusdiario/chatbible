@@ -17,7 +17,8 @@ const UsageTab = () => {
     subscribed, 
     subscriptionTier, 
     messageLimit,
-    openCustomerPortal
+    openCustomerPortal,
+    isLoading: subscriptionLoading
   } = useSubscription();
   
   const { messageCount, loading: messageCountLoading } = useMessageCount(messageLimit);
@@ -29,7 +30,7 @@ const UsageTab = () => {
         <CardDescription>Monitoramento do seu uso</CardDescription>
       </CardHeader>
       <CardContent>
-        {messageCountLoading ? (
+        {(messageCountLoading || subscriptionLoading) ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
@@ -51,7 +52,7 @@ const UsageTab = () => {
                 />
               </div>
               
-              {messageCount / messageLimit >= 0.7 && (
+              {messageCount / messageLimit >= 0.7 && !subscribed && (
                 <div className={`text-sm ${messageCount / messageLimit >= 0.9 ? 'text-red-500' : 'text-amber-500'} mt-1`}>
                   {messageCount / messageLimit >= 0.9 
                     ? 'Você está prestes a atingir seu limite mensal!' 

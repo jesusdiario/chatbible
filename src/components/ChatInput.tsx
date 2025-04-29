@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import ChatMessageInput from "@/components/ChatMessageInput";
 import MessageCounter from "@/components/MessageCounter";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -16,12 +17,14 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = React.useState(false);
   const { toast } = useToast();
+  const { messageLimit } = useSubscription();
+  
   const { 
     messageCount, 
     incrementMessageCount,
     loading: countLoading, 
-    MESSAGE_LIMIT 
-  } = useMessageCount();
+    MESSAGE_LIMIT
+  } = useMessageCount(messageLimit);
 
   const handleSubmit = async (message: string) => {
     try {
@@ -44,10 +47,9 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
       await incrementMessageCount();
       
       if (messageCount + 1 >= MESSAGE_LIMIT) {
-        setShowSubscriptionModal(true);
         toast({
-          title: "Limite de mensagens atingido",
-          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens mensais. Faça upgrade para o plano premium.`,
+          title: "Limite de mensagens próximo",
+          description: `Você está próximo de atingir o limite de ${MESSAGE_LIMIT} mensagens mensais.`,
         });
       }
 

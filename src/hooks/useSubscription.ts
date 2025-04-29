@@ -61,6 +61,17 @@ export const useSubscription = () => {
           } as SubscriptionPlan));
           
           setPlans(formattedPlans);
+          
+          // Atualizamos o messageLimit após termos os planos carregados
+          if (state.subscriptionTier) {
+            const currentPlan = formattedPlans.find(p => p.name === state.subscriptionTier);
+            if (currentPlan) {
+              setState(prev => ({
+                ...prev,
+                messageLimit: currentPlan.message_limit
+              }));
+            }
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar planos:', error);
@@ -68,7 +79,7 @@ export const useSubscription = () => {
     };
     
     fetchPlans();
-  }, []);
+  }, [state.subscriptionTier]);
 
   // Verificar status da assinatura diretamente na tabela subscribers
   const checkSubscription = async () => {
