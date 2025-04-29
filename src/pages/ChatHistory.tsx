@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatHistory, categorizeChatHistory } from '@/types/chat';
@@ -74,8 +73,6 @@ const ChatHistoryPage = () => {
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={toggleSidebar}
-        chatHistory={chatHistory}
-        onChatSelect={handleChatSelect}
         currentPath="/history"
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>

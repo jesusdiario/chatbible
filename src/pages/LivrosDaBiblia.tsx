@@ -1,4 +1,3 @@
-
 import React from "react";
 import Sidebar from "@/components/Sidebar";
 import ChatHeader from "@/components/ChatHeader";
@@ -14,8 +13,6 @@ const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar
     <Sidebar 
       isOpen={isSidebarOpen} 
       onToggle={onToggleSidebar}
-      chatHistory={[]}
-      onChatSelect={() => {}}
       currentPath={window.location.pathname}
     />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
@@ -39,8 +36,6 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
     <Sidebar 
       isOpen={isSidebarOpen} 
       onToggle={onToggleSidebar}
-      chatHistory={[]}
-      onChatSelect={() => {}}
       currentPath={window.location.pathname}
     />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
@@ -84,8 +79,6 @@ const LivrosDaBiblia = () => {
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={toggleSidebar}
-        chatHistory={[]}
-        onChatSelect={() => {}}
         currentPath={window.location.pathname}
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
