@@ -16,7 +16,6 @@ interface ProfileAvatarProps {
 
 const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }: ProfileAvatarProps) => {
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useFileUpload();
 
@@ -24,61 +23,25 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
     const file = e.target.files?.[0];
     if (!file || !userId) return;
     
-    // Validate file size (2MB max)
-    const fileSizeMB = file.size / (1024 * 1024);
-    if (fileSizeMB > 2) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 2MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Formato não suportado",
-        description: "Use imagens nos formatos JPG, PNG ou WebP.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsUploading(true);
-    
     try {
-      // Use a filename format that's compatible with our RLS policies
-      const fileExt = file.name.split('.').pop();
-      const fileName = `profile-${userId}-${Date.now()}.${fileExt}`;
-      
-      // Upload directly via supabase client instead of using the hook
-      const { data, error } = await supabase
-        .storage
-        .from('avatars')
-        .upload(fileName, file, { 
-          cacheControl: '3600', 
-          upsert: true 
-        });
-      
-      if (error) throw error;
-      
-      // Get the public URL
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('avatars')
-        .getPublicUrl(data.path);
-      
-      onAvatarChange(publicUrl);
+      // Upload the file using our hook
+      const fileNamePrefix = `profile-${userId}`;
+      const publicUrl = await uploadMutation.mutateAsync({ 
+        file, 
+        fileNamePrefix,
+        bucket: 'avatars'
+      });
       
       // Update the user profile with the new avatar URL
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', userId);
       
-      if (updateError) throw updateError;
+      if (error) throw error;
+      
+      // Call the callback to update the state in parent component
+      onAvatarChange(publicUrl);
       
       toast({
         title: "Foto atualizada",
@@ -91,7 +54,6 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         variant: "destructive"
       });
     } finally {
-      setIsUploading(false);
       // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -102,7 +64,7 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
   return (
     <div className="flex flex-col items-center space-y-2">
       <Avatar className="h-24 w-24">
-        <AvatarImage src={avatarUrl || undefined} />
+        <AvatarImage src={avatarUrl || undefined} alt={displayName || "Profile"} />
         <AvatarFallback>{displayName?.charAt(0) || email?.charAt(0)}</AvatarFallback>
       </Avatar>
       
@@ -119,9 +81,9 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         variant="outline" 
         size="sm"
         onClick={() => fileInputRef.current?.click()}
-        disabled={isUploading}
+        disabled={uploadMutation.isPending}
       >
-        {isUploading ? "Enviando..." : "Alterar foto"}
+        {uploadMutation.isPending ? "Enviando..." : "Alterar foto"}
       </Button>
       
       <p className="text-xs text-gray-500 text-center">

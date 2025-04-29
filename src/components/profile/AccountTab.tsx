@@ -34,6 +34,18 @@ const AccountTab = ({
     await updateProfile({ displayName, avatarUrl });
   };
 
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">
+            Por favor, faça login para acessar seu perfil.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -43,24 +55,26 @@ const AccountTab = ({
       
       <CardContent className="space-y-4">
         <ProfileAvatar 
-          userId={user?.id}
+          userId={user.id}
           avatarUrl={avatarUrl} 
           displayName={displayName}
-          email={user?.email}
+          email={user.email}
           onAvatarChange={setAvatarUrl}
         />
         
         <ProfileForm
+          userId={user.id}
           displayName={displayName}
-          email={user?.email || ''}
+          email={user.email || ''}
           onDisplayNameChange={setDisplayName}
+          isUpdating={isUpdating}
         />
       </CardContent>
       
       <CardFooter className="flex justify-between">
         <Button 
           variant="outline" 
-          onClick={() => handlePasswordReset(user?.email)}
+          onClick={() => handlePasswordReset(user.email)}
         >
           Alterar senha
         </Button>

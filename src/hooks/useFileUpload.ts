@@ -5,14 +5,23 @@ import { toast } from "@/hooks/use-toast";
 
 export function useFileUpload() {
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, bookSlug }: { file: File; bookSlug: string }) => {
+    mutationFn: async ({ file, fileNamePrefix, bucket = 'avatars' }: { file: File; fileNamePrefix: string; bucket?: string }) => {
       try {
-        // Determine bucket based on the bookSlug prefix
-        const bucket = bookSlug.startsWith('profile-') ? 'avatars' : 'covers';
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          throw new Error('Formato não suportado. Use imagens nos formatos JPG, PNG ou WebP.');
+        }
+        
+        // Validate file size (2MB max)
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > 2) {
+          throw new Error('A imagem deve ter no máximo 2MB.');
+        }
         
         // Make sure the file name is unique and includes the correct prefix for RLS
         const fileExt = file.name.split('.').pop();
-        const fileName = `${bookSlug}-${Date.now()}.${fileExt}`;
+        const fileName = `${fileNamePrefix}-${Date.now()}.${fileExt}`;
         
         const { data, error } = await supabase
           .storage
@@ -28,7 +37,7 @@ export function useFileUpload() {
 
         return publicUrl;
       } catch (error: any) {
-        throw new Error(`Error uploading file: ${error.message}`);
+        throw new Error(`Erro ao enviar arquivo: ${error.message}`);
       }
     },
     onError: (error: Error) => {
