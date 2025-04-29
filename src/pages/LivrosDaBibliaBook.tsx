@@ -31,11 +31,15 @@ const LivrosDaBibliaBook = () => {
       isSidebarOpen={isSidebarOpen}
       onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
     >
-      <BookChatContainer
-        bookDetails={bookDetails}
-        book={book}
-        slug={slug}
-      />
+      <div className="pt-20 pb-6 px-4">
+        <div className="max-w-4xl mx-auto w-full">
+          <BookChatContainer
+            bookDetails={bookDetails}
+            book={book}
+            slug={slug}
+          />
+        </div>
+      </div>
     </BookChatLayout>
   );
 };

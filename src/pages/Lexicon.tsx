@@ -65,36 +65,40 @@ export default function Lexicon() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="border-b p-4">
+      <header className="border-b p-4 fixed top-0 w-full bg-white z-10">
         <h1 className="text-2xl font-bold">Léxico Bíblico</h1>
         <p className="text-sm text-muted-foreground">Consulte termos e palavras bíblicas em seus idiomas originais</p>
       </header>
 
-      <ScrollArea className="flex-1">
-        <div className="max-w-3xl mx-auto p-4">
-          <MessageList 
-            messages={messages} 
-            isTyping={isLoading}
-          />
+      <div className="pt-20 pb-16 px-4 flex flex-col h-full">
+        <div className="max-w-3xl mx-auto w-full flex-1">
+          <ScrollArea className="h-full">
+            <MessageList 
+              messages={messages} 
+              isTyping={isLoading}
+            />
+          </ScrollArea>
         </div>
-      </ScrollArea>
+      </div>
 
-      <form onSubmit={handleSubmit} className="border-t p-4 gap-2 flex">
-        <Input
-          type="text"
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          placeholder="Digite uma palavra ou termo para pesquisar..."
-          disabled={isLoading}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            'Pesquisar'
-          )}
-        </Button>
+      <form onSubmit={handleSubmit} className="border-t p-4 fixed bottom-0 w-full bg-white z-10 flex gap-2">
+        <div className="max-w-3xl mx-auto w-full flex gap-2">
+          <Input
+            type="text"
+            value={word}
+            onChange={(e) => setWord(e.target.value)}
+            placeholder="Digite uma palavra ou termo para pesquisar..."
+            disabled={isLoading}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'Pesquisar'
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   );

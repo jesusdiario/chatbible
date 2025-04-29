@@ -25,7 +25,7 @@ const BookChatLayout: React.FC<BookChatLayoutProps> = ({
           onChatSelect={() => {}}
           currentPath={window.location.pathname}
         />
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'} min-h-screen`}>
           <ChatHeader 
             isSidebarOpen={isSidebarOpen}
             onToggleSidebar={onToggleSidebar}

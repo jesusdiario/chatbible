@@ -68,14 +68,16 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   useVisibilityChange(handleVisibilityChange);
 
   return (
-    <BookChat
-      title={bookDetails.title}
-      messages={messages}
-      isLoading={isLoading}
-      isTyping={isTyping}
-      bookSlug={book}
-      onSendMessage={handleSendMessage}
-    />
+    <div className="flex flex-col h-full">
+      <BookChat
+        title={bookDetails.title}
+        messages={messages}
+        isLoading={isLoading}
+        isTyping={isTyping}
+        bookSlug={book}
+        onSendMessage={handleSendMessage}
+      />
+    </div>
   );
 };
 

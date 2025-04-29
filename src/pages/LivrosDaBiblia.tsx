@@ -13,17 +13,19 @@ const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar
   <div className="flex flex-col md:flex-row h-screen">
     <Sidebar 
       isOpen={isSidebarOpen} 
-      onToggle={onToggleSidebar} 
+      onToggle={onToggleSidebar}
       chatHistory={[]}
       onChatSelect={() => {}}
       currentPath={window.location.pathname}
     />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
-        <div className="p-4 bg-red-100 text-red-800 rounded-lg border border-red-200">
-          <p className="font-bold">Falha ao carregar dados:</p>
-          <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(error, null, 2)}</pre>
+      <div className="pt-20 pb-6 px-4 bg-chatgpt-main text-dark min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <div className="p-4 bg-red-100 text-red-800 rounded-lg border border-red-200">
+            <p className="font-bold">Falha ao carregar dados:</p>
+            <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(error, null, 2)}</pre>
+          </div>
         </div>
       </div>
     </main>
@@ -43,8 +45,10 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
     />
     <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
       <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-      <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-black min-h-screen flex justify-center items-center">
-        <LoadingSpinner />
+      <div className="pt-20 pb-6 px-4 bg-chatgpt-main text-black min-h-screen">
+        <div className="max-w-7xl mx-auto flex justify-center">
+          <LoadingSpinner />
+        </div>
       </div>
     </main>
   </div>
@@ -86,14 +90,12 @@ const LivrosDaBiblia = () => {
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-gray-50 text-dark min-h-screen">
-          <div className="py-8">
-            <div className="max-w-7xl mx-auto">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">Livros da Bíblia</h1>
-              <p className="text-gray-600 text-center mb-12">Explore os livros da Bíblia e aprofunde seu conhecimento</p>
-            </div>
+        <div className="pt-20 pb-6 px-4 bg-gray-50 text-dark min-h-screen">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">Livros da Bíblia</h1>
+            <p className="text-gray-600 text-center mb-12">Explore os livros da Bíblia e aprofunde seu conhecimento</p>
+            <CategoriesList categories={categories} booksByCategory={booksByCategory} />
           </div>
-          <CategoriesList categories={categories} booksByCategory={booksByCategory} />
         </div>
       </main>
     </div>

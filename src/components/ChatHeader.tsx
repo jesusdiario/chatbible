@@ -60,7 +60,7 @@ const ChatHeader = ({
   const toggleHistorySidebar = () => setIsHistoryOpen(!isHistoryOpen);
 
   return (
-    <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-chatgpt-main">
+    <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="flex h-[60px] items-center justify-between px-4">
         {/* Left section - Menu toggle */}
         <div className="flex items-center">
