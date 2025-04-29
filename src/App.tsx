@@ -22,6 +22,7 @@ import Lexicon from "@/pages/Lexicon";
 import Courses from "@/pages/Courses";
 import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
+import ChatPage from "@/pages/ChatPage"; // Import the new ChatPage component
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -114,9 +115,10 @@ const App = () => {
                   <LivrosDaBibliaBook />
                 </ProtectedRoute>
               } />
+              {/* Replace the direct Index component with ChatPage */}
               <Route path="/chat/:slug" element={
                 <ProtectedRoute>
-                  <Index />
+                  <ChatPage />
                 </ProtectedRoute>
               } />
               <Route path="/history" element={

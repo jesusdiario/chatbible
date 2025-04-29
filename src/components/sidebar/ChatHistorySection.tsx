@@ -1,4 +1,3 @@
-
 import React from "react";
 import { History, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,7 +31,11 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
   const handleChatClick = (chat: ChatHistory) => {
     if (onChatSelect) {
       onChatSelect(chat.id);
+    } else {
+      // Updated to use the proper chat URL format
+      navigate(`/chat/${chat.slug}`);
     }
+    
     if (window.innerWidth < 768) {
       onToggle?.();
     }
