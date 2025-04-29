@@ -2,11 +2,15 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionState } from './types';
+import { useState } from "react";
 
-export const useSubscriptionActions = (setState: (state: React.SetStateAction<SubscriptionState>) => void) => {
+export const useSubscriptionActions = (setState?: (state: React.SetStateAction<SubscriptionState>) => void) => {
   const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const checkSubscription = async () => {
+    if (!setState) return;
+    
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
@@ -59,14 +63,18 @@ export const useSubscriptionActions = (setState: (state: React.SetStateAction<Su
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
       // Não mostrar toast de erro para não interromper a experiência do usuário
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false 
-      }));
+      if (setState) {
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false 
+        }));
+      }
     }
   };
 
   const startCheckout = async (priceId: string, successUrl?: string, cancelUrl?: string) => {
+    if (!setState) return;
+    
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
@@ -94,7 +102,7 @@ export const useSubscriptionActions = (setState: (state: React.SetStateAction<Su
 
   const openCustomerPortal = async () => {
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
+      setIsProcessing(true);
       
       const { data, error } = await supabase.functions.invoke('customer-portal');
 
@@ -112,13 +120,18 @@ export const useSubscriptionActions = (setState: (state: React.SetStateAction<Su
         description: "Não foi possível abrir o portal de gerenciamento",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, isLoading: false }));
+      if (setState) {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return {
     checkSubscription,
     startCheckout,
-    openCustomerPortal
+    openCustomerPortal,
+    isProcessing
   };
 };

@@ -16,7 +16,7 @@ interface AccountSectionProps {
 }
 
 const AccountSection = ({ user }: AccountSectionProps) => {
-  const { handlePasswordReset } = useProfileManagement(user?.id);
+  const { handlePasswordReset, isUpdating } = useProfileManagement(user?.id);
 
   if (!user) {
     return (
@@ -54,8 +54,9 @@ const AccountSection = ({ user }: AccountSectionProps) => {
             <Button 
               variant="outline" 
               onClick={() => handlePasswordReset(user.email)}
+              disabled={isUpdating}
             >
-              Alterar senha
+              {isUpdating ? "Processando..." : "Alterar senha"}
             </Button>
           </div>
         </CardContent>

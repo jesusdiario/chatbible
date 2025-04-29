@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,13 +11,17 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionActions } from "@/hooks/subscription/useSubscriptionActions";
 
 const SubscriptionSection = () => {
-  const { openCustomerPortal, isProcessing } = useSubscriptionActions();
+  const { openCustomerPortal } = useSubscriptionActions();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const handleManageSubscription = async () => {
     try {
+      setIsProcessing(true);
       await openCustomerPortal();
     } catch (error) {
       console.error('Erro ao abrir portal do cliente:', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
