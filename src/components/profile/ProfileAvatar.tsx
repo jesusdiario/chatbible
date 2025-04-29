@@ -34,12 +34,15 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         bucket: 'avatars'
       });
       
-      // Atualiza o perfil do usuário com a nova URL do avatar
-      // Usando .eq() para garantir que estamos atualizando apenas o perfil do usuário atual
+      // Atualiza o perfil do usuário com a nova URL do avatar usando upsert
       const { error } = await supabase
         .from('user_profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', userId);
+        .upsert({
+          id: userId,
+          avatar_url: publicUrl
+        }, {
+          onConflict: 'id'
+        });
       
       if (error) {
         console.error('Erro ao atualizar avatar no perfil:', error);

@@ -34,11 +34,15 @@ const ProfileForm = ({
     
     setIsSaving(true);
     try {
-      // Atualiza explicitamente pelo ID para garantir que as políticas de RLS sejam respeitadas
+      // Usando upsert para criar ou atualizar o perfil
       const { error } = await supabase
         .from('user_profiles')
-        .update({ display_name: editableName })
-        .eq('id', userId);
+        .upsert({
+          id: userId,
+          display_name: editableName
+        }, {
+          onConflict: 'id'
+        });
       
       if (error) {
         console.error('Erro ao atualizar nome:', error);

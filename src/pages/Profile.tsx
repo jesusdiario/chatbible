@@ -37,45 +37,40 @@ const Profile = () => {
           .from('user_profiles')
           .select('display_name, avatar_url')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
           
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
           console.error('Erro ao buscar perfil de usuário:', error);
+          toast({
+            title: "Erro ao carregar perfil",
+            description: "Não foi possível carregar seus dados de perfil.",
+            variant: "destructive"
+          });
+        } else if (data) {
+          // Perfil existe
+          setDisplayName(data.display_name || "");
+          setAvatarUrl(data.avatar_url || null);
+        } else {
+          // Perfil não existe, insere os dados iniciais
+          const defaultName = session.user.email?.split('@')[0] || "";
+          setDisplayName(defaultName);
           
-          // Verifica se o erro é que não existem registros
-          // PGRST116 é o código para "nenhuma linha retornada"
-          if (error.code === 'PGRST116') {
-            console.log('Criando perfil para usuário:', session.user.id);
+          const { error: insertError } = await supabase
+            .from('user_profiles')
+            .insert({
+              id: session.user.id,
+              display_name: defaultName,
+              role: 'user'
+            });
             
-            // Se não existe perfil, cria um novo
-            const { error: insertError } = await supabase
-              .from('user_profiles')
-              .insert({
-                id: session.user.id,
-                display_name: session.user.email?.split('@')[0] || '',
-                role: 'user'
-              });
-              
-            if (insertError) {
-              console.error('Erro ao criar perfil:', insertError);
-              toast({
-                title: "Erro ao criar perfil",
-                description: "Não foi possível criar seu perfil. Por favor, tente novamente.",
-                variant: "destructive"
-              });
-            } else {
-              setDisplayName(session.user.email?.split('@')[0] || "");
-            }
-          } else {
+          if (insertError) {
+            console.error('Erro ao criar perfil:', insertError);
             toast({
-              title: "Erro ao carregar perfil",
-              description: "Não foi possível carregar seus dados de perfil.",
+              title: "Erro ao criar perfil",
+              description: "Não foi possível criar seu perfil. Por favor, tente novamente.",
               variant: "destructive"
             });
           }
-        } else if (data) {
-          setDisplayName(data.display_name || "");
-          setAvatarUrl(data.avatar_url || null);
         }
       } catch (error) {
         console.error('Erro na página de perfil:', error);

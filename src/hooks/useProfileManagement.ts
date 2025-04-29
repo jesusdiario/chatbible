@@ -12,15 +12,16 @@ export function useProfileManagement(userId: string | undefined) {
     
     setIsUpdating(true);
     try {
-      // Usando o método "upsert" com um match_id explícito para garantir que estamos atualizando
-      // o registro correto do usuário atual, respeitando as políticas de RLS
+      // Usando upsert para criar o perfil se não existir ou atualizar se existir
       const { error } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          id: userId,
           display_name: data.displayName,
           avatar_url: data.avatarUrl
-        })
-        .eq('id', userId);
+        }, {
+          onConflict: 'id'
+        });
         
       if (error) throw error;
       
