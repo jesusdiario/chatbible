@@ -17,12 +17,12 @@ const Profile = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Check if there's a session
+    // Verifica se existe uma sessão
     const fetchUserData = async () => {
       setLoading(true);
       
       try {
-        // Get the session
+        // Obtém a sessão
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
@@ -32,7 +32,7 @@ const Profile = () => {
         
         setUser(session.user);
         
-        // Get user profile data
+        // Obtém os dados do perfil do usuário
         const { data, error } = await supabase
           .from('user_profiles')
           .select('display_name, avatar_url')
@@ -40,8 +40,33 @@ const Profile = () => {
           .single();
           
         if (error) {
-          console.error('Error fetching user profile:', error);
-          if (error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+          console.error('Erro ao buscar perfil de usuário:', error);
+          
+          // Verifica se o erro é que não existem registros
+          // PGRST116 é o código para "nenhuma linha retornada"
+          if (error.code === 'PGRST116') {
+            console.log('Criando perfil para usuário:', session.user.id);
+            
+            // Se não existe perfil, cria um novo
+            const { error: insertError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: session.user.id,
+                display_name: session.user.email?.split('@')[0] || '',
+                role: 'user'
+              });
+              
+            if (insertError) {
+              console.error('Erro ao criar perfil:', insertError);
+              toast({
+                title: "Erro ao criar perfil",
+                description: "Não foi possível criar seu perfil. Por favor, tente novamente.",
+                variant: "destructive"
+              });
+            } else {
+              setDisplayName(session.user.email?.split('@')[0] || "");
+            }
+          } else {
             toast({
               title: "Erro ao carregar perfil",
               description: "Não foi possível carregar seus dados de perfil.",
@@ -53,13 +78,13 @@ const Profile = () => {
           setAvatarUrl(data.avatar_url || null);
         }
       } catch (error) {
-        console.error('Error in profile page:', error);
+        console.error('Erro na página de perfil:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    // Set up auth state change listener
+    // Configura o listener para mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
@@ -71,16 +96,16 @@ const Profile = () => {
       }
     });
     
-    // Initial fetch
+    // Busca inicial
     fetchUserData();
     
-    // Cleanup subscription
+    // Limpa a assinatura
     return () => {
       subscription.unsubscribe();
     };
   }, [toast]);
 
-  // Get the active tab from URL query params
+  // Obtém a aba ativa a partir dos parâmetros de consulta da URL
   const getActiveTab = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('tab') || 'account';

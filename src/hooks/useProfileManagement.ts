@@ -12,14 +12,15 @@ export function useProfileManagement(userId: string | undefined) {
     
     setIsUpdating(true);
     try {
+      // Usando o método "upsert" com um match_id explícito para garantir que estamos atualizando
+      // o registro correto do usuário atual, respeitando as políticas de RLS
       const { error } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: userId,
+        .update({
           display_name: data.displayName,
-          role: 'user',
           avatar_url: data.avatarUrl
-        });
+        })
+        .eq('id', userId);
         
       if (error) throw error;
       
@@ -28,6 +29,7 @@ export function useProfileManagement(userId: string | undefined) {
         description: "Suas informações foram atualizadas com sucesso."
       });
     } catch (error: any) {
+      console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro ao atualizar perfil",
         description: error.message,

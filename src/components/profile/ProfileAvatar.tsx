@@ -18,13 +18,15 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useFileUpload();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
     
+    setIsUploading(true);
     try {
-      // Upload the file using our hook
+      // Upload o arquivo usando nosso hook
       const fileNamePrefix = `profile-${userId}`;
       const publicUrl = await uploadMutation.mutateAsync({ 
         file, 
@@ -32,15 +34,19 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         bucket: 'avatars'
       });
       
-      // Update the user profile with the new avatar URL
+      // Atualiza o perfil do usuário com a nova URL do avatar
+      // Usando .eq() para garantir que estamos atualizando apenas o perfil do usuário atual
       const { error } = await supabase
         .from('user_profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', userId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao atualizar avatar no perfil:', error);
+        throw error;
+      }
       
-      // Call the callback to update the state in parent component
+      // Chama o callback para atualizar o estado no componente pai
       onAvatarChange(publicUrl);
       
       toast({
@@ -48,16 +54,18 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         description: "Sua foto de perfil foi atualizada com sucesso."
       });
     } catch (error: any) {
+      console.error('Erro completo:', error);
       toast({
         title: "Erro ao fazer upload",
         description: error.message,
         variant: "destructive"
       });
     } finally {
-      // Clear the file input
+      // Limpa o input de arquivo
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      setIsUploading(false);
     }
   };
 
@@ -81,9 +89,9 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         variant="outline" 
         size="sm"
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploadMutation.isPending}
+        disabled={isUploading || uploadMutation.isPending}
       >
-        {uploadMutation.isPending ? "Enviando..." : "Alterar foto"}
+        {isUploading || uploadMutation.isPending ? "Enviando..." : "Alterar foto"}
       </Button>
       
       <p className="text-xs text-gray-500 text-center">

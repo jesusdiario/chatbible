@@ -24,7 +24,7 @@ const ProfileForm = ({
   const [isSaving, setIsSaving] = React.useState(false);
   const { toast } = useToast();
 
-  // Update local state when props change (e.g. when data is fetched from DB)
+  // Atualiza o estado local quando as props mudam (ex: quando os dados são carregados do DB)
   React.useEffect(() => {
     setEditableName(displayName);
   }, [displayName]);
@@ -34,12 +34,16 @@ const ProfileForm = ({
     
     setIsSaving(true);
     try {
+      // Atualiza explicitamente pelo ID para garantir que as políticas de RLS sejam respeitadas
       const { error } = await supabase
         .from('user_profiles')
         .update({ display_name: editableName })
         .eq('id', userId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao atualizar nome:', error);
+        throw error;
+      }
       
       onDisplayNameChange(editableName);
       
@@ -48,6 +52,7 @@ const ProfileForm = ({
         description: "Seu nome de exibição foi atualizado com sucesso."
       });
     } catch (error: any) {
+      console.error('Erro completo:', error);
       toast({
         title: "Erro ao atualizar nome",
         description: error.message,
