@@ -13,8 +13,11 @@ interface MessageActionsProps {
 const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const { setBase64Source } = useAudio({ 
-    onEnded: () => setIsPlayingAudio(false)
+  
+  // Fix: Pass undefined as the initial source, then the options object
+  const { setBase64Source } = useAudio(undefined, { 
+    onEnded: () => setIsPlayingAudio(false),
+    autoPlay: true
   });
 
   const handleCopy = async () => {
