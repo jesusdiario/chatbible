@@ -49,20 +49,36 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
     setIsUploading(true);
     
     try {
-      const result = await uploadMutation.mutateAsync({ 
-        file, 
-        bookSlug: `profile-${userId}` 
-      });
+      // Use a filename format that's compatible with our RLS policies
+      const fileExt = file.name.split('.').pop();
+      const fileName = `profile-${userId}-${Date.now()}.${fileExt}`;
       
-      onAvatarChange(result);
-      
-      // Update the user profile with the new avatar URL
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ avatar_url: result })
-        .eq('id', userId);
+      // Upload directly via supabase client instead of using the hook
+      const { data, error } = await supabase
+        .storage
+        .from('avatars')
+        .upload(fileName, file, { 
+          cacheControl: '3600', 
+          upsert: true 
+        });
       
       if (error) throw error;
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('avatars')
+        .getPublicUrl(data.path);
+      
+      onAvatarChange(publicUrl);
+      
+      // Update the user profile with the new avatar URL
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId);
+      
+      if (updateError) throw updateError;
       
       toast({
         title: "Foto atualizada",

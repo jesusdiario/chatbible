@@ -10,7 +10,10 @@ export function useFileUpload() {
         // Determine bucket based on the bookSlug prefix
         const bucket = bookSlug.startsWith('profile-') ? 'avatars' : 'covers';
         
-        const fileName = `${bookSlug}-${Date.now()}.${file.name.split('.').pop()}`;
+        // Make sure the file name is unique and includes the correct prefix for RLS
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${bookSlug}-${Date.now()}.${fileExt}`;
+        
         const { data, error } = await supabase
           .storage
           .from(bucket)
