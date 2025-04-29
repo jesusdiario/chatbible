@@ -2,13 +2,27 @@
 import React, { useContext } from "react";
 import { BookOpenText, MessageSquare, Grid, Book } from "lucide-react";
 import { ChatContext } from "./ActionButtons";
+import { useMessageCount } from "@/hooks/useMessageCount";
+import { toast } from "@/hooks/use-toast";
 
 const ExodusActionButtons = () => {
   const { sendMessage } = useContext(ChatContext);
+  const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage } = useMessageCount();
 
   const handleButtonClick = (prompt: string) => {
+    if (!canSendMessage) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (sendMessage) {
       sendMessage(prompt);
+      // Incrementa o contador de mensagens quando uma sugestão é clicada
+      incrementMessageCount();
     }
   };
 
@@ -47,6 +61,7 @@ const ExodusActionButtons = () => {
           key={action.label} 
           className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
           onClick={() => handleButtonClick(action.prompt)}
+          disabled={!canSendMessage}
         >
           {action.icon}
           {action.label}

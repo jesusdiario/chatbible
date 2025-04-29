@@ -3,6 +3,7 @@ import React from 'react';
 import ChatInput from '@/components/ChatInput';
 import ActionButtons, { ChatContext } from '@/components/ActionButtons';
 import BookActionButtons from '@/components/BookActionButtons';
+import { useMessageCount } from '@/hooks/useMessageCount';
 
 interface EmptyChatStateProps {
   title: string;
@@ -12,6 +13,8 @@ interface EmptyChatStateProps {
 }
 
 const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
+  const { canSendMessage } = useMessageCount();
+  
   // Use the BookActionButtons component if we have a bookSlug
   const ActionButtonsComponent = bookSlug ? BookActionButtons : ActionButtons;
 
@@ -26,6 +29,13 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
       <ChatContext.Provider value={{ sendMessage: onSendMessage }}>
         <ActionButtonsComponent bookSlug={bookSlug} />
       </ChatContext.Provider>
+      
+      {!canSendMessage && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          <p className="font-medium">Você atingiu seu limite mensal de mensagens</p>
+          <p>Faça upgrade para o plano premium para continuar sua conversa.</p>
+        </div>
+      )}
     </div>
   );
 };

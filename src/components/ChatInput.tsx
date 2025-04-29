@@ -1,12 +1,10 @@
 
-import React from "react";
-import { useToast } from "@/hooks/use-toast";
-import SubscriptionModal from "@/components/SubscriptionModal";
-import { supabase } from "@/integrations/supabase/client";
-import { useMessageCount } from "@/hooks/useMessageCount";
-import ChatMessageInput from "@/components/ChatMessageInput";
-import MessageCounter from "@/components/MessageCounter";
-import { useSubscription } from "@/hooks/useSubscription";
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Send } from 'lucide-react';
+import { useMessageCount } from '@/hooks/useMessageCount';
+import MessageCounter from './MessageCounter';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -14,84 +12,82 @@ interface ChatInputProps {
   bookSlug?: string;
 }
 
-const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
-  const [showSubscriptionModal, setShowSubscriptionModal] = React.useState(false);
-  const { toast } = useToast();
-  const { messageLimit, subscribed } = useSubscription();
-  
-  const { 
-    messageCount, 
-    incrementMessageCount,
-    loading: countLoading, 
-    MESSAGE_LIMIT
-  } = useMessageCount(messageLimit);
+const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
+  const [message, setMessage] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage, loading } = useMessageCount();
 
-  const handleSubmit = async (message: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log("Usuário não autenticado");
-        return;
-      }
-
-      if (messageCount >= MESSAGE_LIMIT) {
-        setShowSubscriptionModal(true);
-        toast({
-          title: "Limite de mensagens atingido",
-          description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens mensais. Faça upgrade para o plano premium.`,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Registrar o uso da API será feito no fluxo do chatService
-      await incrementMessageCount();
-      
-      if (messageCount + 1 >= MESSAGE_LIMIT * 0.9) {
-        toast({
-          title: "Limite de mensagens próximo",
-          description: `Você está próximo de atingir o limite de ${MESSAGE_LIMIT} mensagens mensais.`,
-        });
-      }
-
-      onSend(message);
-    } catch (error) {
-      console.error("Erro ao processar envio de mensagem:", error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao enviar sua mensagem. Tente novamente.",
-        variant: "destructive"
-      });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!message.trim() || isLoading || !canSendMessage) return;
+    
+    onSend(message.trim());
+    incrementMessageCount(); // Incrementa o contador quando uma mensagem é enviada
+    setMessage('');
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Submit on Enter (without Shift)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Reset height - necessary to shrink on backspace
+      textarea.style.height = 'auto';
+      // Set new height
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  };
+
+  // Adjust height when message changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [message]);
+
   return (
-    <div className="relative flex w-full flex-col items-center">
-      <ChatMessageInput 
-        onSend={handleSubmit}
-        isLoading={isLoading || countLoading}
-        bookSlug={bookSlug}
-      />
-      <div className="w-full flex justify-between items-center">
-        <MessageCounter 
-          currentCount={messageCount}
-          limit={MESSAGE_LIMIT}
-          isLoading={countLoading}
+    <form onSubmit={handleSubmit} className="relative w-full">
+      <div className="relative rounded-md shadow-sm border">
+        <Textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={`Faça uma pergunta sobre ${bookSlug || 'a Bíblia'}...`}
+          className="pr-10 resize-none min-h-[45px] max-h-[200px] overflow-y-auto"
+          disabled={isLoading || !canSendMessage}
+          rows={1}
         />
-        {!subscribed && (
-          <button 
-            onClick={() => setShowSubscriptionModal(true)}
-            className="text-xs text-blue-600 hover:text-blue-800"
+        <div className="absolute right-2 bottom-1">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            type="submit" 
+            disabled={!message.trim() || isLoading || !canSendMessage}
           >
-            Upgrade para Pro
-          </button>
-        )}
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <SubscriptionModal 
-        isOpen={showSubscriptionModal} 
-        onClose={() => setShowSubscriptionModal(false)} 
-      />
-    </div>
+      
+      <MessageCounter currentCount={messageCount} limit={MESSAGE_LIMIT} isLoading={loading} />
+      
+      {!canSendMessage && !loading && (
+        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium.
+        </div>
+      )}
+    </form>
   );
 };
 
