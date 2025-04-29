@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { detectReloadTriggers } from "@/utils/debugUtils";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Importação dos componentes de páginas
 import Auth from "@/pages/Auth";
@@ -39,7 +40,11 @@ const App = () => {
   useEffect(() => {
     // Enable debug tools in development
     if (import.meta.env.DEV) {
-      detectReloadTriggers();
+      try {
+        detectReloadTriggers();
+      } catch (err) {
+        console.error('Failed to initialize debug utilities:', err);
+      }
     }
 
     // Verificar sessão atual
@@ -67,68 +72,70 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/paginas" element={
-              <ProtectedRoute>
-                <AdminPages />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/livros" element={
-              <ProtectedRoute>
-                <AdminBooks />
-              </ProtectedRoute>
-            } />
-            <Route path="/livros-da-biblia" element={
-              <ProtectedRoute>
-                <LivrosDaBiblia />
-              </ProtectedRoute>
-            } />
-            <Route path="/livros-da-biblia/:book" element={
-              <ProtectedRoute>
-                <LivrosDaBibliaBook />
-              </ProtectedRoute>
-            } />
-            <Route path="/livros-da-biblia/:book/:slug" element={
-              <ProtectedRoute>
-                <LivrosDaBibliaBook />
-              </ProtectedRoute>
-            } />
-            <Route path="/chat/:slug" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/lexicon" element={
-              <ProtectedRoute>
-                <Lexicon />
-              </ProtectedRoute>
-            } />
-            <Route path="/courses" element={
-              <ProtectedRoute>
-                <Courses />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </TooltipProvider>
+        <ErrorBoundary>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/paginas" element={
+                <ProtectedRoute>
+                  <AdminPages />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/livros" element={
+                <ProtectedRoute>
+                  <AdminBooks />
+                </ProtectedRoute>
+              } />
+              <Route path="/livros-da-biblia" element={
+                <ProtectedRoute>
+                  <LivrosDaBiblia />
+                </ProtectedRoute>
+              } />
+              <Route path="/livros-da-biblia/:book" element={
+                <ProtectedRoute>
+                  <LivrosDaBibliaBook />
+                </ProtectedRoute>
+              } />
+              <Route path="/livros-da-biblia/:book/:slug" element={
+                <ProtectedRoute>
+                  <LivrosDaBibliaBook />
+                </ProtectedRoute>
+              } />
+              <Route path="/chat/:slug" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/lexicon" element={
+                <ProtectedRoute>
+                  <Lexicon />
+                </ProtectedRoute>
+              } />
+              <Route path="/courses" element={
+                <ProtectedRoute>
+                  <Courses />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </TooltipProvider>
+        </ErrorBoundary>
       </BrowserRouter>
     </QueryClientProvider>
   );

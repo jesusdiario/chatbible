@@ -13,7 +13,7 @@ export const useVisibilityChange = (onVisibilityChange: VisibilityCallback) => {
       const currentState = document.visibilityState;
       
       // Log state changes for debugging
-      console.log(`Visibility changed from ${lastVisibilityState.current} to ${currentState}`);
+      console.log(`Visibility changed from ${lastVisibilityState.current} to ${currentState} at ${new Date().toISOString()}`);
       
       // Only execute actions when there's a real change in visibility state
       if (currentState !== lastVisibilityState.current) {
@@ -30,7 +30,7 @@ export const useVisibilityChange = (onVisibilityChange: VisibilityCallback) => {
         if (currentState === 'visible' && !pausedRef.current && onVisibilityChange) {
           // Add a small delay to avoid multiple rapid visibility changes
           visibilityTimeoutRef.current = window.setTimeout(() => {
-            console.log('Invoking visibility change callback');
+            console.log('Invoking visibility change callback at', new Date().toISOString());
             onVisibilityChange();
             visibilityTimeoutRef.current = null;
           }, 300);
