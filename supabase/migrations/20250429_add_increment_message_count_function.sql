@@ -1,5 +1,6 @@
 
--- Função para incrementar o contador de mensagens de um usuário
+-- Esta função não é mais necessária já que estamos usando uma abordagem direta de update.
+-- Mantida aqui apenas como referência para casos futuros
 CREATE OR REPLACE FUNCTION public.increment_message_count(user_id_param UUID)
 RETURNS void
 LANGUAGE plpgsql

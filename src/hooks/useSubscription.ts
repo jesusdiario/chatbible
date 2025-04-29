@@ -48,7 +48,17 @@ export const useSubscription = () => {
         if (error) throw error;
         
         if (data) {
-          setPlans(data);
+          // Converter os dados para o formato correto de SubscriptionPlan
+          const formattedPlans = data.map(plan => ({
+            ...plan,
+            features: Array.isArray(plan.features) 
+              ? plan.features 
+              : typeof plan.features === 'string' 
+                ? JSON.parse(plan.features) 
+                : []
+          } as SubscriptionPlan));
+          
+          setPlans(formattedPlans);
         }
       } catch (error) {
         console.error('Erro ao carregar planos:', error);
@@ -144,12 +154,16 @@ export const useSubscription = () => {
 
   // Verificar assinatura quando componente montar
   useEffect(() => {
-    const session = supabase.auth.session();
-    if (session) {
-      checkSubscription();
-    } else {
-      setState(prev => ({ ...prev, isLoading: false }));
-    }
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        checkSubscription();
+      } else {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+    
+    checkAuth();
 
     // Configurar listener para mudanças de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -168,7 +182,9 @@ export const useSubscription = () => {
     });
 
     return () => {
-      authListener?.unsubscribe();
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, []);
 

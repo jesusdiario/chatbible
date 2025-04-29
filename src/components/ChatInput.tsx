@@ -18,7 +18,7 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
   const { toast } = useToast();
   const { 
     messageCount, 
-    setMessageCount, 
+    incrementMessageCount,
     loading: countLoading, 
     MESSAGE_LIMIT 
   } = useMessageCount();
@@ -31,8 +31,6 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
         return;
       }
 
-      const userId = session.user.id;
-
       if (messageCount >= MESSAGE_LIMIT) {
         setShowSubscriptionModal(true);
         toast({
@@ -42,28 +40,10 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
         return;
       }
 
-      const newCount = messageCount + 1;
-      const { error } = await supabase
-        .from('message_counts')
-        .update({ 
-          count: newCount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error("Erro ao atualizar contador de mensagens:", error);
-        toast({
-          title: "Erro",
-          description: "Ocorreu um erro ao processar sua mensagem. Tente novamente.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setMessageCount(newCount);
+      // Registrar o uso da API será feito no fluxo do chatService
+      await incrementMessageCount();
       
-      if (newCount >= MESSAGE_LIMIT) {
+      if (messageCount + 1 >= MESSAGE_LIMIT) {
         setShowSubscriptionModal(true);
         toast({
           title: "Limite de mensagens atingido",

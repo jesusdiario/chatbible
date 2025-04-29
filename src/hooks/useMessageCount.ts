@@ -120,7 +120,16 @@ export const useMessageCount = (messageLimit?: number) => {
       if (!session) return;
   
       const userId = session.user.id;
-      const { error } = await supabase.rpc('increment_message_count', { user_id_param: userId });
+      
+      // Em vez de usar RPC, vamos fazer um update direto na tabela
+      const { data, error } = await supabase
+        .from('message_counts')
+        .update({ 
+          count: messageCount + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select();
       
       if (error) {
         console.error("Erro ao incrementar contador de mensagens:", error);
