@@ -1,31 +1,23 @@
 
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { ChatHistory } from "@/types/chat";
-import SubscriptionModal from "@/components/SubscriptionModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionModal from "@/components/SubscriptionModal";
 import UserProfileSection from "./sidebar/UserProfileSection";
 import SubscriptionSection from "./sidebar/SubscriptionSection";
 import NavigationSection from "./sidebar/NavigationSection";
-import ChatHistorySection from "./sidebar/ChatHistorySection";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  onChatSelect?: (chatId: string) => void;
-  chatHistory?: ChatHistory[];
   currentPath?: string;
-  onApiKeyChange?: (key: string) => void;
 }
 
 const Sidebar = ({
   isOpen,
   onToggle,
-  onChatSelect,
-  chatHistory = [],
-  currentPath,
-  onApiKeyChange
+  currentPath
 }: SidebarProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [userProfile, setUserProfile] = useState<{
@@ -84,26 +76,17 @@ const Sidebar = ({
 
   return <>
       <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
-        <nav className="flex h-full w-full flex-col p-4" aria-label="Navegação Principal">
+        <nav className="flex h-full w-full flex-col p-4" aria-label="Menu Principal">
           {isOpen && <>
-              {/* Main Navigation items */}
-              <NavigationSection currentPath={currentPath} onToggle={onToggle} />
-
-              {/* Chat History Section */}
-              <ChatHistorySection 
-                chatHistory={chatHistory} 
-                currentPath={currentPath} 
-                onChatSelect={onChatSelect} 
-                onToggle={onToggle}
-                subscribed={subscribed}
-              />
-
-              <div className="flex-1"></div>
-
-              {/* User Profile Section */}
+              {/* User Profile Section - Now at the top */}
               <UserProfileSection userProfile={userProfile} onToggle={onToggle} />
-
-              {/* Subscription section */}
+              
+              {/* Navigation Menu Section */}
+              <NavigationSection currentPath={currentPath} onToggle={onToggle} />
+              
+              <div className="flex-1"></div>
+              
+              {/* Subscription section - Kept at the bottom */}
               <SubscriptionSection onOpenSubscriptionModal={() => setShowSubscriptionModal(true)} />
             </>}
         </nav>

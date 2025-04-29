@@ -24,8 +24,8 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, on
   };
 
   return (
-    <div className="mb-4 border-t pt-4">
-      <button className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50" onClick={goToProfile}>
+    <div className="mb-6">
+      <button className="w-full flex items-center gap-3 px-2 py-3 rounded-lg hover:bg-gray-50" onClick={goToProfile}>
         <Avatar className="h-10 w-10">
           <AvatarImage src={userProfile.avatar_url || undefined} />
           <AvatarFallback>{userProfile.name.charAt(0).toUpperCase()}</AvatarFallback>

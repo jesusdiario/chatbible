@@ -21,7 +21,7 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
 
   return (
     <div className="mb-6">
-      <span className="text-sm text-gray-500 mb-2 block">Navegação</span>
+      <span className="text-sm text-gray-500 mb-2 block">Menu</span>
       <button 
         onClick={goToLivrosDaBiblia} 
         className={cn(
