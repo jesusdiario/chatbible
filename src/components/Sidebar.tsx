@@ -1,4 +1,3 @@
-
 import { Search, X, Book, Plus, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -10,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,6 +34,7 @@ const Sidebar = ({
     name: string;
     avatar_url: string | null;
   } | null>(null);
+  const { subscribed } = useSubscription();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -47,10 +48,11 @@ const Sidebar = ({
           data: profileData,
           error
         } = await supabase.from('user_profiles').select('display_name').eq('id', session.user.id).single();
+        
         if (profileData) {
           setUserProfile({
             name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
-            avatar_url: null // Since avatar_url column doesn't exist yet
+            avatar_url: null // We'll update this in a moment
           });
         } else {
           setUserProfile({
@@ -71,13 +73,6 @@ const Sidebar = ({
       onToggle();
     }
   };
-  
-  const goToHistory = () => {
-    navigate('/history');
-    if (window.innerWidth < 768) {
-      onToggle();
-    }
-  };
 
   const goToProfile = () => {
     navigate('/profile');
@@ -85,6 +80,9 @@ const Sidebar = ({
       onToggle();
     }
   };
+
+  // Check if there's chat history
+  const hasChatHistory = chatHistory && chatHistory.length > 0;
 
   return <>
       <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
@@ -94,15 +92,6 @@ const Sidebar = ({
           </div>
 
           {isOpen && <>
-              <div className="flex gap-2 mb-6">
-                <Button onClick={() => navigate('/chat/new')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="mr-2 h-4 w-4" /> New chat
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full" onClick={() => console.log('Search clicked')}>
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
-
               {/* Main Navigation items */}
               <div className="mb-6">
                 <span className="text-sm text-gray-500 mb-2 block">Navegação</span>
@@ -110,10 +99,26 @@ const Sidebar = ({
                   <Book className="h-5 w-5 text-gray-500" />
                   <span>Livros da Bíblia</span>
                 </button>
-                <button onClick={goToHistory} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg", currentPath === '/history' ? "bg-gray-100" : "hover:bg-gray-50")}>
-                  <History className="h-5 w-5 text-gray-500" />
-                  <span>Histórico de Conversas</span>
-                </button>
+              </div>
+
+              {/* Chat History Section */}
+              <div className="mb-6">
+                <span className="text-sm text-gray-500 mb-2 block">Histórico</span>
+                
+                {!hasChatHistory && (
+                  <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                    {subscribed 
+                      ? "Você não tem conversas salvas ainda."
+                      : "Histórico de chat disponível apenas para usuários PRO."}
+                  </div>
+                )}
+                
+                {hasChatHistory && chatHistory.map((chat) => (
+                  // Existing chat history items would be here
+                  <div key={chat.id} className="mb-1">
+                    {/* Chat history rendering code */}
+                  </div>
+                ))}
               </div>
 
               <div className="flex-1"></div>

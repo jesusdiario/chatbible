@@ -7,17 +7,20 @@ export function useFileUpload() {
   const uploadMutation = useMutation({
     mutationFn: async ({ file, bookSlug }: { file: File; bookSlug: string }) => {
       try {
+        // Determine bucket based on the bookSlug prefix
+        const bucket = bookSlug.startsWith('profile-') ? 'avatars' : 'covers';
+        
         const fileName = `${bookSlug}-${Date.now()}.${file.name.split('.').pop()}`;
         const { data, error } = await supabase
           .storage
-          .from('covers')
+          .from(bucket)
           .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
         if (error) throw error;
 
         const { data: { publicUrl } } = supabase
           .storage
-          .from('covers')
+          .from(bucket)
           .getPublicUrl(data.path);
 
         return publicUrl;

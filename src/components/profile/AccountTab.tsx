@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 interface AccountTabProps {
   user: any;
@@ -23,6 +24,33 @@ interface AccountTabProps {
 const AccountTab = ({ user, displayName, setDisplayName }: AccountTabProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadMutation = useFileUpload();
+
+  // Fetch user avatar on component mount
+  React.useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!user) return;
+      
+      try {
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      } catch (error) {
+        console.error('Error fetching avatar:', error);
+      }
+    };
+    
+    fetchUserAvatar();
+  }, [user]);
 
   const updateProfile = async () => {
     if (!user) return;
@@ -34,7 +62,8 @@ const AccountTab = ({ user, displayName, setDisplayName }: AccountTabProps) => {
         .upsert({
           id: user.id,
           display_name: displayName,
-          role: 'user'
+          role: 'user',
+          avatar_url: avatarUrl
         });
         
       if (error) throw error;
@@ -51,6 +80,69 @@ const AccountTab = ({ user, displayName, setDisplayName }: AccountTabProps) => {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+  
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    // Validate file size (2MB max)
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > 2) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A imagem deve ter no máximo 2MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Formato não suportado",
+        description: "Use imagens nos formatos JPG, PNG ou WebP.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      const result = await uploadMutation.mutateAsync({ 
+        file, 
+        bookSlug: `profile-${user.id}` 
+      });
+      
+      setAvatarUrl(result);
+      
+      // Update the user profile with the new avatar URL
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ avatar_url: result })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Foto atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer upload",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -84,10 +176,31 @@ const AccountTab = ({ user, displayName, setDisplayName }: AccountTabProps) => {
       <CardContent className="space-y-4">
         <div className="flex flex-col items-center space-y-2">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarImage src={avatarUrl || user?.user_metadata?.avatar_url} />
             <AvatarFallback>{displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
           </Avatar>
-          <Button variant="outline" size="sm" disabled>Alterar foto</Button>
+          
+          <input 
+            type="file"
+            id="avatar-upload"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleAvatarUpload}
+          />
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? "Enviando..." : "Alterar foto"}
+          </Button>
+          
+          <p className="text-xs text-gray-500 text-center">
+            Formatos recomendados: JPG, PNG, WebP. Tamanho máximo: 2MB.
+          </p>
         </div>
         
         <div className="grid gap-2">

@@ -19,7 +19,7 @@ const Profile = () => {
         
         const { data } = await supabase
           .from('user_profiles')
-          .select('display_name')
+          .select('display_name, avatar_url')
           .eq('id', session.user.id)
           .single();
           
@@ -32,9 +32,15 @@ const Profile = () => {
     fetchUserData();
   }, []);
 
+  // Get the active tab from URL query params
+  const getActiveTab = () => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || 'account';
+  };
+
   return (
     <ProfileLayout>
-      <Tabs defaultValue="account">
+      <Tabs defaultValue={getActiveTab()}>
         <TabsList className="mb-4">
           <TabsTrigger value="account">Conta</TabsTrigger>
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
