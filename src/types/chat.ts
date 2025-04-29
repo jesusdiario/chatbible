@@ -1,3 +1,4 @@
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Message {
@@ -13,6 +14,9 @@ export interface ChatHistory {
   book_slug?: string;
   last_message?: string;
   slug?: string;
+  subscription_required?: boolean;
+  is_accessible?: boolean;
+  is_deleted?: boolean;
 }
 
 export interface TimeframedHistory {

@@ -31,7 +31,7 @@ const ChatHistoryPage = () => {
         .from('chat_history')
         .select('*')
         .eq('user_id', session.user.id)
-        .eq('is_deleted', false)  // Apenas chats não excluídos
+        .eq('is_deleted', false)
         .order('last_accessed', { ascending: false });
       
       if (error) throw error;
@@ -45,7 +45,9 @@ const ChatHistoryPage = () => {
           book_slug: item.book_slug,
           last_message: item.last_message,
           slug: item.slug,
-          subscription_required: item.subscription_required
+          subscription_required: item.subscription_required,
+          is_accessible: item.is_accessible,
+          is_deleted: item.is_deleted
         }));
         
         setChatHistory(formattedHistory);
