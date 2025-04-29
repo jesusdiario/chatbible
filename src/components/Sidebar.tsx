@@ -1,4 +1,5 @@
-import { Menu, Search, X, Book, Plus } from "lucide-react";
+
+import { Search, X, Book, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
@@ -9,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -17,6 +19,7 @@ interface SidebarProps {
   currentPath?: string;
   onApiKeyChange?: (key: string) => void; // Added this prop to match existing usage
 }
+
 const Sidebar = ({
   isOpen,
   onToggle,
@@ -31,6 +34,7 @@ const Sidebar = ({
     name: string;
     avatar_url: string | null;
   } | null>(null);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       const {
@@ -60,26 +64,26 @@ const Sidebar = ({
       fetchUserProfile();
     }
   }, [isOpen]);
+
   const goToLivrosDaBiblia = () => {
     navigate('/livros-da-biblia');
     if (window.innerWidth < 768) {
       onToggle();
     }
   };
+
   const goToProfile = () => {
     navigate('/profile');
     if (window.innerWidth < 768) {
       onToggle();
     }
   };
+
   return <>
       <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
         <nav className="flex h-full w-full flex-col p-4" aria-label="Navegação Principal">
           <div className="flex justify-between items-center mb-6 mt-2">
-            
-            <button onClick={onToggle} className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100">
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {/* Removed duplicate menu toggle button */}
           </div>
 
           {isOpen && <>
@@ -138,4 +142,5 @@ const Sidebar = ({
       <SubscriptionModal isOpen={showSubscriptionModal} onClose={() => setShowSubscriptionModal(false)} />
     </>;
 };
+
 export default Sidebar;
