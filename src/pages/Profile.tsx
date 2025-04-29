@@ -18,15 +18,24 @@ const Profile = () => {
       if (session?.user) {
         setUser(session.user);
         
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('display_name, avatar_url')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .select('display_name, avatar_url')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            return;
+          }
           
-        if (data) {
-          setDisplayName(data.display_name || "");
-          setAvatarUrl(data.avatar_url || null);
+          if (data) {
+            setDisplayName(data.display_name || "");
+            setAvatarUrl(data.avatar_url || null);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
       }
     };

@@ -1,3 +1,4 @@
+
 import { Search, X, Book, Plus, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -38,31 +39,44 @@ const Sidebar = ({
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      
-      if (session?.user) {
+      try {
         const {
-          data: profileData,
-          error
-        } = await supabase
-          .from('user_profiles')
-          .select('display_name, avatar_url')
-          .eq('id', session.user.id)
-          .single();
+          data: { session }
+        } = await supabase.auth.getSession();
         
-        if (profileData) {
-          setUserProfile({
-            name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
-            avatar_url: profileData.avatar_url
-          });
-        } else {
-          setUserProfile({
-            name: session.user.email?.split('@')[0] || 'Usuário',
-            avatar_url: null
-          });
+        if (session?.user) {
+          const {
+            data: profileData,
+            error
+          } = await supabase
+            .from('user_profiles')
+            .select('display_name, avatar_url')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setUserProfile({
+              name: session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: null
+            });
+            return;
+          }
+          
+          if (profileData) {
+            setUserProfile({
+              name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: profileData.avatar_url
+            });
+          } else {
+            setUserProfile({
+              name: session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: null
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error in fetchUserProfile:', error);
       }
     };
     
