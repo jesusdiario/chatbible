@@ -23,9 +23,9 @@ const UsageSection = () => {
   } = useSubscription();
   
   const { 
-    messageCount, 
-    messageLimit, 
-    daysUntilReset, 
+    messageCount,
+    messageLimit,
+    daysUntilReset,
     percentUsed,
     loading: messageCountLoading 
   } = useMessageCount();

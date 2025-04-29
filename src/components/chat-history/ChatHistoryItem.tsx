@@ -68,7 +68,10 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
       </div>
       
       <ChatHistoryActionsMenu 
-        chat={chat}
+        chatId={chat.id}
+        title={chat.title}
+        pinned={chat.pinned}
+        slug={chat.slug}
         onDelete={() => onDelete(chat.id)}
         onHistoryUpdated={onHistoryUpdated}
         isAccessible={isAccessible}
