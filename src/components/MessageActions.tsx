@@ -1,85 +1,112 @@
 
-import { Copy, ThumbsUp, ThumbsDown } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState } from 'react';
+import { Clipboard, Download, Volume2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { synthesizeSpeech } from '@/services/audioService';
+import { useAudio } from '@/hooks/useAudio';
 
 interface MessageActionsProps {
-  content?: string;
+  content: string;
 }
 
-const MessageActions = ({ content = "" }: MessageActionsProps) => {
-  const { toast } = useToast();
-  const [feedback, setFeedback] = useState<"like" | "dislike" | null>(null);
+const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const { setBase64Source } = useAudio({ 
+    onEnded: () => setIsPlayingAudio(false)
+  });
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(content);
-      toast({
-        title: "Copiado para a área de transferência",
-        description: "O conteúdo foi copiado com sucesso.",
-      });
+      setIsCopied(true);
+      toast({ title: "Copiado!", description: "Texto copiado para área de transferência" });
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       toast({
         title: "Erro ao copiar",
-        description: "Não foi possível copiar o conteúdo.",
+        description: "Não foi possível copiar o texto",
         variant: "destructive",
       });
     }
   };
 
-  const handleFeedback = (type: "like" | "dislike") => {
-    // Se o usuário clica no mesmo feedback, remove-o
-    if (feedback === type) {
-      setFeedback(null);
+  const handleDownload = () => {
+    try {
+      const element = document.createElement("a");
+      const file = new Blob([content], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = "resposta.txt";
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      toast({ title: "Download iniciado!" });
+    } catch (error) {
       toast({
-        title: "Feedback removido",
-        description: "Seu feedback foi removido.",
+        title: "Erro ao baixar",
+        description: "Não foi possível baixar o arquivo",
+        variant: "destructive",
       });
-      // Aqui poderia ter um envio para a API da OpenAI removendo o feedback
-    } else {
-      setFeedback(type);
-      toast({
-        title: "Obrigado pelo feedback!",
-        description: `Sua ${type === "like" ? "aprovação" : "sugestão de melhoria"} foi registrada.`,
-      });
+    }
+  };
+
+  const handlePlayAudio = async () => {
+    try {
+      setIsPlayingAudio(true);
+      toast({ title: "Preparando áudio...", description: "Aguarde enquanto sintetizamos a fala" });
       
-      // Envio de feedback para a API da OpenAI
-      // Esta é uma simulação do envio - em um ambiente real seria uma chamada à API
-      console.log(`Feedback enviado para OpenAI: ${type} para a mensagem`);
-      // Exemplo de como seria o corpo da requisição:
-      // {
-      //   message_id: message.id,
-      //   rating: type === "like" ? "up" : "down",
-      //   api_key: apiKey
-      // }
+      // Limit text length to prevent issues with large messages
+      const textToSynthesize = content.length > 4000 
+        ? content.substring(0, 4000) + "... (texto completo disponível para leitura)"
+        : content;
+      
+      const result = await synthesizeSpeech(textToSynthesize);
+      
+      // Play the audio using our hook
+      setBase64Source(result.audio);
+      
+    } catch (error) {
+      console.error("Erro ao reproduzir áudio:", error);
+      toast({
+        title: "Erro ao reproduzir",
+        description: "Não foi possível sintetizar o áudio",
+        variant: "destructive",
+      });
+      setIsPlayingAudio(false);
     }
   };
 
   return (
-    <div className="flex items-center gap-2 text-gray-400">
-      <button 
+    <div className="flex items-center gap-2 mt-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
         onClick={handleCopy}
-        className="p-1 hover:bg-gray-700 rounded-md transition-colors"
-        aria-label="Copiar mensagem"
+        title="Copiar"
       >
-        <Copy className="h-4 w-4" />
-      </button>
-      
-      <button 
-        onClick={() => handleFeedback("like")}
-        className={`p-1 hover:bg-gray-700 rounded-md transition-colors ${feedback === "like" ? "text-green-500" : ""}`}
-        aria-label="Mensagem útil"
+        <Clipboard className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={handleDownload}
+        title="Baixar"
       >
-        <ThumbsUp className="h-4 w-4" />
-      </button>
-      
-      <button 
-        onClick={() => handleFeedback("dislike")}
-        className={`p-1 hover:bg-gray-700 rounded-md transition-colors ${feedback === "dislike" ? "text-red-500" : ""}`}
-        aria-label="Mensagem não útil"
+        <Download className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={handlePlayAudio}
+        disabled={isPlayingAudio}
+        title="Ouvir resposta"
       >
-        <ThumbsDown className="h-4 w-4" />
-      </button>
+        <Volume2 className={`h-4 w-4 ${isPlayingAudio ? 'text-primary animate-pulse' : ''}`} />
+      </Button>
     </div>
   );
 };
