@@ -10,14 +10,15 @@ interface MessageCount {
   last_reset_time: string;
 }
 
-export const useMessageCount = () => {
+export const useMessageCount = (messageLimit?: number) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const MESSAGE_LIMIT = 10;
-  const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 days
+  const DEFAULT_MESSAGE_LIMIT = 10;
+  const MESSAGE_LIMIT = messageLimit || DEFAULT_MESSAGE_LIMIT;
+  const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
   useEffect(() => {
     const fetchOrCreateMessageCount = async () => {
@@ -111,13 +112,41 @@ export const useMessageCount = () => {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [messageLimit]);
+
+  const incrementMessageCount = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+  
+      const userId = session.user.id;
+      const { error } = await supabase.rpc('increment_message_count', { user_id_param: userId });
+      
+      if (error) {
+        console.error("Erro ao incrementar contador de mensagens:", error);
+        return;
+      }
+      
+      setMessageCount(prev => prev + 1);
+    } catch (error) {
+      console.error("Erro ao incrementar contador de mensagens:", error);
+    }
+  };
+
+  // Verificar se o usuário ainda tem mensagens disponíveis
+  const canSendMessage = messageCount < MESSAGE_LIMIT;
+  
+  // Dias restantes para reset
+  const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
 
   return {
     messageCount,
     setMessageCount,
+    incrementMessageCount,
     timeUntilReset,
+    daysUntilReset,
     loading,
+    canSendMessage,
     MESSAGE_LIMIT
   };
 };

@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSubscription } from "@/hooks/useSubscription";
+import { CalendarIcon, RefreshCw, CreditCard, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useMessageCount } from "@/hooks/useMessageCount";
 
 const Profile = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebarControl();
@@ -24,6 +27,20 @@ const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [displayName, setDisplayName] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRefreshingSubscription, setIsRefreshingSubscription] = useState(false);
+  
+  const { 
+    isLoading: subscriptionLoading,
+    subscribed, 
+    subscriptionTier, 
+    subscriptionEnd,
+    messageLimit, 
+    refreshSubscription,
+    openCustomerPortal,
+    plans 
+  } = useSubscription();
+  
+  const { messageCount, loading: messageCountLoading } = useMessageCount(messageLimit);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,13 +68,12 @@ const Profile = () => {
     
     setIsUpdating(true);
     try {
-      // Remove the updated_at field since it doesn't exist in the user_profiles table
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
           id: user.id,
           display_name: displayName,
-          role: 'user' // Added role since it's required in the database schema
+          role: 'user'
         });
         
       if (error) throw error;
@@ -96,6 +112,24 @@ const Profile = () => {
       });
     }
   };
+  
+  const handleRefreshSubscription = async () => {
+    setIsRefreshingSubscription(true);
+    await refreshSubscription();
+    setIsRefreshingSubscription(false);
+    toast({
+      title: "Assinatura atualizada",
+      description: "Informações de assinatura atualizadas com sucesso."
+    });
+  };
+  
+  const handleManageSubscription = async () => {
+    await openCustomerPortal();
+  };
+
+  // Encontrar o plano atual e gratuito
+  const currentPlan = plans.find(plan => plan.name === subscriptionTier);
+  const freePlan = plans.find(plan => plan.stripe_price_id === 'free_plan');
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -108,13 +142,14 @@ const Profile = () => {
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[70px] px-4 md:px-8 max-w-3xl mx-auto">
+        <div className="pt-[70px] px-4 md:px-8 max-w-3xl mx-auto pb-10">
           <h1 className="text-2xl font-bold mb-6">Meu Perfil</h1>
           
           <Tabs defaultValue="account">
             <TabsList className="mb-4">
               <TabsTrigger value="account">Conta</TabsTrigger>
-              <TabsTrigger value="payment">Pagamento</TabsTrigger>
+              <TabsTrigger value="subscription">Assinatura</TabsTrigger>
+              <TabsTrigger value="usage">Uso</TabsTrigger>
             </TabsList>
             
             <TabsContent value="account">
@@ -163,27 +198,167 @@ const Profile = () => {
               </Card>
             </TabsContent>
             
-            <TabsContent value="payment">
+            <TabsContent value="subscription">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Minha Assinatura</CardTitle>
+                    <CardDescription>Gerencie seu plano</CardDescription>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={handleRefreshSubscription}
+                    disabled={isRefreshingSubscription}
+                    title="Atualizar informações"
+                  >
+                    {isRefreshingSubscription ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CardHeader>
+                
+                <CardContent>
+                  {subscriptionLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        {/* Plano atual */}
+                        <div className="flex-1 border rounded-lg p-6 relative">
+                          {subscribed && (
+                            <div className="absolute -right-2 -top-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              Ativo
+                            </div>
+                          )}
+                          <h3 className="font-bold text-xl mb-2">{subscriptionTier || "Gratuito"}</h3>
+                          
+                          {subscribed ? (
+                            <>
+                              <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
+                                <CheckCircle className="h-4 w-4" />
+                                <span>Assinatura ativa</span>
+                              </div>
+                              {subscriptionEnd && (
+                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                                  <CalendarIcon className="h-4 w-4" />
+                                  <span>Renovação em {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>Plano básico</span>
+                            </div>
+                          )}
+                          
+                          <ul className="space-y-2 mb-6">
+                            <li className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span>Limite de {messageLimit} mensagens/mês</span>
+                            </li>
+                            {currentPlan?.features?.map((feature, index) => (
+                              <li key={index} className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          
+                          {subscribed ? (
+                            <Button onClick={handleManageSubscription} className="w-full">
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Gerenciar assinatura
+                            </Button>
+                          ) : (
+                            <Button onClick={() => openCustomerPortal()} className="w-full">
+                              Fazer upgrade
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Histórico de pagamentos - placeholder */}
+                      {subscribed && (
+                        <div className="mt-8">
+                          <h3 className="font-medium text-lg mb-3">Histórico de pagamentos</h3>
+                          <div className="border rounded-lg p-4">
+                            <div className="text-center py-6 text-gray-500">
+                              As informações de pagamento estão disponíveis no Portal do Cliente.
+                            </div>
+                            <div className="mt-4 flex justify-center">
+                              <Button variant="outline" onClick={handleManageSubscription}>
+                                Ver histórico no Portal do Cliente
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="usage">
               <Card>
                 <CardHeader>
-                  <CardTitle>Informações de Pagamento</CardTitle>
-                  <CardDescription>Gerencie seu plano e histórico de pagamentos</CardDescription>
+                  <CardTitle>Uso de Mensagens</CardTitle>
+                  <CardDescription>Monitoramento do seu uso</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between border p-4 rounded-lg">
-                    <div>
-                      <h3 className="font-medium">Plano Gratuito</h3>
-                      <p className="text-sm text-gray-500">10 mensagens/mês</p>
+                <CardContent>
+                  {messageCountLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                     </div>
-                    <Button>Upgrade</Button>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium mb-2">Histórico de pagamentos</h3>
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      Nenhum pagamento registrado.
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Mensagens utilizadas</span>
+                          <span className="font-medium">{messageCount} de {messageLimit}</span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-200 rounded-full">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              messageCount / messageLimit >= 0.9 ? 'bg-red-500' : 
+                              messageCount / messageLimit >= 0.7 ? 'bg-amber-500' : 
+                              'bg-blue-500'
+                            }`}
+                            style={{ width: `${Math.min((messageCount / messageLimit) * 100, 100)}%` }}
+                          />
+                        </div>
+                        
+                        {messageCount / messageLimit >= 0.7 && (
+                          <div className={`text-sm ${messageCount / messageLimit >= 0.9 ? 'text-red-500' : 'text-amber-500'} mt-1`}>
+                            {messageCount / messageLimit >= 0.9 
+                              ? 'Você está prestes a atingir seu limite mensal!' 
+                              : 'Você está se aproximando do seu limite mensal.'}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Plano atual: {subscriptionTier || "Gratuito"}</h4>
+                        <p className="text-sm text-gray-600 mb-4">
+                          {subscribed 
+                            ? `Seu plano ${subscriptionTier} inclui ${messageLimit} mensagens por mês.` 
+                            : `O plano Gratuito inclui ${messageLimit} mensagens por mês.`}
+                        </p>
+                        
+                        {!subscribed && (
+                          <Button onClick={() => openCustomerPortal()} className="w-full">
+                            Fazer upgrade
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

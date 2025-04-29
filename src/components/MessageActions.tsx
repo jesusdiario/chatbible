@@ -1,20 +1,56 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clipboard, Download, Volume2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { synthesizeSpeech } from '@/services/audioService';
 import AudioPlayerModal from './AudioPlayerModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MessageActionsProps {
   content: string;
+  tokenCount?: number;
+  model?: string;
 }
 
-const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
+const MessageActions: React.FC<MessageActionsProps> = ({ 
+  content, 
+  tokenCount,
+  model = "gpt-3.5-turbo" 
+}) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioBase64, setAudioBase64] = useState<string | undefined>();
+
+  // Token tracking - estima aproximadamente o número de tokens no texto
+  const estimatedTokenCount = Math.ceil(content.length / 4);
+
+  // Rastrear uso do modelo de síntese de voz quando o áudio é gerado
+  useEffect(() => {
+    const trackAudioUsage = async () => {
+      if (isAudioModalOpen && audioBase64) {
+        try {
+          const session = await supabase.auth.getSession();
+          if (session?.data?.session) {
+            await supabase.functions.invoke('track-usage', {
+              body: {
+                endpoint: 'tts-1',
+                model: 'tts-1',
+                promptTokens: Math.ceil(content.length / 4),
+                completionTokens: 0,
+                totalTokens: Math.ceil(content.length / 4)
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao rastrear uso de TTS:', error);
+        }
+      }
+    };
+
+    trackAudioUsage();
+  }, [audioBase64, isAudioModalOpen, content.length]);
 
   const handleCopy = async () => {
     try {
