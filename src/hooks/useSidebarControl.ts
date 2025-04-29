@@ -3,6 +3,7 @@ import { useState } from "react";
 
 export function useSidebarControl() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [apiKey, setApiKey] = useState(""); // Added to match usage in other components
 
   const toggleSidebar = () => setIsSidebarOpen(v => !v);
 
@@ -10,5 +11,6 @@ export function useSidebarControl() {
     isSidebarOpen,
     setIsSidebarOpen,
     toggleSidebar,
+    setApiKey, // Exported to fix the type error
   };
 }

@@ -17,6 +17,7 @@ interface SidebarProps {
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
   currentPath?: string;
+  onApiKeyChange?: (key: string) => void;  // Added this prop to match existing usage
 }
 
 const Sidebar = ({
@@ -24,7 +25,8 @@ const Sidebar = ({
   onToggle,
   onChatSelect,
   chatHistory = [],
-  currentPath
+  currentPath,
+  onApiKeyChange
 }: SidebarProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const navigate = useNavigate();
@@ -34,16 +36,16 @@ const Sidebar = ({
     const fetchUserProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: profileData } = await supabase
+        const { data: profileData, error } = await supabase
           .from('user_profiles')
-          .select('display_name, avatar_url')
+          .select('display_name')
           .eq('id', session.user.id)
           .single();
 
         if (profileData) {
           setUserProfile({
             name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
-            avatar_url: profileData.avatar_url
+            avatar_url: null // Since avatar_url column doesn't exist yet
           });
         } else {
           setUserProfile({

@@ -51,12 +51,13 @@ const Profile = () => {
     
     setIsUpdating(true);
     try {
+      // Remove the updated_at field since it doesn't exist in the user_profiles table
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
           id: user.id,
           display_name: displayName,
-          updated_at: new Date().toISOString()
+          role: 'user' // Added role since it's required in the database schema
         });
         
       if (error) throw error;
