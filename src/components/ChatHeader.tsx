@@ -1,13 +1,21 @@
 
-import React, { useState } from "react";
-import { Menu, History } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Menu, History, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ChatHistoryList from "@/components/ChatHistoryList";
 import { useQuery } from "@tanstack/react-query";
 import { categorizeChatHistory } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 
 interface ChatHeaderProps {
   isSidebarOpen: boolean;
@@ -19,15 +27,31 @@ const ChatHeader = ({
   onToggleSidebar
 }: ChatHeaderProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Don't render on auth page
   if (location.pathname === "/auth") {
     return null;
   }
+  
+  // Setup keyboard shortcut for command dialog
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCommandOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   // Fetch chat history
-  const { data: chatHistory = [] } = useQuery({
+  const { data: chatHistory = [], refetch: refetchHistory } = useQuery({
     queryKey: ['chatHistory'],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -37,6 +61,7 @@ const ChatHeader = ({
         .from('chat_history')
         .select('*')
         .eq('user_id', session.user.id)
+        .eq('is_deleted', false)
         .order('last_accessed', { ascending: false });
       
       if (error) {
@@ -51,13 +76,29 @@ const ChatHeader = ({
         user_id: item.user_id,
         book_slug: item.book_slug,
         last_message: item.last_message,
-        slug: item.slug
+        slug: item.slug,
+        subscription_required: item.subscription_required,
+        is_accessible: item.is_accessible,
+        is_deleted: item.is_deleted,
+        pinned: item.pinned || false
       }));
     },
   });
 
-  const timeframes = categorizeChatHistory(chatHistory);
+  const allChats = chatHistory || [];
+  const filteredChats = allChats.filter(chat => 
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (chat.last_message && chat.last_message.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  
+  const timeframes = categorizeChatHistory(filteredChats);
   const toggleHistorySidebar = () => setIsHistoryOpen(!isHistoryOpen);
+
+  const handleChatSelect = (slug: string) => {
+    setCommandOpen(false);
+    setIsHistoryOpen(false);
+    navigate(`/chat/${slug}`);
+  };
 
   return (
     <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-white shadow-sm">
@@ -79,8 +120,21 @@ const ChatHeader = ({
           <h1 className="text-xl font-bold">BibleChat</h1>
         </div>
 
-        {/* Right section - History sidebar */}
-        <div className="flex items-center">
+        {/* Right section - Search and History sidebar */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden md:flex items-center gap-1 text-sm"
+            onClick={() => setCommandOpen(true)}
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>Buscar</span>
+            <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
+          
           <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
             <SheetTrigger asChild>
               <Button 
@@ -94,10 +148,38 @@ const ChatHeader = ({
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px] p-0">
               <div className="h-full overflow-y-auto">
-                <ChatHistoryList chatHistory={timeframes} />
+                <ChatHistoryList 
+                  chatHistory={timeframes} 
+                  onChatSelect={handleChatSelect}
+                  onHistoryUpdated={refetchHistory}
+                />
               </div>
             </SheetContent>
           </Sheet>
+          
+          <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
+            <CommandInput
+              placeholder="Buscar em todas as conversas..."
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+            <CommandList>
+              <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+              {timeframes.map((group) => (
+                <CommandGroup key={group.title} heading={group.title}>
+                  {group.items.map((chat) => (
+                    <CommandItem
+                      key={chat.id}
+                      onSelect={() => handleChatSelect(chat.slug || '')}
+                    >
+                      {chat.pinned && <Pin className="mr-2 h-3 w-3 text-blue-500" />}
+                      <span>{chat.title}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </CommandDialog>
         </div>
       </div>
     </header>

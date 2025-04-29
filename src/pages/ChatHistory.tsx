@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatHistory, categorizeChatHistory } from '@/types/chat';
 import Sidebar from '@/components/Sidebar';
@@ -8,10 +9,14 @@ import { useSidebarControl } from '@/hooks/useSidebarControl';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const ChatHistoryPage = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebarControl();
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<ChatHistory[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { subscribed } = useSubscription();
   const navigate = useNavigate();
@@ -46,10 +51,12 @@ const ChatHistoryPage = () => {
           slug: item.slug,
           subscription_required: item.subscription_required,
           is_accessible: item.is_accessible,
-          is_deleted: item.is_deleted
+          is_deleted: item.is_deleted,
+          pinned: item.pinned || false // Add support for pinned chats
         }));
         
         setChatHistory(formattedHistory);
+        setFilteredHistory(formattedHistory);
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -61,12 +68,28 @@ const ChatHistoryPage = () => {
   useEffect(() => {
     loadChatHistory();
   }, [navigate]);
+  
+  // Filter chats when search query changes
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredHistory(chatHistory);
+      return;
+    }
+    
+    const filtered = chatHistory.filter(
+      chat => 
+        chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (chat.last_message && chat.last_message.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+    
+    setFilteredHistory(filtered);
+  }, [searchQuery, chatHistory]);
 
   const handleChatSelect = (slug: string) => {
     navigate(`/chat/${slug}`);
   };
   
-  const categorizedHistory = categorizeChatHistory(chatHistory);
+  const categorizedHistory = categorizeChatHistory(filteredHistory);
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -81,9 +104,22 @@ const ChatHistoryPage = () => {
           onToggleSidebar={toggleSidebar} 
         />
         <div className="pt-20 pb-6 px-4">
-          <div className="flex justify-between items-center max-w-3xl mx-auto mb-6">
-            <h1 className="text-2xl font-bold">Histórico de Conversas</h1>
-            <Button onClick={() => navigate('/chat/new')}>Nova Conversa</Button>
+          <div className="flex flex-col gap-4 max-w-3xl mx-auto mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold">Histórico de Conversas</h1>
+              <Button onClick={() => navigate('/chat/new')}>Nova Conversa</Button>
+            </div>
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar conversas..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
           
           {!subscribed && (

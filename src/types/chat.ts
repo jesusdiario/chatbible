@@ -1,4 +1,3 @@
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Message {
@@ -17,6 +16,7 @@ export interface ChatHistory {
   subscription_required?: boolean;
   is_accessible?: boolean;
   is_deleted?: boolean;
+  pinned?: boolean; // Added pinned property
 }
 
 export interface TimeframedHistory {
@@ -37,12 +37,23 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  // First sort by pinned status, then by date
+  const sortedChats = [...chats].sort((a, b) => {
+    // If one is pinned and the other is not, pinned comes first
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    
+    // If both are either pinned or not pinned, sort by date
+    return new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime();
+  });
+
   const today: ChatHistory[] = [];
   const yesterdayChats: ChatHistory[] = [];
   const lastSevenDays: ChatHistory[] = [];
   const lastThirtyDays: ChatHistory[] = [];
+  const older: ChatHistory[] = [];
 
-  chats.forEach(chat => {
+  sortedChats.forEach(chat => {
     const chatDate = new Date(chat.lastAccessed);
     
     if (chatDate.toDateString() === now.toDateString()) {
@@ -53,6 +64,8 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
       lastSevenDays.push(chat);
     } else if (chatDate >= thirtyDaysAgo) {
       lastThirtyDays.push(chat);
+    } else {
+      older.push(chat);
     }
   });
 
@@ -61,28 +74,35 @@ export const categorizeChatHistory = (chats: ChatHistory[]): TimeframedHistory[]
   if (today.length > 0) {
     timeframes.push({
       title: "Hoje",
-      items: today.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
+      items: today
     });
   }
 
   if (yesterdayChats.length > 0) {
     timeframes.push({
       title: "Ontem",
-      items: yesterdayChats.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
+      items: yesterdayChats
     });
   }
 
   if (lastSevenDays.length > 0) {
     timeframes.push({
       title: "Últimos 7 Dias",
-      items: lastSevenDays.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
+      items: lastSevenDays
     });
   }
 
   if (lastThirtyDays.length > 0) {
     timeframes.push({
       title: "Últimos 30 Dias",
-      items: lastThirtyDays.sort((a, b) => new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime())
+      items: lastThirtyDays
+    });
+  }
+
+  if (older.length > 0) {
+    timeframes.push({
+      title: "Mais Antigos",
+      items: older
     });
   }
 

@@ -11,8 +11,14 @@ export const persistChatMessages = async (
   if (!userId || !slug || messages.length === 0) return;
 
   try {
+    // Get the first message (user's initial query)
+    const firstUserMessage = messages.find(m => m.role === 'user')?.content || '';
+    
+    // Generate a better title - up to 50 chars from first user message
+    let title = firstUserMessage.slice(0, 50) + (firstUserMessage.length > 50 ? '…' : '');
+    
+    // Use the latest message for the last_message field
     const lastMessage = messages[messages.length - 1]?.content || '';
-    const title = messages[0]?.content?.slice(0, 50) + (messages[0]?.content?.length > 50 ? '…' : '');
     
     // Verificar se o número de mensagens é maior que 50
     const subscription_required = messages.length > 50;
@@ -95,6 +101,56 @@ export const deleteChat = async (chatId: string): Promise<boolean> => {
     console.error('Error deleting chat:', err);
     return false;
   }
+};
+
+export const updateChatTitle = async (slug: string, title: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('chat_history')
+      .update({ title })
+      .eq('slug', slug);
+    
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Error updating chat title:', err);
+    return false;
+  }
+};
+
+export const toggleChatPin = async (slug: string, pinned: boolean): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('chat_history')
+      .update({ pinned })
+      .eq('slug', slug);
+    
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Error toggling chat pin status:', err);
+    return false;
+  }
+};
+
+// Function to generate a title for a chat based on content
+export const generateChatTitle = async (
+  messages: Message[],
+  defaultTitle: string = "Nova Conversa"
+): Promise<string> => {
+  if (!messages || messages.length === 0) {
+    return defaultTitle;
+  }
+  
+  // Get the first user message
+  const firstUserMessage = messages.find(m => m.role === 'user')?.content;
+  
+  if (!firstUserMessage) {
+    return defaultTitle;
+  }
+  
+  // Simple title generation - take the first 50 chars
+  return firstUserMessage.slice(0, 50) + (firstUserMessage.length > 50 ? '…' : '');
 };
 
 // Função auxiliar para processar mensagens

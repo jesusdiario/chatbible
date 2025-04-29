@@ -2,6 +2,8 @@
 import { FC, useRef, useEffect, useState } from 'react';
 import Message from './Message';
 import { Message as MessageType } from '@/types/chat';
+import { Button } from './ui/button';
+import { ChevronUp } from 'lucide-react';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -10,12 +12,45 @@ interface MessageListProps {
 
 const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
   
-  // We're removing the automatic scroll effect that was here previously,
-  // allowing users to freely navigate through the message history
-
+  // Check if we need to show the scroll to bottom button
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const scrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+    
+    setShowScrollToBottom(scrolledUp);
+    
+    if (scrollHeight - scrollTop - clientHeight < 10) {
+      setIsAutoScrollEnabled(true);
+    } else if (messages.length > 0 && !isTyping) {
+      setIsAutoScrollEnabled(false);
+    }
+  };
+  
+  // Scroll to bottom on new messages when auto scroll is enabled
+  useEffect(() => {
+    if (isAutoScrollEnabled && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping, isAutoScrollEnabled]);
+  
+  // Scroll to bottom manually when button is clicked
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setIsAutoScrollEnabled(true);
+  };
+  
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div 
+      ref={containerRef} 
+      className="flex-1 overflow-y-auto" 
+      onScroll={handleScroll}
+    >
       <div className="w-full max-w-4xl mx-auto px-4 pb-24">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
@@ -83,6 +118,18 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
+      
+      {showScrollToBottom && (
+        <div className="fixed bottom-24 right-8 z-10">
+          <Button 
+            size="icon" 
+            className="h-10 w-10 rounded-full shadow-lg"
+            onClick={scrollToBottom}
+          >
+            <ChevronUp className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
