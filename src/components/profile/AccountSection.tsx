@@ -10,6 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProfileManagement } from "@/hooks/useProfileManagement";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AccountSectionProps {
   user: any;
@@ -17,6 +21,21 @@ interface AccountSectionProps {
 
 const AccountSection = ({ user }: AccountSectionProps) => {
   const { handlePasswordReset, isUpdating } = useProfileManagement(user?.id);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao sair",
+        description: error.message || "Não foi possível sair da sua conta.",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (!user) {
     return (
@@ -57,6 +76,17 @@ const AccountSection = ({ user }: AccountSectionProps) => {
               disabled={isUpdating}
             >
               {isUpdating ? "Processando..." : "Alterar senha"}
+            </Button>
+          </div>
+
+          <div className="mt-2">
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-destructive hover:text-destructive-foreground hover:bg-destructive"
+            >
+              <LogOut size={16} />
+              Sair da conta
             </Button>
           </div>
         </CardContent>
