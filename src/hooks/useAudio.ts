@@ -34,35 +34,68 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
       audio.preload = 'metadata';
       audioRef.current = audio;
 
+      const updateProgress = () => {
+        if (audio) {
+          setProgress(audio.currentTime);
+        }
+      };
+
+      const updateDuration = () => {
+        if (audio) {
+          setDuration(audio.duration);
+          setIsLoading(false);
+        }
+      };
+
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
+      
+      const handleEnded = () => {
+        setIsPlaying(false);
+        setProgress(0);
+        if (options?.onEnded) {
+          options.onEnded();
+        }
+      };
+      
+      const handleLoadStart = () => setIsLoading(true);
+      const handleLoaded = () => setIsLoading(false);
+      
+      const handleError = (error: any) => {
+        console.error('Audio playback error:', error);
+        setIsLoading(false);
+      };
+
       // Set up event listeners
       audio.addEventListener('timeupdate', updateProgress);
       audio.addEventListener('loadedmetadata', updateDuration);
-      audio.addEventListener('play', () => setIsPlaying(true));
-      audio.addEventListener('pause', () => setIsPlaying(false));
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('pause', handlePause);
       audio.addEventListener('ended', handleEnded);
-      audio.addEventListener('loadstart', () => setIsLoading(true));
-      audio.addEventListener('loadeddata', () => setIsLoading(false));
-      audio.addEventListener('canplay', () => setIsLoading(false));
+      audio.addEventListener('loadstart', handleLoadStart);
+      audio.addEventListener('loadeddata', handleLoaded);
+      audio.addEventListener('canplay', handleLoaded);
       audio.addEventListener('error', handleError);
-    }
 
-    return () => {
-      if (audioRef.current) {
-        const audio = audioRef.current;
-        audio.removeEventListener('timeupdate', updateProgress);
-        audio.removeEventListener('loadedmetadata', updateDuration);
-        audio.removeEventListener('play', () => setIsPlaying(true));
-        audio.removeEventListener('pause', () => setIsPlaying(false));
-        audio.removeEventListener('ended', handleEnded);
-        audio.removeEventListener('loadstart', () => setIsLoading(true));
-        audio.removeEventListener('loadeddata', () => setIsLoading(false));
-        audio.removeEventListener('canplay', () => setIsLoading(false));
-        audio.removeEventListener('error', handleError);
-        audio.pause();
-        audio.src = '';
-        audioRef.current = null;
-      }
-    };
+      // Cleanup function
+      return () => {
+        if (audioRef.current) {
+          const audio = audioRef.current;
+          audio.removeEventListener('timeupdate', updateProgress);
+          audio.removeEventListener('loadedmetadata', updateDuration);
+          audio.removeEventListener('play', handlePlay);
+          audio.removeEventListener('pause', handlePause);
+          audio.removeEventListener('ended', handleEnded);
+          audio.removeEventListener('loadstart', handleLoadStart);
+          audio.removeEventListener('loadeddata', handleLoaded);
+          audio.removeEventListener('canplay', handleLoaded);
+          audio.removeEventListener('error', handleError);
+          audio.pause();
+          audio.src = '';
+          audioRef.current = null;
+        }
+      };
+    }
   }, []);
 
   // Update source if initialSrc changes
@@ -70,35 +103,10 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
     if (audioRef.current && initialSrc) {
       audioRef.current.src = initialSrc;
       if (options?.autoPlay) {
-        audioRef.current.play().catch(handleError);
+        audioRef.current.play().catch(err => console.error('Error playing audio:', err));
       }
     }
-  }, [initialSrc]);
-
-  const updateProgress = useCallback(() => {
-    if (audioRef.current) {
-      setProgress(audioRef.current.currentTime);
-    }
-  }, []);
-
-  const updateDuration = useCallback(() => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleEnded = useCallback(() => {
-    setIsPlaying(false);
-    if (options?.onEnded) {
-      options.onEnded();
-    }
-  }, [options?.onEnded]);
-
-  const handleError = useCallback((error: any) => {
-    console.error('Audio playback error:', error);
-    setIsLoading(false);
-  }, []);
+  }, [initialSrc, options?.autoPlay]);
 
   // Play the audio
   const play = useCallback(async () => {
@@ -152,7 +160,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
       setIsLoading(true);
       
       if (wasPlaying || options?.autoPlay) {
-        audioRef.current.play().catch(handleError);
+        audioRef.current.play().catch(err => console.error('Error playing audio:', err));
       }
     }
   }, [options?.autoPlay]);
@@ -167,7 +175,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
         setIsLoading(true);
         
         if (wasPlaying || options?.autoPlay) {
-          audioRef.current.play().catch(handleError);
+          audioRef.current.play().catch(err => console.error('Error playing audio:', err));
         }
       } catch (error) {
         console.error('Error setting base64 audio source:', error);

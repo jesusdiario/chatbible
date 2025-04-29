@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Clipboard, Download, StopCircle, Volume2 } from 'lucide-react';
+import { Clipboard, Download, Volume2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { synthesizeSpeech } from '@/services/audioService';
-import { useAudio } from '@/hooks/useAudio';
+import AudioPlayerModal from './AudioPlayerModal';
 
 interface MessageActionsProps {
   content: string;
@@ -12,13 +12,9 @@ interface MessageActionsProps {
 
 const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
   const [isCopied, setIsCopied] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  
-  // Fix: Pass undefined as the initial source, then the options object
-  const { setBase64Source, stop, isPlaying } = useAudio(undefined, { 
-    onEnded: () => setIsPlayingAudio(false),
-    autoPlay: true
-  });
+  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [audioBase64, setAudioBase64] = useState<string | undefined>();
 
   const handleCopy = async () => {
     try {
@@ -54,19 +50,15 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
     }
   };
 
-  const handleToggleAudio = async () => {
-    // Se já estiver tocando, parar o áudio
-    if (isPlaying) {
-      stop();
-      setIsPlayingAudio(false);
-      toast({ title: "Áudio parado", description: "A narração foi interrompida" });
-      return;
-    }
+  const handleAudioPlay = async () => {
+    setIsAudioModalOpen(true);
+    
+    // If we already have the audio, don't re-fetch it
+    if (audioBase64) return;
+    
+    setIsAudioLoading(true);
     
     try {
-      setIsPlayingAudio(true);
-      toast({ title: "Preparando áudio...", description: "Aguarde enquanto sintetizamos a fala" });
-      
       // Verifica tamanho do texto antes de enviar
       if (content.length > 16000) {
         toast({
@@ -74,7 +66,8 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
           description: "Este texto é muito extenso para ser convertido em áudio. Por favor, tente com uma resposta menor.",
           variant: "destructive",
         });
-        setIsPlayingAudio(false);
+        setIsAudioLoading(false);
+        setIsAudioModalOpen(false);
         return;
       }
       
@@ -87,9 +80,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
         throw new Error("Não foi possível gerar o áudio");
       }
       
-      // Play the audio using our hook
-      setBase64Source(result.audio);
-      toast({ title: "Reproduzindo áudio", description: "A resposta está sendo narrada" });
+      setAudioBase64(result.audio);
       
     } catch (error) {
       console.error("Erro ao reproduzir áudio:", error);
@@ -98,45 +89,55 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
         description: error instanceof Error ? error.message : "Não foi possível sintetizar o áudio",
         variant: "destructive",
       });
-      setIsPlayingAudio(false);
+      setIsAudioModalOpen(false);
+    } finally {
+      setIsAudioLoading(false);
     }
   };
 
+  const handleCloseAudioModal = () => {
+    setIsAudioModalOpen(false);
+  };
+
   return (
-    <div className="flex items-center gap-2 mt-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={handleCopy}
-        title="Copiar"
-      >
-        <Clipboard className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={handleDownload}
-        title="Baixar"
-      >
-        <Download className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={handleToggleAudio}
-        disabled={isPlayingAudio && !isPlaying} // Desativa apenas durante o carregamento inicial
-        title={isPlaying ? "Parar narração" : "Ouvir resposta"}
-      >
-        {isPlaying ? (
-          <StopCircle className="h-4 w-4 text-primary" />
-        ) : (
-          <Volume2 className={`h-4 w-4 ${isPlayingAudio ? 'animate-pulse' : ''}`} />
-        )}
-      </Button>
-    </div>
+    <>
+      <div className="flex items-center gap-2 mt-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleCopy}
+          title="Copiar"
+        >
+          <Clipboard className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleDownload}
+          title="Baixar"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleAudioPlay}
+          title="Ouvir resposta"
+        >
+          <Volume2 className={`h-4 w-4 ${isAudioLoading ? 'animate-pulse' : ''}`} />
+        </Button>
+      </div>
+      
+      <AudioPlayerModal 
+        isOpen={isAudioModalOpen} 
+        onClose={handleCloseAudioModal} 
+        audioBase64={audioBase64}
+        isLoading={isAudioLoading}
+      />
+    </>
   );
 };
 
