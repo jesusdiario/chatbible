@@ -39,7 +39,8 @@ export const useChatState = (props?: ChatProps): ChatState => {
           slug: item.slug,
           subscription_required: item.subscription_required,
           is_accessible: item.is_accessible,
-          is_deleted: item.is_deleted
+          is_deleted: item.is_deleted,
+          pinned: item.pinned || false
         }));
         setChatHistory(formattedHistory);
       }

@@ -257,6 +257,7 @@ export type Database = {
           last_accessed: string
           last_message: string | null
           messages: Json | null
+          pinned: boolean | null
           slug: string
           subscription_required: boolean | null
           title: string
@@ -271,6 +272,7 @@ export type Database = {
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
+          pinned?: boolean | null
           slug?: string
           subscription_required?: boolean | null
           title: string
@@ -285,6 +287,7 @@ export type Database = {
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
+          pinned?: boolean | null
           slug?: string
           subscription_required?: boolean | null
           title?: string

@@ -1,3 +1,4 @@
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Message {
@@ -16,7 +17,7 @@ export interface ChatHistory {
   subscription_required?: boolean;
   is_accessible?: boolean;
   is_deleted?: boolean;
-  pinned?: boolean; // Added pinned property
+  pinned?: boolean;
 }
 
 export interface TimeframedHistory {

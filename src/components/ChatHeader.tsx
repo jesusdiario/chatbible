@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Menu, History, Search } from "lucide-react";
+import { Menu, History, Search, Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
