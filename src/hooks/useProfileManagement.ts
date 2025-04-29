@@ -18,7 +18,8 @@ export function useProfileManagement(userId: string | undefined) {
         .upsert({
           id: userId,
           display_name: data.displayName,
-          avatar_url: data.avatarUrl
+          avatar_url: data.avatarUrl,
+          role: 'user' // Adicionando o campo role obrigatório
         }, {
           onConflict: 'id'
         });

@@ -39,7 +39,8 @@ const ProfileForm = ({
         .from('user_profiles')
         .upsert({
           id: userId,
-          display_name: editableName
+          display_name: editableName,
+          role: 'user' // Adicionando o campo role obrigatório
         }, {
           onConflict: 'id'
         });

@@ -39,7 +39,8 @@ const ProfileAvatar = ({ userId, avatarUrl, displayName, email, onAvatarChange }
         .from('user_profiles')
         .upsert({
           id: userId,
-          avatar_url: publicUrl
+          avatar_url: publicUrl,
+          role: 'user' // Adicionando o campo role obrigatório
         }, {
           onConflict: 'id'
         });
