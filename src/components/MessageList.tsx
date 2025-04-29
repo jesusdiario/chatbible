@@ -1,5 +1,5 @@
 
-import { FC, useRef, useEffect } from 'react';
+import { FC, useRef, useEffect, useState } from 'react';
 import Message from './Message';
 import { Message as MessageType } from '@/types/chat';
 
@@ -10,11 +10,9 @@ interface MessageListProps {
 
 const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll suave para a última mensagem quando novas mensagens são adicionadas
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  
+  // We're removing the automatic scroll effect that was here previously,
+  // allowing users to freely navigate through the message history
 
   return (
     <div className="flex-1 overflow-y-auto">
