@@ -30,8 +30,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           >
             {isSidebarOpen ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <h1 className="text-lg font-semibold truncate">{title || "Chat"}</h1>
         </div>
+        
+        {/* Título centralizado "BibleChat" */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 font-semibold text-lg">
+          BibleChat
+        </div>
+        
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
