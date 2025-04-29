@@ -3,21 +3,29 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Suggestion {
   id: string;
-  book_slug: string;
   label: string;
   user_message: string;
-  prompt_override?: string;
+  book_slug: string;
   icon?: string;
-  display_order: number;
+  description?: string;
+  prompt_override?: string;
 }
 
-export async function loadSuggestionsForBook(slug: string) {
-  const { data, error } = await supabase
-    .from('bible_suggestions')
-    .select('*')
-    .eq('book_slug', slug)
-    .order('display_order', { ascending: true });
-
-  if (error) throw error;
-  return data as Suggestion[];
-}
+export const loadSuggestionsForBook = async (bookSlug: string): Promise<Suggestion[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('suggestions')
+      .select('*')
+      .eq('book_slug', bookSlug);
+      
+    if (error) {
+      console.error('Error loading suggestions:', error);
+      return [];
+    }
+    
+    return data as Suggestion[];
+  } catch (error) {
+    console.error('Error in loadSuggestionsForBook:', error);
+    return [];
+  }
+};
