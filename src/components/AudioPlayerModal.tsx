@@ -1,34 +1,31 @@
-
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X, Play, Pause, StopCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/useAudio';
-
 interface AudioPlayerModalProps {
   isOpen: boolean;
   onClose: () => void;
   audioBase64?: string;
   isLoading: boolean;
 }
-
-const AudioPlayerModal: React.FC<AudioPlayerModalProps> = ({ 
-  isOpen, 
-  onClose, 
+const AudioPlayerModal: React.FC<AudioPlayerModalProps> = ({
+  isOpen,
+  onClose,
   audioBase64,
-  isLoading 
+  isLoading
 }) => {
-  const { 
-    isPlaying, 
-    progress, 
+  const {
+    isPlaying,
+    progress,
     duration,
-    play, 
-    pause, 
-    stop, 
-    setBase64Source 
-  } = useAudio(undefined, { 
-    onEnded: () => {}, 
-    autoPlay: true 
+    play,
+    pause,
+    stop,
+    setBase64Source
+  } = useAudio(undefined, {
+    onEnded: () => {},
+    autoPlay: true
   });
 
   // Set audio source when available and modal is open
@@ -44,16 +41,13 @@ const AudioPlayerModal: React.FC<AudioPlayerModalProps> = ({
       stop();
     }
   }, [isOpen, stop]);
-
   const handleClose = () => {
     onClose();
   };
-
   const handleStop = () => {
     stop();
     onClose();
   };
-
   const togglePlayPause = () => {
     if (isPlaying) {
       pause();
@@ -70,40 +64,30 @@ const AudioPlayerModal: React.FC<AudioPlayerModalProps> = ({
   };
 
   // Calculate progress percentage
-  const progressPercentage = duration > 0 ? (progress / duration) * 100 : 0;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+  const progressPercentage = duration > 0 ? progress / duration * 100 : 0;
+  return <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md p-4 rounded-lg">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-medium text-lg">
             {isLoading ? 'Preparando áudio...' : 'Reproduzindo'}
           </h3>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleClose} 
-            className="h-8 w-8"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8" aria-label="Fechar">
+            
           </Button>
         </div>
 
-        {isLoading ? (
-          <div className="py-6 text-center">
+        {isLoading ? <div className="py-6 text-center">
             <p className="text-sm text-gray-600">Aguarde enquanto sintetizamos a fala</p>
             <div className="mt-3 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-1 bg-gray-500 animate-pulse" style={{width: '100%'}}></div>
+              <div className="h-1 bg-gray-500 animate-pulse" style={{
+            width: '100%'
+          }}></div>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
+          </div> : <div className="space-y-4">
             <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-1 bg-chatgpt-accent transition-all duration-200"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+              <div className="h-1 bg-chatgpt-accent transition-all duration-200" style={{
+            width: `${progressPercentage}%`
+          }}></div>
             </div>
             
             <div className="flex justify-between text-xs text-gray-500">
@@ -112,36 +96,15 @@ const AudioPlayerModal: React.FC<AudioPlayerModalProps> = ({
             </div>
 
             <div className="flex justify-center space-x-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={togglePlayPause}
-                className="h-10 w-10 rounded-full"
-                disabled={isLoading}
-                aria-label={isPlaying ? "Pausar" : "Reproduzir"}
-              >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
+              <Button variant="outline" size="icon" onClick={togglePlayPause} className="h-10 w-10 rounded-full" disabled={isLoading} aria-label={isPlaying ? "Pausar" : "Reproduzir"}>
+                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleStop}
-                className="h-10 w-10 rounded-full"
-                disabled={isLoading}
-                aria-label="Parar"
-              >
+              <Button variant="outline" size="icon" onClick={handleStop} className="h-10 w-10 rounded-full" disabled={isLoading} aria-label="Parar">
                 <StopCircle className="h-5 w-5" />
               </Button>
             </div>
-          </div>
-        )}
+          </div>}
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default AudioPlayerModal;
