@@ -10,7 +10,7 @@ interface MessageCounterProps {
 }
 
 const MessageCounter = ({ currentCount, limit, isLoading }: MessageCounterProps) => {
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, subscribed } = useSubscription();
   
   if (isLoading) return null;
   
@@ -31,7 +31,7 @@ const MessageCounter = ({ currentCount, limit, isLoading }: MessageCounterProps)
   
   return (
     <div className="w-full text-xs mt-1 text-right">
-      {alertMessage && (
+      {alertMessage && !subscribed && (
         <div className="flex items-center justify-end gap-1 mb-1">
           <AlertTriangle className="h-3 w-3" />
           <span className={textColor}>{alertMessage}</span>

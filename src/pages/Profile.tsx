@@ -18,7 +18,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/useSubscription";
-import { CalendarIcon, RefreshCw, CreditCard, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { 
+  CalendarIcon, 
+  RefreshCw, 
+  CreditCard, 
+  CheckCircle, 
+  AlertCircle, 
+  Loader2,
+  Shield,
+  MessageCircle,
+  Users,
+  Sparkles
+} from "lucide-react";
 import { useMessageCount } from "@/hooks/useMessageCount";
 
 const Profile = () => {
@@ -37,7 +48,8 @@ const Profile = () => {
     messageLimit, 
     refreshSubscription,
     openCustomerPortal,
-    plans 
+    plans,
+    subscription_data
   } = useSubscription();
   
   const { messageCount, loading: messageCountLoading } = useMessageCount(messageLimit);
@@ -128,8 +140,37 @@ const Profile = () => {
   };
 
   // Encontrar o plano atual e gratuito
-  const currentPlan = plans.find(plan => plan.name === subscriptionTier);
+  const currentPlan = plans.find(plan => plan.name === subscriptionTier) || plans.find(plan => plan.stripe_price_id === 'free_plan');
   const freePlan = plans.find(plan => plan.stripe_price_id === 'free_plan');
+
+  const getSubscriptionStatusColor = () => {
+    if (subscribed) return "text-green-600";
+    return "text-amber-500";
+  };
+
+  const getSubscriptionBadge = () => {
+    if (subscribed) {
+      return <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Ativo</span>;
+    }
+    return <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Gratuito</span>;
+  };
+
+  const getPlanBenefits = (planName: string | null) => {
+    switch (planName) {
+      case "Pro":
+        return [
+          { icon: <MessageCircle className="h-4 w-4" />, text: `${messageLimit} mensagens por mês` },
+          { icon: <Shield className="h-4 w-4" />, text: "Acesso a todos os livros da Bíblia" },
+          { icon: <Users className="h-4 w-4" />, text: "Uso para grupos e ministérios" },
+          { icon: <Sparkles className="h-4 w-4" />, text: "Geração de conteúdo avançado" }
+        ];
+      default:
+        return [
+          { icon: <MessageCircle className="h-4 w-4" />, text: `${messageLimit} mensagens por mês` },
+          { icon: <Shield className="h-4 w-4" />, text: "Acesso básico aos livros bíblicos" }
+        ];
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -202,7 +243,10 @@ const Profile = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Minha Assinatura</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle>Minha Assinatura</CardTitle>
+                      {getSubscriptionBadge()}
+                    </div>
                     <CardDescription>Gerencie seu plano</CardDescription>
                   </div>
                   <Button 
@@ -258,14 +302,10 @@ const Profile = () => {
                           )}
                           
                           <ul className="space-y-2 mb-6">
-                            <li className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              <span>Limite de {messageLimit} mensagens/mês</span>
-                            </li>
-                            {currentPlan?.features?.map((feature, index) => (
-                              <li key={index} className="flex items-center gap-2">
+                            {getPlanBenefits(subscriptionTier).map((benefit, idx) => (
+                              <li key={idx} className="flex items-center gap-2">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span>{feature}</span>
+                                <span>{benefit.text}</span>
                               </li>
                             ))}
                           </ul>

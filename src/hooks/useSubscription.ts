@@ -21,6 +21,7 @@ interface SubscriptionState {
   subscriptionEnd: Date | null;
   messageLimit: number;
   plan: SubscriptionPlan | null;
+  subscription_data: any;
 }
 
 export const useSubscription = () => {
@@ -30,7 +31,8 @@ export const useSubscription = () => {
     subscriptionTier: null,
     subscriptionEnd: null,
     messageLimit: 10, // Padrão para plano gratuito
-    plan: null
+    plan: null,
+    subscription_data: null
   });
   
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -68,31 +70,63 @@ export const useSubscription = () => {
     fetchPlans();
   }, []);
 
-  // Verificar status da assinatura
+  // Verificar status da assinatura diretamente na tabela subscribers
   const checkSubscription = async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
-      const { data, error } = await supabase.functions.invoke('check-subscription');
       
-      if (error) {
-        throw error;
+      // Podemos tentar primeiro buscar diretamente da tabela de subscribers
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error("Usuário não autenticado");
       }
+      
+      const { data: subscriberData, error: subscriberError } = await supabase
+        .from('subscribers')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .single();
+      
+      if (subscriberError) {
+        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function");
+        // Fallback para a edge function
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
+        
+        if (functionError) throw functionError;
+        
+        setState({
+          isLoading: false,
+          subscribed: functionData.subscribed || false,
+          subscriptionTier: functionData.subscription_tier || "Gratuito",
+          subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
+          messageLimit: functionData.message_limit || 10,
+          plan: functionData.subscription_data || null,
+          subscription_data: functionData
+        });
+        
+        return;
+      }
+      
+      // Se encontrou dados na tabela subscribers
+      const isActive = subscriberData.subscribed && 
+                      (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+      
+      // Buscar o plano correspondente
+      const currentPlan = plans.find(p => p.name === subscriberData.subscription_tier);
       
       setState({
         isLoading: false,
-        subscribed: data.subscribed || false,
-        subscriptionTier: data.subscription_tier || "Gratuito",
-        subscriptionEnd: data.subscription_end ? new Date(data.subscription_end) : null,
-        messageLimit: data.message_limit || 10,
-        plan: data.subscription_data
+        subscribed: isActive,
+        subscriptionTier: subscriberData.subscription_tier || "Gratuito",
+        subscriptionEnd: subscriberData.subscription_end ? new Date(subscriberData.subscription_end) : null,
+        messageLimit: currentPlan?.message_limit || 10,
+        plan: currentPlan || null,
+        subscription_data: subscriberData
       });
+      
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível verificar seu status de assinatura",
-        variant: "destructive",
-      });
+      // Não mostrar toast de erro para não interromper a experiência do usuário
       setState(prev => ({ 
         ...prev, 
         isLoading: false 
@@ -176,7 +210,8 @@ export const useSubscription = () => {
           subscriptionTier: null,
           subscriptionEnd: null,
           messageLimit: 10,
-          plan: null
+          plan: null,
+          subscription_data: null
         });
       }
     });
