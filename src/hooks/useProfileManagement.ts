@@ -12,19 +12,29 @@ export function useProfileManagement(userId: string | undefined) {
     displayName?: string, 
     avatarUrl?: string | null 
   }) => {
-    if (!userId) return;
+    if (!userId) return false;
     
     setIsUpdating(true);
     try {
-      // Preparar os dados para atualização, incluindo apenas campos que foram fornecidos
+      // Verificar se o perfil já existe
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      // Determinar o role (usar o existente ou o padrão 'user')
+      const role = existingProfile?.role || 'user';
+      
+      // Preparar os dados para atualização
       const updateData: { 
         id: string;
         display_name?: string;
         avatar_url?: string | null;
-        role: string;  // O campo role é obrigatório
+        role: string;
       } = {
         id: userId,
-        role: 'user'  // Valor padrão necessário
+        role: role
       };
 
       // Adicionar campos opcionais apenas se fornecidos
