@@ -21,7 +21,7 @@ interface BookActionButtonsProps {
 const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
   const { sendMessage } = useContext(ChatContext);
   const { data: suggestions, isLoading } = useBibleSuggestions(bookSlug);
-  const { messageCount, messageLimit, canSendMessage, increment } = useMessageCount();
+  const { messageCount, MESSAGE_LIMIT: messageLimit, canSendMessage, incrementMessageCount } = useMessageCount();
   const { startCheckout } = useSubscription();
 
   const handleButtonClick = (suggestion: Suggestion) => {
@@ -44,7 +44,7 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
       }
       
       // Incrementa o contador de mensagens quando uma sugestão é clicada
-      increment();
+      incrementMessageCount();
     }
   };
   

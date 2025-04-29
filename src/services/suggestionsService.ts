@@ -14,7 +14,7 @@ export interface Suggestion {
 export const loadSuggestionsForBook = async (bookSlug: string): Promise<Suggestion[]> => {
   try {
     const { data, error } = await supabase
-      .from('suggestions')
+      .from('bible_suggestions')
       .select('*')
       .eq('book_slug', bookSlug);
       

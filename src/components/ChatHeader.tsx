@@ -1,40 +1,49 @@
 
 import React from 'react';
-import { MenuSquare, X } from 'lucide-react';
+import { Menu, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
-interface ChatHeaderProps {
+export interface ChatHeaderProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   title?: string;
 }
 
-const ChatHeader = ({ 
-  isSidebarOpen, 
-  onToggleSidebar, 
-  title 
-}: ChatHeaderProps) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({
+  isSidebarOpen,
+  onToggleSidebar,
+  title
+}) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-10 px-4 h-16 flex items-center justify-between">
-      <div className="flex items-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-2 md:hidden"
-          onClick={onToggleSidebar}
-          aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
-        >
-          {isSidebarOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <MenuSquare className="h-5 w-5" />
-          )}
-        </Button>
-        <h1 className="text-lg font-semibold">
-          {title || "JD Bible Chat"}
-        </h1>
+    <header className="fixed top-0 z-10 w-full bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSidebar}
+            aria-label={isSidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+            className="md:hidden"
+          >
+            {isSidebarOpen ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+          <h1 className="text-lg font-semibold truncate">{title || "Chat"}</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="hidden md:flex"
+            onClick={() => navigate('/chat/new')}
+          >
+            Nova conversa
+          </Button>
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 
