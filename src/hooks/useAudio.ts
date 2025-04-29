@@ -9,6 +9,7 @@ interface UseAudioOptions {
 interface UseAudioReturn {
   audio: HTMLAudioElement | null;
   isPlaying: boolean;
+  isPaused: boolean;
   isLoading: boolean;
   progress: number;
   duration: number;
@@ -22,6 +23,7 @@ interface UseAudioReturn {
 
 export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAudioReturn => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -37,8 +39,15 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
       // Set up event listeners
       audio.addEventListener('timeupdate', updateProgress);
       audio.addEventListener('loadedmetadata', updateDuration);
-      audio.addEventListener('play', () => setIsPlaying(true));
-      audio.addEventListener('pause', () => setIsPlaying(false));
+      audio.addEventListener('play', () => {
+        setIsPlaying(true);
+        setIsPaused(false);
+      });
+      audio.addEventListener('pause', () => {
+        setIsPlaying(false);
+        // Only set isPaused if we haven't reset to beginning (stop)
+        setIsPaused(audio.currentTime > 0 && audio.currentTime < audio.duration);
+      });
       audio.addEventListener('ended', handleEnded);
       audio.addEventListener('loadstart', () => setIsLoading(true));
       audio.addEventListener('loadeddata', () => setIsLoading(false));
@@ -51,8 +60,14 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
         const audio = audioRef.current;
         audio.removeEventListener('timeupdate', updateProgress);
         audio.removeEventListener('loadedmetadata', updateDuration);
-        audio.removeEventListener('play', () => setIsPlaying(true));
-        audio.removeEventListener('pause', () => setIsPlaying(false));
+        audio.removeEventListener('play', () => {
+          setIsPlaying(true);
+          setIsPaused(false);
+        });
+        audio.removeEventListener('pause', () => {
+          setIsPlaying(false);
+          setIsPaused(audio.currentTime > 0 && audio.currentTime < audio.duration);
+        });
         audio.removeEventListener('ended', handleEnded);
         audio.removeEventListener('loadstart', () => setIsLoading(true));
         audio.removeEventListener('loadeddata', () => setIsLoading(false));
@@ -90,6 +105,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
+    setIsPaused(false);
     if (options?.onEnded) {
       options.onEnded();
     }
@@ -107,6 +123,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
         setIsLoading(true);
         await audioRef.current.play();
         setIsPlaying(true);
+        setIsPaused(false);
       } catch (error) {
         console.error('Error playing audio:', error);
       } finally {
@@ -120,6 +137,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
+      setIsPaused(true);
     }
   }, []);
 
@@ -140,6 +158,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
+      setIsPaused(false);
       setProgress(0);
     }
   }, []);
@@ -179,6 +198,7 @@ export const useAudio = (initialSrc?: string, options?: UseAudioOptions): UseAud
   return {
     audio: audioRef.current,
     isPlaying,
+    isPaused,
     isLoading,
     progress,
     duration,
