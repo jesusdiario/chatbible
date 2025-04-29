@@ -37,7 +37,8 @@ export function BookForm({ formData, setFormData, onSubmit, editingBook }: BookF
 
     const publicUrl = await uploadMutation.mutateAsync({
       file,
-      bookSlug: formData.slug
+      fileNamePrefix: `book-${formData.slug}`,
+      bucket: 'avatars' // Using the same bucket as avatars, could create a separate one if needed
     });
 
     setFormData({ ...formData, image_url: publicUrl });
