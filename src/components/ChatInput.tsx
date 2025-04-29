@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messageCount, MESSAGE_LIMIT: messageLimit, canSendMessage, loading, incrementMessageCount, daysUntilReset } = useMessageCount();
+  const { messageCount, messageLimit, canSendMessage, loading, increment, daysUntilReset } = useMessageCount();
   const { startCheckout } = useSubscription();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
     onSend(message.trim());
     
     // Increment counter
-    incrementMessageCount();
+    increment();
     
     // Clear input
     setMessage('');
@@ -82,13 +83,7 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            // Submit on Enter (without Shift)
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
+          onKeyDown={handleKeyDown}
           placeholder={`Faça uma pergunta sobre ${bookSlug || 'a Bíblia'}...`}
           className="pr-10 resize-none min-h-[45px] max-h-[200px] overflow-y-auto"
           disabled={isLoading || !canSendMessage}
@@ -119,7 +114,7 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
             Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.
           </p>
           <Button 
-            onClick={() => startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC')} 
+            onClick={handleUpgradeClick} 
             variant="default" 
             size="sm" 
             className="w-full"

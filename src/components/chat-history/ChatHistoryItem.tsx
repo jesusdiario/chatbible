@@ -70,7 +70,7 @@ const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
       <ChatHistoryActionsMenu 
         chatId={chat.id}
         title={chat.title}
-        pinned={chat.pinned}
+        pinned={chat.pinned || false}
         slug={chat.slug}
         onDelete={() => onDelete(chat.id)}
         onHistoryUpdated={onHistoryUpdated}

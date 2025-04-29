@@ -10,21 +10,52 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Trash2, Pin, Edit } from 'lucide-react';
 
-interface ChatHistoryActionsMenuProps {
-  isPinned: boolean;
-  isUpdating: boolean;
-  onRename: () => void;
-  onTogglePin: () => void;
+export interface ChatHistoryActionsMenuProps {
+  chatId: string;
+  title: string;
+  pinned: boolean;
+  slug?: string;
   onDelete: () => void;
+  onHistoryUpdated?: () => void;
+  isAccessible?: boolean;
 }
 
 const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
-  isPinned,
-  isUpdating,
-  onRename,
-  onTogglePin,
-  onDelete
+  chatId,
+  title,
+  pinned,
+  slug,
+  onDelete,
+  onHistoryUpdated,
+  isAccessible = true
 }) => {
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  
+  const handleTogglePin = async () => {
+    if (!isAccessible) return;
+    
+    try {
+      setIsUpdating(true);
+      
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ pinned: !pinned })
+        .eq('id', chatId);
+        
+      if (error) throw error;
+      
+      if (onHistoryUpdated) {
+        onHistoryUpdated();
+      }
+    } catch (error) {
+      console.error('Error toggling pin status:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,19 +66,23 @@ const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
-          onClick={onRename}
-          disabled={isUpdating}
+          onClick={() => {
+            // This would open a rename dialog in the parent component
+            // The parent is responsible for implementing this
+            onHistoryUpdated?.();
+          }}
+          disabled={isUpdating || !isAccessible}
         >
           <Edit className="h-4 w-4 mr-2" />
           Renomear
         </DropdownMenuItem>
         
         <DropdownMenuItem 
-          onClick={onTogglePin}
-          disabled={isUpdating}
+          onClick={handleTogglePin}
+          disabled={isUpdating || !isAccessible}
         >
           <Pin className="h-4 w-4 mr-2" />
-          {isPinned ? 'Desafixar' : 'Fixar'}
+          {pinned ? 'Desafixar' : 'Fixar'}
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
@@ -55,6 +90,7 @@ const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
         <DropdownMenuItem 
           className="text-red-600 focus:text-red-600" 
           onClick={onDelete}
+          disabled={!isAccessible}
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Excluir
