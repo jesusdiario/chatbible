@@ -59,20 +59,35 @@ const MessageActions: React.FC<MessageActionsProps> = ({ content }) => {
       setIsPlayingAudio(true);
       toast({ title: "Preparando áudio...", description: "Aguarde enquanto sintetizamos a fala" });
       
-      // No length limiting - send the full text to the Edge Function
+      // Verifica tamanho do texto antes de enviar
+      if (content.length > 16000) {
+        toast({
+          title: "Texto muito longo",
+          description: "Este texto é muito extenso para ser convertido em áudio. Por favor, tente com uma resposta menor.",
+          variant: "destructive",
+        });
+        setIsPlayingAudio(false);
+        return;
+      }
+      
       const result = await synthesizeSpeech(content, {
         voice: "ash",
         model: "tts-1"
       });
       
+      if (!result.audio) {
+        throw new Error("Não foi possível gerar o áudio");
+      }
+      
       // Play the audio using our hook
       setBase64Source(result.audio);
+      toast({ title: "Reproduzindo áudio", description: "A resposta está sendo narrada" });
       
     } catch (error) {
       console.error("Erro ao reproduzir áudio:", error);
       toast({
         title: "Erro ao reproduzir",
-        description: "Não foi possível sintetizar o áudio",
+        description: error instanceof Error ? error.message : "Não foi possível sintetizar o áudio",
         variant: "destructive",
       });
       setIsPlayingAudio(false);

@@ -7,6 +7,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função auxiliar para converter ArrayBuffer para Base64 de forma mais eficiente
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  
+  // Processa em chunks pequenos para evitar estouro de stack
+  const chunkSize = 8192;
+  let base64 = '';
+  
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.slice(i, Math.min(i + chunkSize, bytes.length));
+    base64 += String.fromCharCode.apply(null, [...chunk]);
+  }
+  
+  return btoa(base64);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -28,6 +44,20 @@ serve(async (req) => {
 
     console.log(`Synthesizing speech with voice: ${voice}, model: ${model}`);
     console.log(`Text length: ${text.length} characters`);
+    
+    // Verifica se o texto é muito longo (OpenAI tem um limite de aproximadamente 4096 tokens)
+    // Como regra aproximada, 1 token ~= 4 caracteres em idiomas ocidentais
+    const maxLength = 4000 * 4; // ~4000 tokens
+    
+    if (text.length > maxLength) {
+      console.log(`Text exceeds recommended length (${text.length} > ${maxLength})`);
+      return new Response(JSON.stringify({
+        error: 'O texto é muito longo para ser sintetizado. Por favor, reduza o tamanho do texto.'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Send to OpenAI's TTS API
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -50,9 +80,9 @@ serve(async (req) => {
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
-    // Convert audio buffer to base64
+    // Convert audio buffer to base64 usando método otimizado
     const audioBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    const base64Audio = arrayBufferToBase64(audioBuffer);
     
     console.log('Speech synthesis successful, returning base64 audio');
 
