@@ -252,10 +252,13 @@ export type Database = {
           book_slug: string | null
           created_at: string
           id: string
+          is_accessible: boolean | null
+          is_deleted: boolean | null
           last_accessed: string
           last_message: string | null
           messages: Json | null
           slug: string
+          subscription_required: boolean | null
           title: string
           user_id: string
         }
@@ -263,10 +266,13 @@ export type Database = {
           book_slug?: string | null
           created_at?: string
           id?: string
+          is_accessible?: boolean | null
+          is_deleted?: boolean | null
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
           slug?: string
+          subscription_required?: boolean | null
           title: string
           user_id: string
         }
@@ -274,10 +280,13 @@ export type Database = {
           book_slug?: string | null
           created_at?: string
           id?: string
+          is_accessible?: boolean | null
+          is_deleted?: boolean | null
           last_accessed?: string
           last_message?: string | null
           messages?: Json | null
           slug?: string
+          subscription_required?: boolean | null
           title?: string
           user_id?: string
         }
@@ -826,6 +835,10 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: string
+      }
+      has_chat_history_access: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: { _user_id: string; _role: string }

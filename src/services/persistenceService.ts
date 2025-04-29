@@ -14,6 +14,10 @@ export const persistChatMessages = async (
     const lastMessage = messages[messages.length - 1]?.content || '';
     const title = messages[0]?.content?.slice(0, 50) + (messages[0]?.content?.length > 50 ? '…' : '');
     
+    // Verificar se o número de mensagens é maior que 50
+    const subscription_required = messages.length > 50;
+    const stored_messages = subscription_required ? messages.slice(-50) : messages;
+    
     await supabase
       .from('chat_history')
       .upsert({
@@ -23,7 +27,10 @@ export const persistChatMessages = async (
         book_slug: book,
         last_message: lastMessage,
         last_accessed: new Date().toISOString(),
-        messages: JSON.stringify(messages)
+        messages: JSON.stringify(stored_messages),
+        subscription_required,
+        is_accessible: true,
+        is_deleted: false
       }, { 
         onConflict: 'slug' 
       });
@@ -37,8 +44,9 @@ export const loadChatMessages = async (slug: string): Promise<Message[] | null> 
   try {
     const { data, error } = await supabase
       .from('chat_history')
-      .select('messages')
+      .select('messages, subscription_required')
       .eq('slug', slug)
+      .eq('is_deleted', false)
       .single();
 
     if (error) {
@@ -48,28 +56,66 @@ export const loadChatMessages = async (slug: string): Promise<Message[] | null> 
 
     if (!data?.messages) return null;
     
-    // Melhor manipulação dos diferentes formatos de dados possíveis
-    if (typeof data.messages === 'string') {
-      try {
-        const parsed = JSON.parse(data.messages);
-        return Array.isArray(parsed) ? parsed.map(convertToMessage) : null;
-      } catch (e) {
-        console.error('Error parsing JSON messages:', e);
-        return null;
+    // Verificar se é necessário verificar assinatura
+    if (data.subscription_required) {
+      // Verificar se o usuário tem assinatura
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return null;
+      
+      const { data: subscriberData } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      // Se não for assinante, retornar apenas as últimas 50 mensagens
+      if (!subscriberData?.subscribed) {
+        const messages = parseMessages(data.messages);
+        return messages ? messages.slice(-50) : null;
       }
     }
     
-    if (Array.isArray(data.messages)) {
-      return data.messages.map(convertToMessage);
-    }
-    
-    console.error('Unexpected message format in database:', data.messages);
-    return null;
+    return parseMessages(data.messages);
   } catch (err) {
     console.error('Error parsing chat messages:', err);
     return null;
   }
 };
+
+export const deleteChat = async (chatId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('chat_history')
+      .update({ is_deleted: true })
+      .eq('id', chatId);
+    
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Error deleting chat:', err);
+    return false;
+  }
+};
+
+// Função auxiliar para processar mensagens
+function parseMessages(messagesData: any): Message[] | null {
+  if (typeof messagesData === 'string') {
+    try {
+      const parsed = JSON.parse(messagesData);
+      return Array.isArray(parsed) ? parsed.map(convertToMessage) : null;
+    } catch (e) {
+      console.error('Error parsing JSON messages:', e);
+      return null;
+    }
+  }
+  
+  if (Array.isArray(messagesData)) {
+    return messagesData.map(convertToMessage);
+  }
+  
+  console.error('Unexpected message format in database:', messagesData);
+  return null;
+}
 
 // Função auxiliar para garantir que os objetos estejam no formato Message
 function convertToMessage(item: any): Message {

@@ -1,5 +1,5 @@
 
-import { Search, X, Book, Plus } from "lucide-react";
+import { Search, X, Book, Plus, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ChatHistory, categorizeChatHistory } from "@/types/chat";
@@ -17,7 +17,7 @@ interface SidebarProps {
   onChatSelect?: (chatId: string) => void;
   chatHistory?: ChatHistory[];
   currentPath?: string;
-  onApiKeyChange?: (key: string) => void; // Added this prop to match existing usage
+  onApiKeyChange?: (key: string) => void;
 }
 
 const Sidebar = ({
@@ -71,6 +71,13 @@ const Sidebar = ({
       onToggle();
     }
   };
+  
+  const goToHistory = () => {
+    navigate('/history');
+    if (window.innerWidth < 768) {
+      onToggle();
+    }
+  };
 
   const goToProfile = () => {
     navigate('/profile');
@@ -96,12 +103,16 @@ const Sidebar = ({
                 </Button>
               </div>
 
-              {/* Main Navigation items - Only Livros da Bíblia */}
+              {/* Main Navigation items */}
               <div className="mb-6">
                 <span className="text-sm text-gray-500 mb-2 block">Navegação</span>
                 <button onClick={goToLivrosDaBiblia} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg", currentPath === '/livros-da-biblia' ? "bg-gray-100" : "hover:bg-gray-50")}>
                   <Book className="h-5 w-5 text-gray-500" />
                   <span>Livros da Bíblia</span>
+                </button>
+                <button onClick={goToHistory} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg", currentPath === '/history' ? "bg-gray-100" : "hover:bg-gray-50")}>
+                  <History className="h-5 w-5 text-gray-500" />
+                  <span>Histórico de Conversas</span>
                 </button>
               </div>
 

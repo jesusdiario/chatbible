@@ -17,7 +17,7 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = React.useState(false);
   const { toast } = useToast();
-  const { messageLimit } = useSubscription();
+  const { messageLimit, subscribed } = useSubscription();
   
   const { 
     messageCount, 
@@ -39,6 +39,7 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
         toast({
           title: "Limite de mensagens atingido",
           description: `Você atingiu o limite de ${MESSAGE_LIMIT} mensagens mensais. Faça upgrade para o plano premium.`,
+          variant: "destructive"
         });
         return;
       }
@@ -46,7 +47,7 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
       // Registrar o uso da API será feito no fluxo do chatService
       await incrementMessageCount();
       
-      if (messageCount + 1 >= MESSAGE_LIMIT) {
+      if (messageCount + 1 >= MESSAGE_LIMIT * 0.9) {
         toast({
           title: "Limite de mensagens próximo",
           description: `Você está próximo de atingir o limite de ${MESSAGE_LIMIT} mensagens mensais.`,
@@ -71,11 +72,21 @@ const ChatInput = ({ onSend, isLoading = false, bookSlug }: ChatInputProps) => {
         isLoading={isLoading || countLoading}
         bookSlug={bookSlug}
       />
-      <MessageCounter 
-        currentCount={messageCount}
-        limit={MESSAGE_LIMIT}
-        isLoading={countLoading}
-      />
+      <div className="w-full flex justify-between items-center">
+        <MessageCounter 
+          currentCount={messageCount}
+          limit={MESSAGE_LIMIT}
+          isLoading={countLoading}
+        />
+        {!subscribed && (
+          <button 
+            onClick={() => setShowSubscriptionModal(true)}
+            className="text-xs text-blue-600 hover:text-blue-800"
+          >
+            Upgrade para Pro
+          </button>
+        )}
+      </div>
       <SubscriptionModal 
         isOpen={showSubscriptionModal} 
         onClose={() => setShowSubscriptionModal(false)} 
