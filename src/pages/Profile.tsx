@@ -10,6 +10,7 @@ import UsageTab from "@/components/profile/UsageTab";
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchUserData = async () => {
@@ -25,6 +26,7 @@ const Profile = () => {
           
         if (data) {
           setDisplayName(data.display_name || "");
+          setAvatarUrl(data.avatar_url || null);
         }
       }
     };
@@ -52,6 +54,8 @@ const Profile = () => {
             user={user}
             displayName={displayName}
             setDisplayName={setDisplayName}
+            avatarUrl={avatarUrl}
+            setAvatarUrl={setAvatarUrl}
           />
         </TabsContent>
         

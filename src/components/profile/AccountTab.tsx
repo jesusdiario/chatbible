@@ -19,38 +19,22 @@ interface AccountTabProps {
   user: any;
   displayName: string;
   setDisplayName: (name: string) => void;
+  avatarUrl: string | null;
+  setAvatarUrl: (url: string | null) => void;
 }
 
-const AccountTab = ({ user, displayName, setDisplayName }: AccountTabProps) => {
+const AccountTab = ({ 
+  user, 
+  displayName, 
+  setDisplayName,
+  avatarUrl,
+  setAvatarUrl 
+}: AccountTabProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useFileUpload();
-
-  // Fetch user avatar on component mount
-  React.useEffect(() => {
-    const fetchUserAvatar = async () => {
-      if (!user) return;
-      
-      try {
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('avatar_url')
-          .eq('id', user.id)
-          .single();
-        
-        if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
-      } catch (error) {
-        console.error('Error fetching avatar:', error);
-      }
-    };
-    
-    fetchUserAvatar();
-  }, [user]);
 
   const updateProfile = async () => {
     if (!user) return;

@@ -39,20 +39,23 @@ const Sidebar = ({
   useEffect(() => {
     const fetchUserProfile = async () => {
       const {
-        data: {
-          session
-        }
+        data: { session }
       } = await supabase.auth.getSession();
+      
       if (session?.user) {
         const {
           data: profileData,
           error
-        } = await supabase.from('user_profiles').select('display_name').eq('id', session.user.id).single();
+        } = await supabase
+          .from('user_profiles')
+          .select('display_name, avatar_url')
+          .eq('id', session.user.id)
+          .single();
         
         if (profileData) {
           setUserProfile({
             name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
-            avatar_url: null // We'll update this in a moment
+            avatar_url: profileData.avatar_url
           });
         } else {
           setUserProfile({
@@ -62,6 +65,7 @@ const Sidebar = ({
         }
       }
     };
+    
     if (isOpen) {
       fetchUserProfile();
     }
@@ -114,9 +118,15 @@ const Sidebar = ({
                 )}
                 
                 {hasChatHistory && chatHistory.map((chat) => (
-                  // Existing chat history items would be here
                   <div key={chat.id} className="mb-1">
-                    {/* Chat history rendering code */}
+                    <button onClick={() => {
+                        if (onChatSelect) {
+                          onChatSelect(chat.id);
+                        }
+                      }} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg truncate", currentPath === `/chat/${chat.slug}` ? "bg-gray-100" : "hover:bg-gray-50")}>
+                      <History className="h-5 w-5 text-gray-500" />
+                      <span className="truncate">{chat.title}</span>
+                    </button>
                   </div>
                 ))}
               </div>
