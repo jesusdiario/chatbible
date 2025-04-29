@@ -23,9 +23,9 @@ const UsageSection = () => {
   } = useSubscription();
   
   const { 
-    messageCount,
-    messageLimit,
-    daysUntilReset,
+    messageCount, 
+    messageLimit, 
+    daysUntilReset, 
     percentUsed,
     loading: messageCountLoading 
   } = useMessageCount();
@@ -65,7 +65,8 @@ const UsageSection = () => {
                 </div>
                 <Progress 
                   value={percentUsed} 
-                  className={`h-2 ${isHighUsage ? "bg-red-100" : isMediumUsage ? "bg-amber-100" : ""}`}
+                  className={`h-2 ${isHighUsage ? "bg-red-100" : isMediumUsage ? "bg-amber-100" : ""}`} 
+                  indicatorClassName={isHighUsage ? "bg-red-500" : isMediumUsage ? "bg-amber-500" : undefined}
                 />
                 
                 {isHighUsage && subscriptionTier === "Gratuito" && (

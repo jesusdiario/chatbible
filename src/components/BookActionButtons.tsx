@@ -5,7 +5,7 @@ import { ChatContext } from "./ActionButtons";
 import { useBibleSuggestions } from "@/hooks/useBibleSuggestions";
 import { Suggestion } from "@/services/suggestionsService";
 import { useMessageCount } from "@/hooks/useMessageCount";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
   Tooltip,

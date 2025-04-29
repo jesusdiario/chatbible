@@ -1,107 +1,75 @@
 
-import React, { useContext } from 'react';
-import { ChatContext } from './ActionButtons';
-import { Button } from '@/components/ui/button';
-import { Flame, Droplets, Pizza, HeartHandshake, Calendar } from 'lucide-react';
-import { useMessageCount } from '@/hooks/useMessageCount';
-import { toast } from '@/components/ui/use-toast';
-import { useSubscription } from '@/hooks/useSubscription';
+import React, { useContext, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { icons } from 'lucide-react';
+import { ChatContext } from "./ActionButtons";
+import { useMessageCount } from "@/hooks/useMessageCount";
+import { toast } from "@/hooks/use-toast";
 
-interface LeviticusActionButtonsProps {
-  inline?: boolean;
+interface Suggestion {
+  id: string;
+  label: string;
+  user_message: string;
+  icon: string;
 }
 
-const LeviticusActionButtons: React.FC<LeviticusActionButtonsProps> = ({ inline = false }) => {
+const LeviticusActionButtons = () => {
   const { sendMessage } = useContext(ChatContext);
-  const { canSendMessage, increment, messageLimit } = useMessageCount();
-  const { startCheckout } = useSubscription();
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage } = useMessageCount();
 
-  const handleAsk = (question: string) => {
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const { data, error } = await supabase
+        .from('bible_suggestions')
+        .select('*')
+        .eq('book_slug', 'levitico')
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar sugestões:', error);
+        return;
+      }
+
+      setSuggestions(data || []);
+    };
+
+    fetchSuggestions();
+  }, []);
+
+  const handleButtonClick = (suggestion: Suggestion) => {
     if (!canSendMessage) {
       toast({
         title: "Limite de mensagens atingido",
-        description: "Você atingiu seu limite mensal de mensagens.",
+        description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.",
         variant: "destructive",
       });
       return;
     }
     
     if (sendMessage) {
-      sendMessage(question);
-      increment();
+      sendMessage(suggestion.user_message);
+      // Incrementa o contador de mensagens quando uma sugestão é clicada
+      incrementMessageCount();
     }
   };
-  
-  const handleUpgradeClick = () => {
-    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC');
-  };
-
-  if (!canSendMessage) {
-    return (
-      <div className={`${inline ? "" : "mt-4"} p-4 bg-amber-50 border border-amber-200 rounded-lg text-center`}>
-        <p className="text-sm text-amber-800 mb-2">
-          Você atingiu seu limite de {messageLimit} mensagens para este mês.
-        </p>
-        <Button size="sm" variant="default" onClick={handleUpgradeClick}>
-          Fazer upgrade para Premium
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className={`flex flex-wrap gap-2 ${inline ? "" : "justify-center mt-4"}`}>
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2 bg-white" 
-        onClick={() => handleAsk("Explique o sistema de sacrifícios em Levítico e seu significado")}
-        size={inline ? "sm" : "default"}
-      >
-        <Flame size={16} className="text-red-500" />
-        <span>Sacrifícios</span>
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2 bg-white" 
-        onClick={() => handleAsk("Quais eram as leis de pureza em Levítico e o que significam para nós hoje?")}
-        size={inline ? "sm" : "default"}
-      >
-        <Droplets size={16} className="text-blue-500" />
-        <span>Leis de Pureza</span>
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2 bg-white" 
-        onClick={() => handleAsk("Por que existem restrições alimentares em Levítico?")}
-        size={inline ? "sm" : "default"}
-      >
-        <Pizza size={16} className="text-green-500" />
-        <span>Leis Alimentares</span>
-      </Button>
-      
-      {!inline && (
-        <>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 bg-white" 
-            onClick={() => handleAsk("O que era o Dia da Expiação em Levítico?")}
+    <div className="flex gap-2 flex-wrap justify-center mt-4">
+      {suggestions.map((suggestion) => {
+        const IconComponent = icons[suggestion.icon as keyof typeof icons];
+        return (
+          <button 
+            key={suggestion.id} 
+            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+            onClick={() => handleButtonClick(suggestion)}
+            disabled={!canSendMessage}
           >
-            <Calendar size={16} className="text-purple-500" />
-            <span>Dia da Expiação</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 bg-white" 
-            onClick={() => handleAsk("Quais são os princípios morais em Levítico que ainda se aplicam hoje?")}
-          >
-            <HeartHandshake size={16} className="text-pink-500" />
-            <span>Princípios Morais</span>
-          </Button>
-        </>
-      )}
+            {IconComponent && <IconComponent className="h-4 w-4 text-green-400" />}
+            {suggestion.label}
+          </button>
+        );
+      })}
     </div>
   );
 };

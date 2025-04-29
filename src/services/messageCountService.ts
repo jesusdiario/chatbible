@@ -136,43 +136,11 @@ export const incrementMessageCount = async (): Promise<boolean> => {
     }
     
     // Update or insert message count record
-    // Atualizado para não usar o RPC e fazer o update diretamente
-    const { data: messageCountData } = await supabase
-      .from('message_counts')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-      
-    if (messageCountData) {
-      // Update existing record
-      const { error } = await supabase
-        .from('message_counts')
-        .update({ 
-          count: messageCountData.count + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-        
-      if (error) {
-        console.error("Error incrementing message count:", error);
-        return false;
-      }
-    } else {
-      // Insert new record
-      const { error } = await supabase
-        .from('message_counts')
-        .insert([{ 
-          user_id: userId,
-          count: 1,
-          last_reset_time: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }]);
-        
-      if (error) {
-        console.error("Error creating message count record:", error);
-        return false;
-      }
+    const { data, error } = await supabase.rpc('increment_message_count', { user_id_param: userId });
+    
+    if (error) {
+      console.error("Error incrementing message count:", error);
+      return false;
     }
     
     return true;

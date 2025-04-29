@@ -48,12 +48,6 @@ const CategoriesList: React.FC<{
   categories: any[]; booksByCategory: Record<string, any[]>;
 }> = ({ categories, booksByCategory }) => (
   <div className="max-w-7xl mx-auto space-y-12">
-    {/* Cabeçalho para a página "Livros da Bíblia" */}
-    <div className="text-center mb-8">
-      <h1 className="text-3xl font-bold mb-2">Livros da Bíblia</h1>
-      <p className="text-gray-600">Explore os livros da Bíblia e aprofunde seu conhecimento</p>
-    </div>
-    
     {categories.map(category => {
       const categoryBooks = booksByCategory[category.slug] || [];
       return (
