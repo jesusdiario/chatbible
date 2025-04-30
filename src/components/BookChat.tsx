@@ -70,7 +70,7 @@ const BookChat: React.FC<BookChatProps> = ({
             messages={messages} 
             isTyping={isTyping} 
             loadingStage={getTranslatedLoadingStage()}
-            disableAutoScroll={true} // Desativa o scroll automático
+            disableAutoScroll={true}
           />
           <div className="w-full max-w-3xl mx-auto px-4 py-2">
             <ChatInput 

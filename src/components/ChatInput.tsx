@@ -85,36 +85,9 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
 
   return (
     <div className="w-full">
+      {/* Main input form */}
       <form onSubmit={handleSubmit} className="relative w-full">
-        <div className="flex items-center gap-2 rounded-[9999px] bg-white shadow-md p-3">
-          {/* Add button */}
-          <button 
-            type="button"
-            onClick={handleAddClick}
-            className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-            aria-label={t('chat.addChat')}
-          >
-            <Plus className="h-5 w-5 text-gray-500" />
-          </button>
-          
-          {/* Ready Questions button */}
-          <button
-            type="button"
-            onClick={handleQuestionsClick}
-            className="text-sm px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-100 text-[13px]"
-          >
-            {t('chat.readyQuestions')}
-          </button>
-          
-          {/* Current Book button */}
-          <button
-            type="button"
-            onClick={handleBookClick}
-            className="text-sm px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-100 text-[13px]"
-          >
-            {formattedBookName}
-          </button>
-          
+        <div className="rounded-[24px] bg-white shadow-md p-4">
           {/* Message Input */}
           <textarea
             ref={textareaRef}
@@ -122,23 +95,54 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={bookSlug ? t('chat.askAboutBook', { book: formattedBookName }) : t('chat.askAboutBible')}
-            className="flex-grow resize-none overflow-hidden text-base px-3 py-2 focus:outline-none min-h-[24px]"
+            className="w-full resize-none overflow-hidden focus:outline-none min-h-[24px] mb-2"
             style={{ fontSize: '16px' }}
             rows={1}
             disabled={isLoading}
           />
           
-          {/* Send button */}
-          <button 
-            type="submit" 
-            disabled={!message.trim() || isLoading}
-            className={`h-8 w-8 flex items-center justify-center rounded-full ${
-              message.trim() ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
-            }`}
-            aria-label={t('chat.send')}
-          >
-            <Send className="h-4 w-4" />
-          </button>
+          {/* Buttons row below the textarea */}
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {/* Add button */}
+            <button 
+              type="button"
+              onClick={handleAddClick}
+              className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 border border-gray-200"
+              aria-label={t('chat.addChat')}
+            >
+              <Plus className="h-5 w-5 text-gray-500" />
+            </button>
+            
+            {/* Ready Questions button */}
+            <button
+              type="button"
+              onClick={handleQuestionsClick}
+              className="text-sm px-4 py-1.5 rounded-[18px] border border-gray-200 hover:bg-gray-100 text-[13px]"
+            >
+              {t('chat.readyQuestions')}
+            </button>
+            
+            {/* Current Book button */}
+            <button
+              type="button"
+              onClick={handleBookClick}
+              className="text-sm px-4 py-1.5 rounded-[18px] border border-gray-200 hover:bg-gray-100 text-[13px]"
+            >
+              {formattedBookName}
+            </button>
+            
+            {/* Send button - aligned to the right */}
+            <button 
+              type="submit" 
+              disabled={!message.trim() || isLoading}
+              className={`h-8 w-8 flex items-center justify-center rounded-full ml-auto ${
+                message.trim() ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+              }`}
+              aria-label={t('chat.send')}
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </form>
       
