@@ -36,6 +36,7 @@ export const useSubscription = () => {
 
   return {
     ...state,
+    isLoading: isProcessing,
     plans,
     checkSubscription,
     startCheckout,

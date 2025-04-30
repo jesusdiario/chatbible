@@ -13,9 +13,9 @@ export interface SubscriptionPlan {
 
 export interface UserSubscription {
   subscribed: boolean;
-  subscription_tier: string | null;
-  subscription_end: Date | null;
-  message_limit: number;
+  subscriptionTier: string | null;
+  subscriptionEnd: Date | null;
+  messageLimit: number;
   plan: SubscriptionPlan | null;
 }
 
