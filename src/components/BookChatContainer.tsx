@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { loadChatMessages } from '@/services/persistenceService';
@@ -33,9 +33,14 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     lastMessageRef
   } = useChatOperations(book, userId, slug, messages, setMessages, setIsLoading);
 
+  // Ref para evitar recargas durante o processamento de mensagens
+  const preventReloadRef = useRef(false);
+
   // Função para recarregar as mensagens quando necessário
   const reloadMessages = useCallback(async () => {
-    if (!slug) return;
+    if (!slug || preventReloadRef.current || isTyping || messageProcessingRef.current) {
+      return;
+    }
     
     try {
       console.log("Recarregando mensagens do chat...");
@@ -47,25 +52,30 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     } catch (error) {
       console.error("Erro ao recarregar mensagens:", error);
     }
-  }, [slug, setMessages]);
+  }, [slug, setMessages, isTyping, messageProcessingRef]);
 
   // Efeito para recarregar mensagens inicialmente
   useEffect(() => {
-    if (slug) {
+    if (slug && !isTyping && !messageProcessingRef.current) {
       reloadMessages();
     }
-  }, [slug, reloadMessages]);
+  }, [slug, reloadMessages, isTyping, messageProcessingRef]);
 
   // Função de recarga otimizada para quando a página volta ao foco
   const handleVisibilityChange = useCallback(() => {
-    if (slug) {
-      console.log("Visibilidade alterada, verificando estado do chat");
+    if (document.visibilityState === 'visible' && slug && !isTyping && !messageProcessingRef.current) {
+      console.log("Visibilidade alterada para visível, verificando estado do chat");
       reloadMessages();
     }
-  }, [slug, reloadMessages]);
+  }, [slug, reloadMessages, isTyping, messageProcessingRef]);
 
   // Usa o hook de visibilidade aprimorado
   useVisibilityChange(handleVisibilityChange);
+
+  // Atualiza o estado do preventReloadRef quando o processamento de mensagens muda
+  useEffect(() => {
+    preventReloadRef.current = isTyping || messageProcessingRef.current;
+  }, [isTyping, messageProcessingRef]);
 
   return (
     <div className="flex flex-col h-full">

@@ -137,11 +137,11 @@ const MessageActions: React.FC<MessageActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center gap-2 mt-2">
+      <div className="flex items-center justify-end gap-2 mt-2">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 transition-all duration-200 hover:bg-gray-100"
           onClick={handleCopy}
           title="Copiar"
         >
@@ -150,7 +150,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 transition-all duration-200 hover:bg-gray-100"
           onClick={handleDownload}
           title="Baixar"
         >
@@ -159,7 +159,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 transition-all duration-200 hover:bg-gray-100"
           onClick={handleAudioPlay}
           title="Ouvir resposta"
         >

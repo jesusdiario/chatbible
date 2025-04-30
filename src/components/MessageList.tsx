@@ -1,9 +1,12 @@
 
-import { FC, useRef, useEffect, useState } from 'react';
+import { FC, useRef, useEffect, useState, useCallback } from 'react';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Message from './Message';
 import { Message as MessageType } from '@/types/chat';
 import { Button } from './ui/button';
 import { ChevronUp } from 'lucide-react';
+import { ScrollArea } from './ui/scroll-area';
+import { Progress } from './ui/progress';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -15,40 +18,60 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(100);
+  const isMobile = useMediaQuery('(max-width: 640px)');
   
-  // Check if we need to show the scroll to bottom button
-  const handleScroll = () => {
+  // Função otimizada para verificar a posição de rolagem
+  const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     const scrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+    const currentProgress = Math.min(
+      100,
+      Math.round((scrollTop / (scrollHeight - clientHeight)) * 100) || 100
+    );
     
     setShowScrollToBottom(scrolledUp);
+    setScrollProgress(scrolledUp ? currentProgress : 100);
     
-    if (scrollHeight - scrollTop - clientHeight < 10) {
+    if (scrollHeight - scrollTop - clientHeight < 20) {
       setIsAutoScrollEnabled(true);
     } else if (messages.length > 0 && !isTyping) {
       setIsAutoScrollEnabled(false);
     }
-  };
+  }, [messages, isTyping]);
   
-  // Scroll to bottom on new messages when auto scroll is enabled
+  // Rolagem suave para o final
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior, 
+        block: 'end' 
+      });
+      setIsAutoScrollEnabled(true);
+    }
+  }, []);
+  
+  // Efeito para rolagem automática quando novas mensagens chegam
   useEffect(() => {
     if (isAutoScrollEnabled && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      // Usa comportamento diferente entre desktop e mobile
+      const scrollBehavior = isMobile ? 'auto' : 'smooth';
+      
+      // Adiciona uma pequena pausa antes de rolar no mobile para não ser tão abrupto
+      if (isMobile) {
+        setTimeout(() => scrollToBottom(scrollBehavior), 100);
+      } else {
+        scrollToBottom(scrollBehavior);
+      }
     }
-  }, [messages, isTyping, isAutoScrollEnabled]);
-  
-  // Scroll to bottom manually when button is clicked
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setIsAutoScrollEnabled(true);
-  };
+  }, [messages, isTyping, isAutoScrollEnabled, scrollToBottom, isMobile]);
   
   return (
     <div 
       ref={containerRef} 
-      className="flex-1 overflow-y-auto" 
+      className="flex-1 overflow-y-auto scroll-smooth" 
       onScroll={handleScroll}
     >
       <div className="w-full max-w-4xl mx-auto px-4 pb-24">
@@ -93,38 +116,35 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
             </div>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <Message key={index} {...message} />
-          ))
+          <>
+            {messages.map((message, index) => (
+              <Message 
+                key={index} 
+                {...message} 
+                showActions={!isTyping || index < messages.length - 1}
+              />
+            ))}
+            
+            {isTyping && (
+              <Message 
+                role="assistant" 
+                content="" 
+                isTyping={true} 
+              />
+            )}
+          </>
         )}
         
-        {isTyping && (
-          <div className="py-6">
-            <div className="flex gap-4">
-              <div className="h-8 w-8 rounded-full bg-[#F7F7F8] flex items-center justify-center">
-                <span className="text-sm">BC</span>
-              </div>
-              <div className="flex-1">
-                <div className="prose prose-invert max-w-none">
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-1" />
       </div>
       
       {showScrollToBottom && (
-        <div className="fixed bottom-24 right-8 z-10">
+        <div className="fixed bottom-24 right-8 z-10 flex flex-col items-center space-y-2">
+          <Progress value={scrollProgress} className="w-12 h-1 bg-gray-200" />
           <Button 
             size="icon" 
-            className="h-10 w-10 rounded-full shadow-lg"
-            onClick={scrollToBottom}
+            className="h-10 w-10 rounded-full shadow-lg bg-white text-black hover:bg-gray-100"
+            onClick={() => scrollToBottom()}
           >
             <ChevronUp className="h-5 w-5" />
           </Button>

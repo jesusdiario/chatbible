@@ -58,16 +58,13 @@ export const sendChatMessage = async (
     try {
       // Controle de visibilidade e processamento em segundo plano
       let processingInBackground = document.visibilityState === 'hidden';
-      let pauseUiUpdates = false;
+      
+      // Detecta se o dispositivo é móvel para ajustar o throttling
+      const isMobile = window.innerWidth <= 640;
       
       // Monitoramento de visibilidade
       const visibilityHandler = () => {
-        const isHidden = document.visibilityState === 'hidden';
-        console.log(`Visibility changed: ${document.visibilityState} Processing in background: ${isHidden}`);
-        processingInBackground = isHidden;
-        
-        // Não pausamos mais as atualizações de UI,
-        // apenas mudamos a forma como são processadas
+        processingInBackground = document.visibilityState === 'hidden';
       };
       
       // Adiciona o ouvinte de visibilidade
@@ -77,6 +74,12 @@ export const sendChatMessage = async (
       let bufferedChunks = '';
       let lastPersistTime = Date.now();
       const PERSIST_INTERVAL = 2000; // 2 segundos
+      
+      // Controle para throttling no mobile
+      let lastUpdateTime = Date.now();
+      // Define intervalo entre atualizações baseado no dispositivo
+      const UPDATE_THRESHOLD = isMobile ? 300 : 100; // ms
+      let pendingUpdate = '';
 
       // Função que persiste as mensagens periodicamente
       const persistMessages = async () => {
@@ -112,10 +115,37 @@ export const sendChatMessage = async (
               assistantFull += payload.content;
               assistantMessage.content = assistantFull;
               
-              // Atualiza UI somente se estiver visível
+              // Implementação de throttling para dispositivos móveis
               if (!processingInBackground && onChunk) {
-                onChunk(payload.content);
+                const now = Date.now();
+                
+                if (now - lastUpdateTime >= UPDATE_THRESHOLD) {
+                  // Se passou tempo suficiente, executa a atualização imediatamente
+                  if (pendingUpdate) {
+                    onChunk(pendingUpdate + payload.content);
+                    pendingUpdate = '';
+                  } else {
+                    onChunk(payload.content);
+                  }
+                  lastUpdateTime = now;
+                } else {
+                  // Caso contrário, acumula para o próximo update
+                  pendingUpdate += payload.content;
+                  
+                  // Programa um timeout para garantir que eventualmente atualizamos
+                  if (!pendingUpdate.endTimeoutSet) {
+                    pendingUpdate.endTimeoutSet = true;
+                    setTimeout(() => {
+                      if (pendingUpdate) {
+                        onChunk(pendingUpdate);
+                        pendingUpdate = '';
+                      }
+                      pendingUpdate.endTimeoutSet = false;
+                    }, UPDATE_THRESHOLD);
+                  }
+                }
               } else {
+                // Se estiver em background, acumulamos
                 bufferedChunks += payload.content;
               }
               
@@ -131,6 +161,11 @@ export const sendChatMessage = async (
       // Aplicar todos os chunks acumulados quando estiver em modo background
       if (bufferedChunks && onChunk && processingInBackground) {
         onChunk(bufferedChunks);
+      }
+      
+      // Garante que qualquer pendência final seja processada
+      if (pendingUpdate && onChunk) {
+        onChunk(pendingUpdate);
       }
       
       // Remove o ouvinte de visibilidade
@@ -149,20 +184,6 @@ export const sendChatMessage = async (
         .catch(err => console.error('Error in final persistence:', err));
     }
   });
-
-  // Usa workers ou idle callbacks quando disponíveis
-  if (typeof window !== 'undefined') {
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => {
-        console.log('Using requestIdleCallback for background processing');
-      });
-    }
-    
-    if ('scheduling' in navigator && 'isInputPending' in (navigator as any).scheduling) {
-      // Apenas verificação, não usamos o resultado diretamente
-      (navigator as any).scheduling.isInputPending();
-    }
-  }
 
   // Aguarda o processamento do stream antes de retornar
   await streamPromise;

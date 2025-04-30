@@ -1,18 +1,64 @@
 
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import MessageAvatar from './MessageAvatar';
 import MessageActions from './MessageActions';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '@/types/chat';
+import { Skeleton } from './ui/skeleton';
 
 interface MessageProps extends MessageType {
   isTyping?: boolean;
+  showActions?: boolean;
 }
 
-const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
+const Message: FC<MessageProps> = ({ 
+  role, 
+  content, 
+  isTyping = false,
+  showActions = true
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldRenderActions, setShouldRenderActions] = useState(false);
+  
+  // Efeito para animar a entrada da mensagem
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Efeito para mostrar os botões de ação apenas quando a mensagem terminar de ser digitada
+  useEffect(() => {
+    if (!isTyping && role === 'assistant') {
+      const timer = setTimeout(() => {
+        setShouldRenderActions(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isTyping, role]);
+
+  // Esqueleto de carregamento para mensagens do assistente
+  if (role === 'assistant' && content === '' && isTyping) {
+    return (
+      <div className="py-6">
+        <div className="flex gap-4">
+          <MessageAvatar isAssistant={true} />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-4 w-3/4 rounded" />
+            <Skeleton className="h-4 w-5/6 rounded" />
+            <Skeleton className="h-4 w-2/3 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="py-6 animate-fade-in">
+    <div className={`py-6 ${isVisible ? 'animate-fade-in' : 'opacity-0'} transition-opacity duration-300`}>
       <div className={`flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}`}>
         <MessageAvatar isAssistant={role === 'assistant'} />
         <div className={`flex-1 space-y-2 ${role === 'user' ? 'flex justify-end' : ''}`}>
@@ -68,12 +114,20 @@ const Message: FC<MessageProps> = ({ role, content, isTyping = false }) => {
                   {content}
                 </ReactMarkdown>
                 {isTyping && (
-                  <span className="inline-block w-2 h-4 ml-1 -mb-1 bg-white animate-blink" />
+                  <div className="typing-indicator mt-2">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
                 )}
               </>
             )}
           </div>
-          {role === 'assistant' && !isTyping && <MessageActions content={content} />}
+          {role === 'assistant' && !isTyping && shouldRenderActions && showActions && (
+            <div className="opacity-0 animate-fade-in" style={{animationDelay: '500ms', animationFillMode: 'forwards'}}>
+              <MessageActions content={content} />
+            </div>
+          )}
         </div>
       </div>
     </div>
