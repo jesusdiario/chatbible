@@ -1,131 +1,102 @@
 
-import { useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Customer, PricePlan } from '@/types/subscription';
+import { supabase } from "@/integrations/supabase/client";
+import { SubscriptionState } from './types';
+import { useState } from "react";
 
-export const useSubscriptionActions = (setState: Function) => {
-  const [isProcessing, setIsProcessing] = useState(false);
+export const useSubscriptionActions = (setState?: (state: React.SetStateAction<SubscriptionState>) => void) => {
   const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const checkSubscription = async () => {
+    if (!setState) return;
+    
     try {
       setState(prev => ({ ...prev, isLoading: true }));
-
-      // Call the edge function to check subscription status
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        setState(prev => ({ ...prev, isLoading: false }));
-        return;
+      
+      // Podemos tentar primeiro buscar diretamente da tabela de subscribers
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error("Usuário não autenticado");
       }
-
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-
-      if (error) {
-        console.error("Error checking subscription:", error);
-        toast({
-          title: "Erro ao verificar assinatura",
-          description: "Não foi possível obter informações da sua assinatura.",
-          variant: "destructive",
+      
+      const { data: subscriberData, error: subscriberError } = await supabase
+        .from('subscribers')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .single();
+      
+      if (subscriberError) {
+        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function");
+        // Fallback para a edge function
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
+        
+        if (functionError) throw functionError;
+        
+        setState({
+          isLoading: false,
+          subscribed: functionData.subscribed || false,
+          subscriptionTier: functionData.subscription_tier || "Gratuito",
+          subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
+          messageLimit: functionData.message_limit || 10,
+          plan: functionData.subscription_data || null,
+          subscription_data: functionData
         });
-        setState(prev => ({ ...prev, isLoading: false }));
+        
         return;
       }
-
-      // Fetch plan details if subscribed
-      let plan: PricePlan | null = null;
-      let customer: Customer | null = null;
-      let usedMessages = 0;
-
-      if (data.subscription_tier) {
-        // Get plan details from price_plans table
-        const { data: planData, error: planError } = await supabase
-          .from('price_plans')
-          .select('*')
-          .eq('code', data.subscription_tier)
-          .single();
-
-        if (planError) {
-          console.error("Error fetching plan:", planError);
-        } else {
-          plan = planData;
-        }
-
-        // Get customer details
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('*')
-          .eq('user_id', session.session.user.id)
-          .single();
-
-        if (customerError) {
-          console.error("Error fetching customer:", customerError);
-        } else {
-          customer = {
-            ...customerData,
-            current_period_end: customerData.current_period_end ? new Date(customerData.current_period_end) : null
-          };
-        }
-
-        // Get current usage
-        const { data: usageData } = await supabase
-          .from('v_current_usage')
-          .select('msgs_used')
-          .eq('user_id', session.session.user.id)
-          .single();
-
-        if (usageData) {
-          usedMessages = usageData.msgs_used || 0;
-        }
-      }
-
-      setState({
+      
+      // Se encontrou dados na tabela subscribers
+      const isActive = subscriberData.subscribed && 
+                      (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+      
+      setState(prev => ({
         isLoading: false,
-        subscribed: data.subscribed,
-        subscriptionTier: data.subscription_tier,
-        subscriptionEnd: data.subscription_end ? new Date(data.subscription_end) : null,
-        messageLimit: data.message_limit || 10,
-        plan,
-        canSendMessage: data.can_send_message !== false,
-        usedMessages,
-        customer
-      });
+        subscribed: isActive,
+        subscriptionTier: subscriberData.subscription_tier || "Gratuito",
+        subscriptionEnd: subscriberData.subscription_end ? new Date(subscriberData.subscription_end) : null,
+        messageLimit: prev.messageLimit, // Será atualizado pelo hook que gerencia os planos
+        plan: null, // Será atualizado pelo hook que gerencia os planos
+        subscription_data: subscriberData
+      }));
+      
     } catch (error) {
-      console.error("Error in checkSubscription:", error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error('Erro ao verificar assinatura:', error);
+      // Não mostrar toast de erro para não interromper a experiência do usuário
+      if (setState) {
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false 
+        }));
+      }
     }
   };
 
-  const startCheckout = async (stripePriceId: string) => {
+  const startCheckout = async (priceId: string, successUrl?: string, cancelUrl?: string) => {
+    if (!setState) return;
+    
     try {
-      setIsProcessing(true);
+      setState(prev => ({ ...prev, isLoading: true }));
       
-      const origin = window.location.origin;
-      const successUrl = `${origin}/payment-success`;
-      const cancelUrl = `${origin}/profile`;
-      
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { 
-          priceId: stripePriceId,
-          successUrl,
-          cancelUrl
-        }
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId, successUrl, cancelUrl }
       });
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não recebida');
       }
-
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
     } catch (error) {
-      console.error("Error starting checkout:", error);
+      console.error('Erro ao iniciar checkout:', error);
       toast({
-        title: "Erro no checkout",
-        description: "Não foi possível iniciar o processo de pagamento.",
+        title: "Erro",
+        description: "Não foi possível iniciar o processo de assinatura",
         variant: "destructive",
       });
-      setIsProcessing(false);
+      setState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -133,52 +104,34 @@ export const useSubscriptionActions = (setState: Function) => {
     try {
       setIsProcessing(true);
       
-      const { data, error } = await supabase.functions.invoke("customer-portal");
+      const { data, error } = await supabase.functions.invoke('customer-portal');
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL do portal não recebida');
       }
-
-      // Redirect to Customer Portal
-      window.location.href = data.url;
     } catch (error) {
-      console.error("Error opening customer portal:", error);
+      console.error('Erro ao abrir portal do cliente:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível abrir o portal do cliente.",
+        description: "Não foi possível abrir o portal de gerenciamento",
         variant: "destructive",
       });
+      if (setState) {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    } finally {
       setIsProcessing(false);
     }
   };
 
-  const trackUsage = async (usageType: string, amount: number, context?: any) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("track-usage", {
-        body: { 
-          usage_type: usageType,
-          amount,
-          context
-        }
-      });
-
-      if (error) {
-        console.error("Error tracking usage:", error);
-        return { success: false, error };
-      }
-
-      return data;
-    } catch (error) {
-      console.error("Error in trackUsage:", error);
-      return { success: false, error };
-    }
-  };
-
-  return { 
-    checkSubscription, 
-    startCheckout, 
+  return {
+    checkSubscription,
+    startCheckout,
     openCustomerPortal,
-    trackUsage,
-    isProcessing 
+    isProcessing
   };
 };

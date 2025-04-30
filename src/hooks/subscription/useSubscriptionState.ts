@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { SubscriptionState } from '@/types/subscription';
+import { SubscriptionState } from './types';
 
 export const useSubscriptionState = () => {
   const [state, setState] = useState<SubscriptionState>({
@@ -8,11 +8,9 @@ export const useSubscriptionState = () => {
     subscribed: false,
     subscriptionTier: null,
     subscriptionEnd: null,
-    messageLimit: 10, // Default for free plan
+    messageLimit: 10, // Padrão para plano gratuito
     plan: null,
-    canSendMessage: true,
-    usedMessages: 0,
-    customer: null
+    subscription_data: null
   });
 
   return { state, setState };

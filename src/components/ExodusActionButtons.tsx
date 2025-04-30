@@ -1,76 +1,78 @@
 
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { BookOpen, Download, Share2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from '@/hooks/useSubscription';
-import { useMessageCount } from '@/hooks/useMessageCount';
-import SubscriptionModal from './SubscriptionModal';
+import React, { useContext } from "react";
+import { Send } from 'lucide-react';
+import { ChatContext } from "./ActionButtons";
+import { useMessageCount } from "@/hooks/useMessageCount";
+import { toast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
 
-export const ExodusActionButtons = () => {
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const { toast } = useToast();
-  const { subscribed } = useSubscription();
-  const { messageCount, messageLimit, canSendMessage, increment } = useMessageCount();
-  
-  const handleDownloadButtonClick = async () => {
-    if (messageCount >= messageLimit && !subscribed) {
-      setShowSubscriptionModal(true);
-      return;
-    }
+interface ExodusActionButtonsProps {
+  displayInModal?: boolean;
+}
 
+const ExodusActionButtons = ({ displayInModal = false }: ExodusActionButtonsProps) => {
+  const { sendMessage } = useContext(ChatContext);
+  const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage } = useMessageCount();
+
+  const handleButtonClick = (prompt: string) => {
     if (!canSendMessage) {
       toast({
-        title: "Limite excedido",
-        description: "Você atingiu seu limite mensal de mensagens.",
-        variant: "destructive"
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.",
+        variant: "destructive",
       });
       return;
     }
     
-    // Track message use
-    await increment();
-    
-    toast({
-      title: "Download Iniciado",
-      description: "Seu download do material de Êxodo começou."
-    });
+    if (sendMessage) {
+      sendMessage(prompt);
+      // Incrementa o contador de mensagens quando uma sugestão é clicada
+      incrementMessageCount();
+    }
   };
-  
+
+  // Se não estiver sendo exibido no modal e displayInModal for false, não renderizar nada
+  if (!displayInModal) {
+    return null;
+  }
+
+  const actions = [
+    { 
+      label: "A Libertação",
+      prompt: "Como a libertação do Egito em Êxodo serve como modelo de redenção ao longo da narrativa bíblica? (Explora os temas da escravidão, libertação e pacto.)"
+    },
+    { 
+      label: "Os 10 Mandamentos",
+      prompt: "Qual é o significado dos Dez Mandamentos para a formação da identidade de Israel como nação? (Analise a estrutura e propósito da lei mosaica.)"
+    },
+    { 
+      label: "O Tabernáculo",
+      prompt: "Como o Tabernáculo simboliza a presença de Deus entre seu povo em Êxodo? (Detalhe sua construção, simbolismo e importância teológica.)"
+    },
+    { 
+      label: "Moisés",
+      prompt: "De que maneira a vida de Moisés exemplifica liderança espiritual em Êxodo? (Explore seu chamado, desafios e crescimento como líder.)"
+    },
+    { 
+      label: "As Pragas",
+      prompt: "Qual o propósito das dez pragas no contexto do confronto entre Deus e os deuses do Egito? (Analise seu significado simbólico e teológico.)"
+    }
+  ];
+
   return (
-    <div className="flex flex-wrap gap-2 justify-start mt-4">
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2"
-        onClick={handleDownloadButtonClick}
-      >
-        <Download size={16} />
-        <span className="hidden sm:inline">Baixar material</span>
-        <span className="sm:hidden">Baixar</span>
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2"
-      >
-        <BookOpen size={16} />
-        <span className="hidden sm:inline">Ver mais recursos</span>
-        <span className="sm:hidden">Recursos</span>
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2"
-      >
-        <Share2 size={16} />
-        <span className="hidden sm:inline">Compartilhar</span>
-        <span className="sm:hidden">Compartilhar</span>
-      </Button>
-      
-      <SubscriptionModal 
-        isOpen={showSubscriptionModal} 
-        onClose={() => setShowSubscriptionModal(false)} 
-      />
+    <div className="grid grid-cols-2 gap-4 mt-4">
+      {actions.map((action) => (
+        <Card
+          key={action.label}
+          className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all"
+          onClick={() => handleButtonClick(action.prompt)}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[14px] font-medium">{action.label}</span>
+            <Send className="h-4 w-4 text-[#4483f4]" />
+          </div>
+        </Card>
+      ))}
     </div>
   );
 };

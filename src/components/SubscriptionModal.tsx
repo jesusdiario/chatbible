@@ -4,7 +4,6 @@ import { X, CreditCard, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { formatCurrency } from "@/lib/formatters";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -14,7 +13,7 @@ interface SubscriptionModalProps {
 const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { plans, getStripePriceId, subscriptionTier } = useSubscription();
+  const { plans, startCheckout } = useSubscription();
 
   useEffect(() => {
     if (!isOpen) {
@@ -24,40 +23,11 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
 
   if (!isOpen) return null;
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (priceId: string) => {
     setIsProcessing(true);
-    
-    // Get Stripe price ID for the plan
-    const stripePriceId = getStripePriceId(planId);
-    
-    if (!stripePriceId) {
-      toast({
-        title: "Erro",
-        description: "ID do preço Stripe não encontrado para este plano",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
-      return;
-    }
-    
-    try {
-      const { startCheckout } = useSubscription();
-      await startCheckout(stripePriceId);
-      // User will be redirected to Stripe
-    } catch (error) {
-      console.error("Error starting checkout:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível iniciar o checkout",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
-    }
+    await startCheckout(priceId);
+    // Não vamos fechar o modal aqui pois o usuário será redirecionado para o Stripe
   };
-
-  // Filter out free plan from modal
-  const paidPlans = plans.filter(plan => plan.price_cents > 0);
-  const currentPlanCode = subscriptionTier || 'FREE';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -72,30 +42,22 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
         </button>
         
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-semibold mb-2">Upgrade para BibleChat Pro</h2>
-          <p className="text-slate-400">Libere todo o potencial do BibleChat</p>
+          <h2 className="text-2xl font-semibold mb-2">Upgrade para BibleGPT Pro</h2>
+          <p className="text-slate-400">Libere todo o potencial do BibleGPT</p>
         </div>
         
         {plans.length > 0 ? (
           <div className="space-y-6">
-            {paidPlans.map((plan) => (
-              <div 
-                key={plan.id} 
-                className={`mb-6 rounded-lg border p-6 ${
-                  currentPlanCode === plan.code ? 'border-green-500 bg-green-50' : 'border-slate-700'
-                }`}
-              >
-                {currentPlanCode === plan.code && (
-                  <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                    Plano Atual
-                  </div>
-                )}
-                
+            {plans.filter(plan => plan.stripe_price_id !== 'free_plan').map((plan) => (
+              <div key={plan.id} className="mb-6 rounded-lg border border-slate-700 p-6">
                 <div className="mb-4 flex items-baseline justify-center">
                   <span className="text-3xl font-bold">
-                    {formatCurrency(plan.price_cents / 100, plan.currency)}
+                    {new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: plan.price_currency 
+                    }).format(plan.price_amount / 100)}
                   </span>
-                  <span className="ml-1 text-slate-400">/{plan.period}</span>
+                  <span className="ml-1 text-slate-400">/mês</span>
                 </div>
                 
                 <ul className="mb-6 space-y-3">
@@ -115,33 +77,23 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                   </li>
                 </ul>
                 
-                {currentPlanCode !== plan.code ? (
-                  <Button 
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="h-4 w-4" />
-                        Assinar agora
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={onClose}
-                  >
-                    Plano Atual
-                  </Button>
-                )}
+                <Button 
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={() => handleSubscribe(plan.stripe_price_id)}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      Assinar agora
+                    </>
+                  )}
+                </Button>
               </div>
             ))}
           </div>

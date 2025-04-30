@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
-import { formatDate, formatCurrency } from "@/lib/formatters";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const SubscriptionSection = () => {
   const { 
@@ -20,8 +21,7 @@ const SubscriptionSection = () => {
     plan, 
     isLoading,
     openCustomerPortal, 
-    refreshSubscription,
-    customer
+    refreshSubscription 
   } = useSubscription();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,20 +74,23 @@ const SubscriptionSection = () => {
                 )}
               </div>
 
-              {plan && (
+              {subscribed && (
                 <>
                   <div className="grid gap-1">
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Plano</span>
-                      <span className="text-sm font-medium">{plan.name}</span>
+                      <span className="text-sm font-medium">{subscriptionTier}</span>
                     </div>
                     
-                    {plan.price_cents > 0 && (
+                    {plan && (
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Valor</span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(plan.price_cents / 100, plan.currency)}
-                          /{plan.period}
+                          {new Intl.NumberFormat('pt-BR', { 
+                            style: 'currency', 
+                            currency: plan.price_currency || 'BRL' 
+                          }).format(plan.price_amount / 100)}
+                          /mês
                         </span>
                       </div>
                     )}
@@ -96,7 +99,7 @@ const SubscriptionSection = () => {
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Próxima cobrança</span>
                         <span className="text-sm font-medium">
-                          {formatDate(subscriptionEnd)}
+                          {format(new Date(subscriptionEnd), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         </span>
                       </div>
                     )}

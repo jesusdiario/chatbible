@@ -14,13 +14,13 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  // Handle OPTIONS requests for CORS
+  // Lidar com requisições OPTIONS para CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders, status: 204 });
   }
 
   try {
-    logStep("Function started");
+    logStep("Função iniciada");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("Chave do Stripe não configurada");
@@ -32,7 +32,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get authorization from header
+    // Obtenha a autorização do cabeçalho
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -41,7 +41,7 @@ serve(async (req) => {
       });
     }
 
-    // Verify authenticated user
+    // Verificar usuário autenticado
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
@@ -52,44 +52,19 @@ serve(async (req) => {
     }
     logStep("Usuário autenticado", { userId: user.id, email: user.email });
 
-    // Get customer from database
-    const { data: customer } = await supabaseClient
-      .from("customers")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .single();
-      
-    // Initialize Stripe
+    // Inicialize o Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2022-11-15" });
-    
-    let customerId;
-    
-    if (customer?.stripe_customer_id) {
-      customerId = customer.stripe_customer_id;
-      logStep("Cliente encontrado no banco de dados", { customerId });
-    } else {
-      // Fallback to search in Stripe
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      if (customers.data.length === 0) {
-        return new Response(JSON.stringify({ error: "Cliente não encontrado no Stripe" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 404,
-        });
-      }
-      customerId = customers.data[0].id;
-      
-      // Update customer in database
-      await supabaseClient
-        .from("customers")
-        .upsert({
-          user_id: user.id,
-          email: user.email,
-          stripe_customer_id: customerId,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-        
-      logStep("Cliente encontrado no Stripe e atualizado no banco", { customerId });
+
+    // Buscar cliente no Stripe
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (customers.data.length === 0) {
+      return new Response(JSON.stringify({ error: "Cliente não encontrado no Stripe" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
+    const customerId = customers.data[0].id;
+    logStep("Cliente Stripe encontrado", { customerId });
 
     const returnUrl = req.headers.get("origin") || "http://localhost:5173";
     const portalSession = await stripe.billingPortal.sessions.create({

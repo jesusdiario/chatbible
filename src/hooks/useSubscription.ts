@@ -7,10 +7,24 @@ import { useSubscriptionPlans } from './subscription/useSubscriptionPlans';
 
 export const useSubscription = () => {
   const { state, setState } = useSubscriptionState();
-  const { checkSubscription, startCheckout, openCustomerPortal, trackUsage, isProcessing } = useSubscriptionActions(setState);
-  const { plans, getStripePriceId } = useSubscriptionPlans(state.subscriptionTier);
+  const { checkSubscription, startCheckout, openCustomerPortal } = useSubscriptionActions(setState);
+  const plans = useSubscriptionPlans(state.subscriptionTier);
   
-  // Check subscription when component mounts
+  // Atualizar o messageLimit quando tiver os planos e subscription tier
+  useEffect(() => {
+    if (plans.length > 0 && state.subscriptionTier) {
+      const currentPlan = plans.find(p => p.name === state.subscriptionTier);
+      if (currentPlan) {
+        setState(prev => ({
+          ...prev,
+          messageLimit: currentPlan.message_limit,
+          plan: currentPlan
+        }));
+      }
+    }
+  }, [plans, state.subscriptionTier, setState]);
+
+  // Verificar assinatura quando componente montar
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
@@ -23,7 +37,7 @@ export const useSubscription = () => {
     
     checkAuth();
 
-    // Set up listener for auth state changes
+    // Configurar listener para mudanças de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         checkSubscription();
@@ -35,9 +49,7 @@ export const useSubscription = () => {
           subscriptionEnd: null,
           messageLimit: 10,
           plan: null,
-          canSendMessage: true,
-          usedMessages: 0,
-          customer: null
+          subscription_data: null
         });
       }
     });
@@ -49,22 +61,12 @@ export const useSubscription = () => {
     };
   }, []);
 
-  // Helper method to get the Stripe ID for the plan code
-  const getStripePriceIdByCode = (code: string) => {
-    const plan = plans.find(p => p.code === code);
-    return plan ? getStripePriceId(plan.id) : null;
-  };
-
   return {
     ...state,
     plans,
     checkSubscription,
     startCheckout,
     openCustomerPortal,
-    trackUsage,
-    refreshSubscription: checkSubscription,
-    isProcessing,
-    getStripePriceId,
-    getStripePriceIdByCode,
+    refreshSubscription: checkSubscription
   };
 };

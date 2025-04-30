@@ -1,10 +1,10 @@
-
 import React, { useContext } from "react";
+import { Send } from "lucide-react";
 import { ChatContext } from "./ActionButtons";
 import { useBibleSuggestions } from "@/hooks/useBibleSuggestions";
 import { useMessageCount } from "@/hooks/useMessageCount";
-import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   Tooltip,
   TooltipContent,
@@ -45,10 +45,10 @@ const BookActionButtons = ({
     incrementMessageCount,
   } = useMessageCount();
 
-  const { getStripePriceIdByCode, startCheckout } = useSubscription();
+  const { startCheckout } = useSubscription();
 
   /* ------------ HANDLERS ------------------------------------------ */
-  const handleButtonClick = async (suggestion: Suggestion) => {
+  const handleButtonClick = (suggestion: Suggestion) => {
     if (!canSendMessage) {
       toast({
         title: "Limite de mensagens atingido",
@@ -60,25 +60,17 @@ const BookActionButtons = ({
 
     if (!sendMessage) return;
 
-    // Send message (with optional override)
+    // Envia mensagem (com override opcional)
     suggestion.prompt_override
       ? sendMessage(suggestion.user_message, suggestion.prompt_override)
       : sendMessage(suggestion.user_message);
 
-    await incrementMessageCount();
+    incrementMessageCount();
   };
 
   const handleUpgradeClick = () => {
-    const stripePriceId = getStripePriceIdByCode('PRO');
-    if (stripePriceId) {
-      startCheckout(stripePriceId);
-    } else {
-      toast({
-        title: "Erro",
-        description: "Não foi possível encontrar o plano. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
+    // ID do preço do seu plano premium
+    startCheckout("price_1OeVptLyyMwTutR9oFF1m3aC");
   };
 
   /* ------------ EARLY-RETURNS ------------------------------------- */
@@ -88,11 +80,11 @@ const BookActionButtons = ({
 
   if (!suggestions || suggestions.length === 0) return null;
 
-  // this component should only be rendered inside the modal
+  // este componente só deve ser renderizado dentro do modal
   if (!displayInModal) return null;
 
   /* ------------ UI ------------------------------------------------- */
-  // (1) Warning / upgrade button if the limit has been reached
+  // (1) Aviso / botão de upgrade caso tenha atingido o limite
   if (!canSendMessage) {
     return (
       <div className="flex flex-col items-center gap-3 mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
@@ -109,12 +101,12 @@ const BookActionButtons = ({
     );
   }
 
-  // (2) List of suggestions - scrollable container
+  // (2) Lista de sugestões – container rolável
   return (
     <div
       className="
         grid grid-cols-1 gap-4 mt-4
-        max-h-[70vh] overflow-y-auto pr-2       /* internal scrolling      */
+        max-h-[70vh] overflow-y-auto pr-2       /* rolagem interna      */
       "
     >
       {suggestions.map((suggestion) => (
@@ -132,7 +124,7 @@ const BookActionButtons = ({
             </span>
           </div>
 
-          {/* Optional tooltip for description -------------------------------- */}
+          {/* Tooltip opcional para descrição -------------------------------- */}
           {suggestion.description && (
             <TooltipProvider>
               <Tooltip>
@@ -156,3 +148,25 @@ const BookActionButtons = ({
 };
 
 export default BookActionButtons;
+
+/* ------------------------------------------------------------------ */
+/* NOTAS PARA O MODAL QUE ENVOLVE ESTE COMPONENTE                     */
+/* ------------------------------------------------------------------ */
+/*
+1) Largura de 80 % em mobile
+   No wrapper (Dialog.Content, Sheet, etc.), adicione algo como:
+     className="
+       w-full sm:max-w-[80%]   // até 640 px (sm) = 80 % da tela
+       md:max-w-lg             // a partir de md (≥768 px) cresce
+       mx-auto                 // centraliza horizontalmente
+     "
+
+2) Clique fora fecha o modal
+   Se usar Radix Dialog, o overlay já dispara onOpenChange(false) ao
+   clicar fora. Caso seja custom, coloque:
+     <div onClick={() => setOpen(false)} />
+
+3) Desativar rolagem de fundo
+   Ao abrir o modal, adicione 'overflow-hidden' em <body> (Radix faz
+   isso automaticamente) para evitar rolagem “dupla”.
+*/
