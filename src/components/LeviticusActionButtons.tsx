@@ -1,7 +1,7 @@
 
 import React, { useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { icons } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { ChatContext } from "./ActionButtons";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import { toast } from "@/hooks/use-toast";
@@ -65,9 +65,8 @@ const LeviticusActionButtons = ({ displayInModal = false }: LeviticusActionButto
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+    <div className="grid grid-cols-2 gap-4 mt-4">
       {suggestions.map((suggestion) => {
-        const IconComponent = icons[suggestion.icon as keyof typeof icons];
         return (
           <Card
             key={suggestion.id}
@@ -75,10 +74,8 @@ const LeviticusActionButtons = ({ displayInModal = false }: LeviticusActionButto
             onClick={() => handleButtonClick(suggestion)}
           >
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                {IconComponent && <IconComponent className="h-5 w-5 text-[#4483f4]" />}
-                <span className="font-medium">{suggestion.label}</span>
-              </div>
+              <span className="text-[14px] font-medium">{suggestion.label}</span>
+              <Send className="h-4 w-4 text-[#4483f4]" />
             </div>
           </Card>
         );

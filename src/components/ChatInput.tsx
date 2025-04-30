@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -127,7 +126,7 @@ const ChatInput = ({
       
       {/* Questions Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t('chat.readyQuestions')}</DialogTitle>
           </DialogHeader>

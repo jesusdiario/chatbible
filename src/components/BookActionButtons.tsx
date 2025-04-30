@@ -1,6 +1,6 @@
 
 import React, { useContext } from "react";
-import { icons } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { ChatContext } from "./ActionButtons";
 import { useBibleSuggestions } from "@/hooks/useBibleSuggestions";
 import { useMessageCount } from "@/hooks/useMessageCount";
@@ -90,12 +90,10 @@ const BookActionButtons = ({ bookSlug, displayInModal = false }: BookActionButto
     );
   }
 
-  // Novo layout com Cards para os botões, semelhante aos cards dos livros
+  // Layout modificado para duas colunas
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+    <div className="grid grid-cols-2 gap-4 mt-4">
       {suggestions.map((suggestion) => {
-        const IconComponent = suggestion.icon ? icons[suggestion.icon as keyof typeof icons] : undefined;
-        
         return (
           <Card
             key={suggestion.id}
@@ -103,24 +101,22 @@ const BookActionButtons = ({ bookSlug, displayInModal = false }: BookActionButto
             onClick={() => handleButtonClick(suggestion)}
           >
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                {IconComponent && <IconComponent className="h-5 w-5 text-[#4483f4]" />}
-                <span className="font-medium">{suggestion.label}</span>
-              </div>
-              {suggestion.description && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="text-xs text-gray-400 hover:text-gray-600">?</div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-[200px]">{suggestion.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+              <span className="text-[14px] font-medium">{suggestion.label}</span>
+              <Send className="h-4 w-4 text-[#4483f4]" />
             </div>
-          </Card>
+            {suggestion.description && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="text-xs text-gray-400 hover:text-gray-600">?</div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs max-w-[200px]">{suggestion.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         );
       })}
     </div>
