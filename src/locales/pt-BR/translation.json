@@ -1,0 +1,88 @@
+
+{
+  "common": {
+    "welcome": "Bem-vindo",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "back": "Voltar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "search": "Buscar",
+    "confirm": "Confirmar",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "Email",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu sua senha?",
+    "resetPassword": "Redefinir senha",
+    "signin": "Entrar",
+    "signup": "Cadastrar",
+    "createAccount": "Criar uma conta",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "passwordChanged": "Sua senha foi alterada com sucesso",
+    "accountCreated": "Conta criada com sucesso"
+  },
+  "profile": {
+    "title": "Perfil",
+    "account": "Conta",
+    "accountInfo": "Informações da Conta",
+    "changePassword": "Alterar senha",
+    "logout": "Sair da conta",
+    "processing": "Processando...",
+    "usage": "Uso",
+    "messagesUsed": "Mensagens utilizadas",
+    "messageLimit": "de",
+    "daysUntilReset": "Dias até o próximo reset",
+    "subscription": "Assinatura",
+    "currentPlan": "Plano atual",
+    "free": "Gratuito",
+    "standard": "Standard",
+    "premium": "Premium",
+    "upgrade": "Fazer upgrade",
+    "manageSubscription": "Gerenciar assinatura",
+    "language": "Idioma",
+    "selectLanguage": "Selecione o idioma",
+    "languageChanged": "Idioma alterado com sucesso"
+  },
+  "bible": {
+    "explore": "Explore os livros da Bíblia e aprofunde seu conhecimento",
+    "bibleBooks": "Livros da Bíblia",
+    "oldTestament": "Antigo Testamento",
+    "newTestament": "Novo Testamento",
+    "pentateuch": "Pentateuco",
+    "historical": "Histórico",
+    "poetic": "Poético",
+    "prophetic": "Profético",
+    "gospels": "Evangelhos",
+    "paulineLetters": "Cartas Paulinas",
+    "generalLetters": "Cartas Gerais",
+    "revelation": "Apocalipse"
+  },
+  "chat": {
+    "newChat": "Nova conversa",
+    "typeMessage": "Digite sua mensagem...",
+    "send": "Enviar",
+    "suggestion": "Sugestão",
+    "history": "Histórico",
+    "pinned": "Fixados",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "previousSeven": "7 dias atrás",
+    "older": "Mais antigos",
+    "limitReached": "Limite de mensagens atingido",
+    "upgradeMessage": "Faça upgrade para o plano premium para enviar mais mensagens."
+  },
+  "errors": {
+    "general": "Ocorreu um erro. Por favor, tente novamente.",
+    "login": "Erro ao entrar. Verifique suas credenciais.",
+    "logout": "Erro ao sair. Tente novamente.",
+    "loadProfile": "Erro ao carregar perfil",
+    "notAuthenticated": "Você precisa estar logado para acessar esta página."
+  }
+}
