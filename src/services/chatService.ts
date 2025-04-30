@@ -13,7 +13,8 @@ export const sendChatMessage = async (
   userId?: string,
   slug?: string,
   promptOverride?: string,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  onLoadingStageChange?: (stage: string) => void
 ): Promise<SendMessageResponse> => {
   const userMessage: Message = { role: 'user', content };
   const newMessages = [...messages, userMessage];
@@ -33,6 +34,32 @@ export const sendChatMessage = async (
 
   const systemPrompt = promptOverride ?? await getPromptForBook(book);
 
+  // Estágios de carregamento para mostrar ao usuário
+  const loadingStages = [
+    "Aguarde...",
+    "Consultando a Bíblia...",
+    "Sola Scriptura...",
+    "Sola Fide...",
+    "Sola Gratia...",
+    "Solus Christus...",
+    "Soli Deo Gloria...",
+    "Revisão teológica...",
+    "Concluído!"
+  ];
+  
+  // Inicia a sequência de estágios de carregamento
+  let currentStageIndex = 0;
+  const stageInterval = setInterval(() => {
+    if (currentStageIndex < loadingStages.length && onLoadingStageChange) {
+      onLoadingStageChange(loadingStages[currentStageIndex]);
+      currentStageIndex++;
+    }
+    
+    if (currentStageIndex >= loadingStages.length) {
+      clearInterval(stageInterval);
+    }
+  }, 2000); // Muda o estágio a cada 2 segundos
+
   const response = await fetch(
     'https://qdukcxetdfidgxcuwjdo.functions.supabase.co/chat',
     {
@@ -45,7 +72,10 @@ export const sendChatMessage = async (
     }
   );
 
-  if (!response.body) throw new Error('No stream returned from edge-function');
+  if (!response.body) {
+    clearInterval(stageInterval);
+    throw new Error('No stream returned from edge-function');
+  }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -80,6 +110,8 @@ export const sendChatMessage = async (
       // Define intervalo entre atualizações baseado no dispositivo
       const UPDATE_THRESHOLD = isMobile ? 300 : 100; // ms
       let pendingUpdate = '';
+      // Para resolver o erro de tipo, criamos um objeto para armazenar o timeout flag
+      const pendingUpdateState = { timeoutSet: false };
 
       // Função que persiste as mensagens periodicamente
       const persistMessages = async () => {
@@ -122,10 +154,12 @@ export const sendChatMessage = async (
                 if (now - lastUpdateTime >= UPDATE_THRESHOLD) {
                   // Se passou tempo suficiente, executa a atualização imediatamente
                   if (pendingUpdate) {
-                    onChunk(pendingUpdate + payload.content);
+                    // Não mostramos o conteúdo em tempo real para o usuário conforme solicitado
+                    // onChunk(pendingUpdate + payload.content);
                     pendingUpdate = '';
                   } else {
-                    onChunk(payload.content);
+                    // Não mostramos o conteúdo em tempo real para o usuário conforme solicitado
+                    // onChunk(payload.content);
                   }
                   lastUpdateTime = now;
                 } else {
@@ -133,14 +167,15 @@ export const sendChatMessage = async (
                   pendingUpdate += payload.content;
                   
                   // Programa um timeout para garantir que eventualmente atualizamos
-                  if (!pendingUpdate.endTimeoutSet) {
-                    pendingUpdate.endTimeoutSet = true;
+                  if (!pendingUpdateState.timeoutSet) {
+                    pendingUpdateState.timeoutSet = true;
                     setTimeout(() => {
                       if (pendingUpdate) {
-                        onChunk(pendingUpdate);
+                        // Não mostramos o conteúdo em tempo real para o usuário conforme solicitado
+                        // onChunk(pendingUpdate);
                         pendingUpdate = '';
                       }
-                      pendingUpdate.endTimeoutSet = false;
+                      pendingUpdateState.timeoutSet = false;
                     }, UPDATE_THRESHOLD);
                   }
                 }
@@ -160,18 +195,33 @@ export const sendChatMessage = async (
 
       // Aplicar todos os chunks acumulados quando estiver em modo background
       if (bufferedChunks && onChunk && processingInBackground) {
-        onChunk(bufferedChunks);
+        // Não mostramos o conteúdo em tempo real para o usuário conforme solicitado
+        // onChunk(bufferedChunks);
       }
       
       // Garante que qualquer pendência final seja processada
       if (pendingUpdate && onChunk) {
-        onChunk(pendingUpdate);
+        // Não mostramos o conteúdo em tempo real para o usuário conforme solicitado
+        // onChunk(pendingUpdate);
       }
       
       // Remove o ouvinte de visibilidade
       document.removeEventListener('visibilitychange', visibilityHandler);
+      
+      // Limpa o intervalo dos estágios e marca como concluído
+      clearInterval(stageInterval);
+      if (onLoadingStageChange) {
+        onLoadingStageChange("Concluído!");
+        // Pequeno atraso antes de mostrar a resposta final
+        setTimeout(() => {
+          if (onChunk) {
+            onChunk(assistantFull);
+          }
+        }, 1000);
+      }
     } catch (streamError) {
       console.error('Error processing stream:', streamError);
+      clearInterval(stageInterval);
     }
     resolve();
   });

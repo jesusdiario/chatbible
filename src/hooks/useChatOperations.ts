@@ -17,6 +17,7 @@ export const useChatOperations = (
   const messageProcessingRef = useRef<boolean>(false);
   const lastMessageRef = useRef<string>('');
   const [isTyping, setIsTyping] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<string | null>(null);
 
   const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
@@ -48,16 +49,19 @@ export const useChatOperations = (
         slug,
         undefined,
         (chunk) => {
-          // Não dependemos mais do estado de visibilidade aqui 
-          // O chatService.ts agora gerencia isso internamente
+          // Atualiza a mensagem completa de uma vez quando tiver todo o conteúdo
           setMessages((prev: Message[]) => {
             const newMsgs = [...prev];
             const lastMsg = newMsgs[newMsgs.length - 1];
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.content = (lastMsg.content || '') + chunk;
+              lastMsg.content = chunk;
             }
             return newMsgs;
           });
+        },
+        (stage) => {
+          // Atualiza o estágio de carregamento quando muda
+          setLoadingStage(stage);
         }
       );
       
@@ -84,9 +88,9 @@ export const useChatOperations = (
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+      setLoadingStage(null);
       
       // Sempre definimos como false após a conclusão
-      // independentemente do estado de visibilidade
       messageProcessingRef.current = false;
     }
   }, [messages, book, userId, slug, navigate, setMessages, setIsLoading]);
@@ -95,6 +99,7 @@ export const useChatOperations = (
     handleSendMessage,
     isTyping,
     messageProcessingRef,
-    lastMessageRef
+    lastMessageRef,
+    loadingStage
   };
 };

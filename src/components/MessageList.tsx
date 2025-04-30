@@ -5,19 +5,25 @@ import Message from './Message';
 import { Message as MessageType } from '@/types/chat';
 import { Button } from './ui/button';
 import { ChevronUp } from 'lucide-react';
-import { ScrollArea } from './ui/scroll-area';
 import { Progress } from './ui/progress';
 
 interface MessageListProps {
   messages: MessageType[];
   isTyping?: boolean;
+  loadingStage?: string | null;
+  disableAutoScroll?: boolean;
 }
 
-const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
+const MessageList: FC<MessageListProps> = ({ 
+  messages, 
+  isTyping = false, 
+  loadingStage = null,
+  disableAutoScroll = false
+}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
+  const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(!disableAutoScroll);
   const [scrollProgress, setScrollProgress] = useState(100);
   const isMobile = useMediaQuery('(max-width: 640px)');
   
@@ -53,9 +59,10 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
     }
   }, []);
   
-  // Efeito para rolagem automática quando novas mensagens chegam
+  // Efeito para rolagem automática quando novas mensagens chegam, mas apenas se não for desativado
   useEffect(() => {
-    if (isAutoScrollEnabled && messagesEndRef.current) {
+    // Só faz o scroll automático se isAutoScrollEnabled for true E não estiver explicitamente desabilitado
+    if (isAutoScrollEnabled && !disableAutoScroll && messagesEndRef.current) {
       // Usa comportamento diferente entre desktop e mobile
       const scrollBehavior = isMobile ? 'auto' : 'smooth';
       
@@ -66,7 +73,7 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
         scrollToBottom(scrollBehavior);
       }
     }
-  }, [messages, isTyping, isAutoScrollEnabled, scrollToBottom, isMobile]);
+  }, [messages, isTyping, isAutoScrollEnabled, scrollToBottom, isMobile, disableAutoScroll]);
   
   return (
     <div 
@@ -122,16 +129,10 @@ const MessageList: FC<MessageListProps> = ({ messages, isTyping = false }) => {
                 key={index} 
                 {...message} 
                 showActions={!isTyping || index < messages.length - 1}
+                loadingStage={index === messages.length - 1 && isTyping ? loadingStage : null}
+                isTyping={index === messages.length - 1 && isTyping}
               />
             ))}
-            
-            {isTyping && (
-              <Message 
-                role="assistant" 
-                content="" 
-                isTyping={true} 
-              />
-            )}
           </>
         )}
         

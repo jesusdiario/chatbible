@@ -10,13 +10,15 @@ import { Skeleton } from './ui/skeleton';
 interface MessageProps extends MessageType {
   isTyping?: boolean;
   showActions?: boolean;
+  loadingStage?: string | null;
 }
 
 const Message: FC<MessageProps> = ({ 
   role, 
   content, 
   isTyping = false,
-  showActions = true
+  showActions = true,
+  loadingStage = null
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRenderActions, setShouldRenderActions] = useState(false);
@@ -42,15 +44,28 @@ const Message: FC<MessageProps> = ({
   }, [isTyping, role]);
 
   // Esqueleto de carregamento para mensagens do assistente
-  if (role === 'assistant' && content === '' && isTyping) {
+  if (role === 'assistant' && (content === '' || content.trim() === '') && isTyping) {
     return (
       <div className="py-6">
         <div className="flex gap-4">
           <MessageAvatar isAssistant={true} />
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-4 w-3/4 rounded" />
-            <Skeleton className="h-4 w-5/6 rounded" />
-            <Skeleton className="h-4 w-2/3 rounded" />
+          <div className="flex-1 space-y-4">
+            {loadingStage ? (
+              <div className="animate-pulse flex flex-col items-center">
+                <div className="text-lg font-semibold text-center">{loadingStage}</div>
+                <div className="loading-dots mt-2">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Skeleton className="h-4 w-3/4 rounded" />
+                <Skeleton className="h-4 w-5/6 rounded" />
+                <Skeleton className="h-4 w-2/3 rounded" />
+              </>
+            )}
           </div>
         </div>
       </div>

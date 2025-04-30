@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import ChatInput from './ChatInput';
 import MessageList from './MessageList';
 import EmptyChatState from './EmptyChatState';
@@ -12,6 +12,7 @@ interface BookChatProps {
   isTyping: boolean;
   bookSlug?: string;
   onSendMessage: (content: string) => void;
+  loadingStage?: string | null;
 }
 
 const BookChat: React.FC<BookChatProps> = ({
@@ -21,6 +22,7 @@ const BookChat: React.FC<BookChatProps> = ({
   isTyping,
   bookSlug,
   onSendMessage,
+  loadingStage
 }) => {
   return (
     <div className={`flex h-full flex-col ${messages.length === 0 ? 'items-center justify-center' : 'justify-between'} pt-[60px] pb-4`}>
@@ -33,7 +35,12 @@ const BookChat: React.FC<BookChatProps> = ({
         />
       ) : (
         <>
-          <MessageList messages={messages} isTyping={isTyping} />
+          <MessageList 
+            messages={messages} 
+            isTyping={isTyping} 
+            loadingStage={loadingStage}
+            disableAutoScroll={true} // Desativa o scroll automático
+          />
           <div className="w-full max-w-3xl mx-auto px-4 py-2">
             <ChatInput 
               onSend={onSendMessage} 

@@ -137,7 +137,7 @@ const MessageActions: React.FC<MessageActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-end gap-2 mt-2">
+      <div className="flex items-center justify-start gap-2 mt-2">
         <Button
           variant="ghost"
           size="icon"

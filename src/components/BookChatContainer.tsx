@@ -30,7 +30,8 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     handleSendMessage,
     isTyping,
     messageProcessingRef,
-    lastMessageRef
+    lastMessageRef,
+    loadingStage
   } = useChatOperations(book, userId, slug, messages, setMessages, setIsLoading);
 
   // Ref para evitar recargas durante o processamento de mensagens
@@ -86,6 +87,7 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
         isTyping={isTyping}
         bookSlug={book}
         onSendMessage={handleSendMessage}
+        loadingStage={loadingStage}
       />
     </div>
   );
