@@ -1,68 +1,70 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { PricePlan, StripeItem } from '@/types/subscription';
+import { PricePlan } from '@/types/subscription';
 
-export const useSubscriptionPlans = (subscriptionTier: string | null) => {
+export const useSubscriptionPlans = (currentTier: string | null) => {
   const [plans, setPlans] = useState<PricePlan[]>([]);
-  const [stripeItems, setStripeItems] = useState<StripeItem[]>([]);
-
-  // Load subscription plans
+  const [stripeItems, setStripeItems] = useState<Record<string, string>>({});
+  
   useEffect(() => {
-    const fetchPlans = async () => {
+    const loadPlans = async () => {
       try {
-        // Get all price plans
+        // Fetch price plans
         const { data: planData, error: planError } = await supabase
           .from('price_plans')
           .select('*')
-          .order('price_cents', { ascending: true });
-        
-        if (planError) throw planError;
-        
-        // Get stripe mappings
+          .order('price_cents');
+
+        if (planError) {
+          console.error("Error fetching price plans:", planError);
+          return;
+        }
+
+        // Fetch stripe items
         const { data: stripeData, error: stripeError } = await supabase
           .from('stripe_items')
           .select('*');
-          
-        if (stripeError) throw stripeError;
-        
-        if (planData && stripeData) {
-          // Format plans
-          const formattedPlans = planData.map(plan => ({
-            id: plan.id,
-            code: plan.code,
-            name: plan.name,
-            description: plan.description,
-            message_limit: plan.message_limit,
-            price_cents: plan.price_cents,
-            currency: plan.currency,
-            period: plan.period,
-            features: Array.isArray(plan.features) 
-              ? plan.features 
-              : typeof plan.features === 'string' 
-                ? JSON.parse(plan.features) 
-                : []
-          } as PricePlan));
-          
-          setPlans(formattedPlans);
-          setStripeItems(stripeData);
+
+        if (stripeError) {
+          console.error("Error fetching stripe items:", stripeError);
+          return;
         }
+        
+        // Build price ID map
+        const priceMap: Record<string, string> = {};
+        stripeData?.forEach(item => {
+          priceMap[item.price_plan_id] = item.stripe_price_id;
+        });
+        
+        setStripeItems(priceMap);
+        
+        // Process plans
+        const processedPlans = planData?.map(plan => ({
+          id: plan.id,
+          code: plan.code,
+          name: plan.name,
+          description: plan.description,
+          period: plan.period,
+          message_limit: plan.message_limit,
+          price_cents: plan.price_cents,
+          currency: plan.currency,
+          features: Array.isArray(plan.features) ? plan.features : []
+        }));
+        
+        setPlans(processedPlans || []);
       } catch (error) {
-        console.error('Erro ao carregar planos:', error);
+        console.error("Error loading plans:", error);
       }
     };
     
-    fetchPlans();
-  }, []);
-
-  // Helper function to get stripe price ID for a plan
-  const getStripePriceId = (planId: string): string | null => {
-    const item = stripeItems.find(item => item.price_plan_id === planId);
-    return item ? item.stripe_price_id : null;
+    loadPlans();
+  }, [currentTier]);
+  
+  // Helper function to get the Stripe price ID for a plan
+  const getStripePriceId = (planId: string) => {
+    return stripeItems[planId] || null;
   };
-
-  return {
-    plans,
-    getStripePriceId
-  };
+  
+  return { plans, getStripePriceId };
 };
