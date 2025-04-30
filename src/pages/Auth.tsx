@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -18,16 +16,19 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isLogin) {
         // Login
-        const { error } = await supabase.auth.signInWithPassword({
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
           password
         });
@@ -44,7 +45,9 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        const { error } = await supabase.auth.signUp({
+        const {
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -70,19 +73,19 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin
         }
       });
-      
       if (error) throw error;
-      
+
       // No need to navigate here as the OAuth redirect will handle this
     } catch (error: any) {
       toast({
@@ -93,16 +96,14 @@ const Auth = () => {
       setGoogleLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
+  return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="https://jesusdiario.com.br/wp-content/uploads/2024/11/logo-jd.png" alt="Logo" className="w-[80px] h-[80px]" />
+            
           </div>
           <h1 className="text-3xl font-bold text-dark">BibleChat</h1>
-          <p className="text-dark-500 mt-2">Seu Assistente do Jesus Diário de Estudo Bíblico.</p>
+          <p className="text-dark-500 mt-2">Seu Assistente Online de Estudo Bíblico.</p>
         </div>
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff]">
@@ -110,11 +111,7 @@ const Auth = () => {
             {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
           
-          <Button 
-            onClick={handleGoogleSignIn} 
-            disabled={googleLoading} 
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6"
-          >
+          <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -167,8 +164,6 @@ const Auth = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
