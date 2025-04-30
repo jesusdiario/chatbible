@@ -12,7 +12,8 @@
     "search": "Buscar",
     "confirm": "Confirmar",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "active": "Actual"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -48,7 +49,8 @@
     "manageSubscription": "Administrar suscripción",
     "language": "Idioma",
     "selectLanguage": "Seleccionar idioma",
-    "languageChanged": "Idioma cambiado con éxito"
+    "languageChanged": "Idioma cambiado con éxito",
+    "languageInfo": "Cambiar el idioma afectará a toda la interfaz de la aplicación."
   },
   "bible": {
     "explore": "Explora los libros de la Biblia y profundiza tu conocimiento",
@@ -84,5 +86,26 @@
     "logout": "Error al cerrar sesión. Inténtalo de nuevo.",
     "loadProfile": "Error al cargar el perfil",
     "notAuthenticated": "Necesitas iniciar sesión para acceder a esta página."
+  },
+  "navigation": {
+    "home": "Inicio",
+    "profile": "Perfil", 
+    "bible": "Biblia",
+    "courses": "Cursos",
+    "chat": "Chat",
+    "lexicon": "Léxico",
+    "contact": "Contacto",
+    "admin": "Admin"
+  },
+  "loading": {
+    "stage1": "Espere...",
+    "stage2": "Consultando la Biblia...",
+    "stage3": "Sola Scriptura...",
+    "stage4": "Sola Fide...",
+    "stage5": "Sola Gratia...",
+    "stage6": "Solus Christus...",
+    "stage7": "Soli Deo Gloria...",
+    "stage8": "Revisión teológica...",
+    "stage9": "¡Completado!"
   }
 }

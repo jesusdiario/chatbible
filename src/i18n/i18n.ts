@@ -44,7 +44,28 @@ i18n
       lookupSessionStorage: 'i18nextLng',
       // Cache user language on
       caches: ['localStorage', 'sessionStorage'],
+    },
+    
+    react: {
+      useSuspense: false // Prevents issues with suspense
     }
   });
+
+// Create a language change event for components to listen to
+export const languageChangeEvent = new CustomEvent('languageChanged');
+
+// Add language change listener
+i18n.on('languageChanged', (lng) => {
+  // Update language in localStorage
+  localStorage.setItem('i18nextLng', lng);
+  
+  // Dispatch custom event
+  document.dispatchEvent(languageChangeEvent);
+  
+  // Update HTML lang attribute for accessibility
+  document.documentElement.setAttribute('lang', lng);
+  
+  console.log(`Language changed to: ${lng}`);
+});
 
 export default i18n;

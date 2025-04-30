@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message as MessageType } from '@/types/chat';
 import { Skeleton } from './ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface MessageProps extends MessageType {
   isTyping?: boolean;
@@ -20,6 +21,7 @@ const Message: FC<MessageProps> = ({
   showActions = true,
   loadingStage = null
 }) => {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRenderActions, setShouldRenderActions] = useState(false);
   
@@ -107,7 +109,7 @@ const Message: FC<MessageProps> = ({
                           <button 
                             onClick={() => navigator.clipboard.writeText(String(children))}
                             className="absolute top-2 right-2 bg-[#F7F7F8] p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                            aria-label="Copiar código"
+                            aria-label={t('common.copy', 'Copiar código')}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

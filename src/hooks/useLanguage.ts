@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import i18n from '@/i18n/i18n';
 
 export type SupportedLanguage = 'pt-BR' | 'en' | 'es';
 
@@ -95,8 +96,10 @@ export const useLanguage = () => {
     try {
       await i18n.changeLanguage(language);
       setCurrentLanguage(language);
+      localStorage.setItem('i18nextLng', language);
       await saveLanguagePreference(language);
       
+      // Use a new toast with translated text
       toast({
         title: i18n.t('profile.languageChanged'),
         description: `${i18n.t('profile.language')}: ${language}`,

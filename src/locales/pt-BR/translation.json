@@ -12,7 +12,14 @@
     "search": "Buscar",
     "confirm": "Confirmar",
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "active": "Atual",
+    "copy": "Copiar",
+    "download": "Baixar",
+    "listen": "Ouvir resposta",
+    "copied": "Copiado!",
+    "textCopied": "Texto copiado para área de transferência",
+    "downloadStarted": "Download iniciado!"
   },
   "auth": {
     "login": "Entrar",
@@ -48,7 +55,8 @@
     "manageSubscription": "Gerenciar assinatura",
     "language": "Idioma",
     "selectLanguage": "Selecione o idioma",
-    "languageChanged": "Idioma alterado com sucesso"
+    "languageChanged": "Idioma alterado com sucesso",
+    "languageInfo": "Alterar o idioma afetará toda a interface do aplicativo."
   },
   "bible": {
     "explore": "Explore os livros da Bíblia e aprofunde seu conhecimento",
@@ -83,6 +91,36 @@
     "login": "Erro ao entrar. Verifique suas credenciais.",
     "logout": "Erro ao sair. Tente novamente.",
     "loadProfile": "Erro ao carregar perfil",
-    "notAuthenticated": "Você precisa estar logado para acessar esta página."
+    "notAuthenticated": "Você precisa estar logado para acessar esta página.",
+    "copyError": "Erro ao copiar",
+    "copyFailed": "Não foi possível copiar o texto",
+    "downloadError": "Erro ao baixar",
+    "downloadFailed": "Não foi possível baixar o arquivo",
+    "textTooLong": "Texto muito longo",
+    "textTooLongForAudio": "Este texto é muito extenso para ser convertido em áudio. Por favor, tente com uma resposta menor.",
+    "audioGenerationFailed": "Não foi possível gerar o áudio",
+    "playbackError": "Erro ao reproduzir",
+    "audioSynthesisFailed": "Não foi possível sintetizar o áudio"
+  },
+  "navigation": {
+    "home": "Início",
+    "profile": "Perfil",
+    "bible": "Bíblia",
+    "courses": "Cursos",
+    "chat": "Chat",
+    "lexicon": "Léxico",
+    "contact": "Contato",
+    "admin": "Admin"
+  },
+  "loading": {
+    "stage1": "Aguarde...",
+    "stage2": "Consultando a Bíblia...",
+    "stage3": "Sola Scriptura...",
+    "stage4": "Sola Fide...",
+    "stage5": "Sola Gratia...",
+    "stage6": "Solus Christus...",
+    "stage7": "Soli Deo Gloria...",
+    "stage8": "Revisão teológica...",
+    "stage9": "Concluído!"
   }
 }

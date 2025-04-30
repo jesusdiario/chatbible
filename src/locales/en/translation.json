@@ -12,7 +12,8 @@
     "search": "Search",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "active": "Current"
   },
   "auth": {
     "login": "Login",
@@ -48,7 +49,8 @@
     "manageSubscription": "Manage subscription",
     "language": "Language",
     "selectLanguage": "Select language",
-    "languageChanged": "Language changed successfully"
+    "languageChanged": "Language changed successfully",
+    "languageInfo": "Changing the language will affect the entire application interface."
   },
   "bible": {
     "explore": "Explore the books of the Bible and deepen your knowledge",
@@ -84,5 +86,26 @@
     "logout": "Error logging out. Try again.",
     "loadProfile": "Error loading profile",
     "notAuthenticated": "You need to be logged in to access this page."
+  },
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "bible": "Bible",
+    "courses": "Courses",
+    "chat": "Chat",
+    "lexicon": "Lexicon",
+    "contact": "Contact",
+    "admin": "Admin"
+  },
+  "loading": {
+    "stage1": "Please wait...",
+    "stage2": "Consulting the Bible...",
+    "stage3": "Sola Scriptura...",
+    "stage4": "Sola Fide...",
+    "stage5": "Sola Gratia...",
+    "stage6": "Solus Christus...",
+    "stage7": "Soli Deo Gloria...",
+    "stage8": "Theological review...",
+    "stage9": "Completed!"
   }
 }
