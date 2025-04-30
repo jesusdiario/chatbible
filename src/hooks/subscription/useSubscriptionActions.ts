@@ -1,10 +1,10 @@
 
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionState } from './types';
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { UserSubscription } from "@/types/subscription";
 
-export const useSubscriptionActions = (setState?: (state: React.SetStateAction<SubscriptionState>) => void) => {
+export const useSubscriptionActions = (setState?: (state: React.SetStateAction<UserSubscription>) => void) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -14,55 +14,70 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<S
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
-      // Podemos tentar primeiro buscar diretamente da tabela de subscribers
+      // Check if user is authenticated
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         throw new Error("Usuário não autenticado");
       }
       
+      // Get subscription data from the subscribers table
       const { data: subscriberData, error: subscriberError } = await supabase
         .from('subscribers')
         .select('*')
         .eq('user_id', userData.user.id)
         .single();
       
-      if (subscriberError) {
+      if (subscriberError && subscriberError.code !== 'PGRST116') {
         console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function");
-        // Fallback para a edge function
+        
+        // Call edge function as a fallback
         const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
         
         if (functionError) throw functionError;
         
-        setState({
+        setState(prev => ({
+          ...prev,
           isLoading: false,
           subscribed: functionData.subscribed || false,
           subscriptionTier: functionData.subscription_tier || "Gratuito",
           subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
           messageLimit: functionData.message_limit || 10,
-          plan: functionData.subscription_data || null,
-          subscription_data: functionData
-        });
+          plan: functionData.subscription_data || null
+        }));
         
         return;
       }
       
-      // Se encontrou dados na tabela subscribers
-      const isActive = subscriberData.subscribed && 
-                      (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+      // If found data in subscribers table
+      const isActive = subscriberData?.subscribed && 
+                     (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+      
+      // Get subscription plan details if available
+      let plan = null;
+      if (subscriberData?.subscription_tier) {
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('name', subscriberData.subscription_tier)
+          .single();
+          
+        if (planData) {
+          plan = planData;
+        }
+      }
       
       setState(prev => ({
+        ...prev,
         isLoading: false,
         subscribed: isActive,
-        subscriptionTier: subscriberData.subscription_tier || "Gratuito",
-        subscriptionEnd: subscriberData.subscription_end ? new Date(subscriberData.subscription_end) : null,
-        messageLimit: prev.messageLimit, // Será atualizado pelo hook que gerencia os planos
-        plan: null, // Será atualizado pelo hook que gerencia os planos
-        subscription_data: subscriberData
+        subscriptionTier: subscriberData?.subscription_tier || "Gratuito",
+        subscriptionEnd: subscriberData?.subscription_end ? new Date(subscriberData.subscription_end) : null,
+        messageLimit: plan?.message_limit || prev.messageLimit,
+        plan: plan
       }));
       
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
-      // Não mostrar toast de erro para não interromper a experiência do usuário
       if (setState) {
         setState(prev => ({ 
           ...prev, 
@@ -132,6 +147,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<S
     checkSubscription,
     startCheckout,
     openCustomerPortal,
-    isProcessing
+    isProcessing,
+    refreshSubscription: checkSubscription
   };
 };

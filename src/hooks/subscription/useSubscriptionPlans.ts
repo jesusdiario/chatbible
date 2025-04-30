@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionPlan } from './types';
+import { SubscriptionPlan } from '@/types/subscription';
 
 export const useSubscriptionPlans = (subscriptionTier: string | null) => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
 
-  // Carregar planos de assinatura
+  // Load subscription plans
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -18,7 +18,7 @@ export const useSubscriptionPlans = (subscriptionTier: string | null) => {
         if (error) throw error;
         
         if (data) {
-          // Converter os dados para o formato correto de SubscriptionPlan
+          // Convert data to correct SubscriptionPlan format
           const formattedPlans = data.map(plan => ({
             ...plan,
             features: Array.isArray(plan.features) 
