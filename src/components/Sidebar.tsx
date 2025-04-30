@@ -7,7 +7,6 @@ import SubscriptionModal from "@/components/SubscriptionModal";
 import UserProfileSection from "./sidebar/UserProfileSection";
 import SubscriptionSection from "./sidebar/SubscriptionSection";
 import NavigationSection from "./sidebar/NavigationSection";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -26,7 +25,6 @@ const Sidebar = ({
     avatar_url: string | null;
   } | null>(null);
   const { subscribed } = useSubscription();
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -76,19 +74,8 @@ const Sidebar = ({
     }
   }, [isOpen]);
 
-  // Handle clicking outside the sidebar on mobile
-  const handleOutsideClick = () => {
-    if (isMobile && isOpen) {
-      onToggle();
-    }
-  };
-
   return <>
-      <div className={cn(
-        "fixed top-0 left-0 z-40 h-screen transition-all duration-300", 
-        "bg-white border-r", 
-        isOpen ? (isMobile ? "w-4/5" : "w-64") : "w-0"
-      )}>
+      <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
         <nav className="flex h-full w-full flex-col p-4" aria-label="Menu Principal">
           {isOpen && <>
               {/* User Profile Section - Now at the top */}
@@ -105,12 +92,7 @@ const Sidebar = ({
         </nav>
       </div>
       
-      {/* Overlay to handle outside clicks - only visible on mobile when sidebar is open */}
-      {isOpen && <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-30" 
-        onClick={handleOutsideClick} 
-        aria-hidden="true" 
-      />}
+      {isOpen && <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30" onClick={onToggle} aria-hidden="true" />}
       
       <SubscriptionModal isOpen={showSubscriptionModal} onClose={() => setShowSubscriptionModal(false)} />
     </>;
