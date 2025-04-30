@@ -21,7 +21,8 @@ const SubscriptionSection = () => {
     plan, 
     isLoading,
     openCustomerPortal, 
-    refreshSubscription 
+    refreshSubscription,
+    startCheckout
   } = useSubscription();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,9 +30,16 @@ const SubscriptionSection = () => {
   const handleManageSubscription = async () => {
     try {
       setIsProcessing(true);
-      await openCustomerPortal();
+      if (subscribed) {
+        // Se já tem assinatura, abrir o portal do cliente
+        await openCustomerPortal();
+      } else {
+        // Se não tem assinatura, iniciar checkout
+        // Use o seu ID de preço real da Stripe aqui
+        await startCheckout('price_1PhpOSLyyMwTutR9t2Ws2udT');
+      }
     } catch (error) {
-      console.error('Erro ao abrir portal do cliente:', error);
+      console.error('Erro ao gerenciar assinatura:', error);
     } finally {
       setIsProcessing(false);
     }

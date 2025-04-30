@@ -37,7 +37,8 @@ const UsageSection = () => {
   const isHighUsage = percentUsed >= 90;
   
   const handleUpgradeClick = () => {
-    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Use your premium plan price ID
+    // Use o seu ID de preço real da Stripe aqui
+    startCheckout('price_1PhpOSLyyMwTutR9t2Ws2udT');
   };
 
   return (

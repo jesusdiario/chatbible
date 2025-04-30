@@ -25,8 +25,20 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
 
   const handleSubscribe = async (priceId: string) => {
     setIsProcessing(true);
-    await startCheckout(priceId);
-    // Não vamos fechar o modal aqui pois o usuário será redirecionado para o Stripe
+    try {
+      // Use o ID do produto real criado na Stripe - se houver apenas um plano premium,
+      // podemos usar diretamente o ID em vez de usar o priceId do parâmetro
+      await startCheckout('price_1PhpOSLyyMwTutR9t2Ws2udT');
+      // Não vamos fechar o modal aqui pois o usuário será redirecionado para o Stripe
+    } catch (error) {
+      console.error('Erro ao iniciar checkout:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível iniciar o processo de assinatura",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
   };
 
   return (
