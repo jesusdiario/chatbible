@@ -12,9 +12,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Card } from "@/components/ui/card";
 
 interface BookActionButtonsProps {
   bookSlug: string;
+  displayInModal?: boolean; // Nova prop para determinar se os botões estão sendo exibidos no modal
 }
 
 export interface Suggestion {
@@ -26,7 +28,7 @@ export interface Suggestion {
   description?: string;
 }
 
-const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
+const BookActionButtons = ({ bookSlug, displayInModal = false }: BookActionButtonsProps) => {
   const { sendMessage } = useContext(ChatContext);
   const { data: suggestions, isLoading } = useBibleSuggestions(bookSlug);
   const { messageCount, messageLimit, canSendMessage, incrementMessageCount } = useMessageCount();
@@ -44,14 +46,11 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
     
     if (sendMessage) {
       if (suggestion.prompt_override) {
-        // If there's a prompt override, we'll prepend it as a system message
-        // Note: this is handled in the chat service
         sendMessage(suggestion.user_message, suggestion.prompt_override);
       } else {
         sendMessage(suggestion.user_message);
       }
       
-      // Incrementa o contador de mensagens quando uma sugestão é clicada
       incrementMessageCount();
     }
   };
@@ -66,6 +65,11 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
 
   // No suggestions available
   if (!suggestions || suggestions.length === 0) {
+    return null;
+  }
+
+  // Se não estiver sendo exibido no modal e displayInModal for false, não renderizar nada
+  if (!displayInModal) {
     return null;
   }
 
@@ -86,37 +90,37 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
     );
   }
 
+  // Novo layout com Cards para os botões, semelhante aos cards dos livros
   return (
-    <div className="flex gap-2 flex-wrap justify-center mt-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       {suggestions.map((suggestion) => {
         const IconComponent = suggestion.icon ? icons[suggestion.icon as keyof typeof icons] : undefined;
         
         return (
-          <TooltipProvider key={suggestion.id}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#4483f4] px-3 py-2 text-[#4483f4] text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
-                  onClick={() => handleButtonClick(suggestion)}
-                  disabled={!canSendMessage}
-                >
-                  {IconComponent && <IconComponent className="h-4 w-4 text-[#4483f4]-400" />}
-                  {suggestion.label}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="text-xs max-w-[200px]">
-                  <p>{suggestion.description || "Clique para perguntar"}</p>
-                  
-                  {messageCount > 0 && (
-                    <p className="mt-1 text-gray-400">
-                      {messageCount}/{messageLimit} mensagens usadas este mês
-                    </p>
-                  )}
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card
+            key={suggestion.id}
+            className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all"
+            onClick={() => handleButtonClick(suggestion)}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                {IconComponent && <IconComponent className="h-5 w-5 text-[#4483f4]" />}
+                <span className="font-medium">{suggestion.label}</span>
+              </div>
+              {suggestion.description && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="text-xs text-gray-400 hover:text-gray-600">?</div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-[200px]">{suggestion.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          </Card>
         );
       })}
     </div>

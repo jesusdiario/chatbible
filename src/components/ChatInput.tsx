@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -5,11 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BookActionButtons from '@/components/BookActionButtons';
 import { ChatContext } from './ActionButtons';
+
 interface ChatInputProps {
   onSend: (message: string, promptOverride?: string) => void;
   isLoading?: boolean;
   bookSlug?: string;
 }
+
 const ChatInput = ({
   onSend,
   isLoading,
@@ -109,9 +112,6 @@ const ChatInput = ({
               {t('chat.readyQuestions')}
             </button>
             
-            {/* Current Book button */}
-            
-            
             {/* Send button - aligned to the right */}
             <button type="submit" disabled={!message.trim() || isLoading} className={`h-8 w-8 flex items-center justify-center rounded-full ml-auto ${message.trim() ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`} aria-label={t('chat.send')}>
               <Send className="h-4 w-4" />
@@ -135,7 +135,7 @@ const ChatInput = ({
             {bookSlug && <ChatContext.Provider value={{
             sendMessage: handleSendMessage
           }}>
-                <BookActionButtons bookSlug={bookSlug} />
+                <BookActionButtons bookSlug={bookSlug} displayInModal={true} />
               </ChatContext.Provider>}
           </div>
         </DialogContent>

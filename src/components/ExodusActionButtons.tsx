@@ -4,8 +4,13 @@ import { BookOpenText, MessageSquare, Grid, Book } from "lucide-react";
 import { ChatContext } from "./ActionButtons";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import { toast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
 
-const ExodusActionButtons = () => {
+interface ExodusActionButtonsProps {
+  displayInModal?: boolean;
+}
+
+const ExodusActionButtons = ({ displayInModal = false }: ExodusActionButtonsProps) => {
   const { sendMessage } = useContext(ChatContext);
   const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage } = useMessageCount();
 
@@ -25,6 +30,11 @@ const ExodusActionButtons = () => {
       incrementMessageCount();
     }
   };
+
+  // Se não estiver sendo exibido no modal e displayInModal for false, não renderizar nada
+  if (!displayInModal) {
+    return null;
+  }
 
   const actions = [
     { 
@@ -55,17 +65,20 @@ const ExodusActionButtons = () => {
   ];
 
   return (
-    <div className="flex gap-2 flex-wrap justify-center mt-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       {actions.map((action) => (
-        <button 
-          key={action.label} 
-          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+        <Card
+          key={action.label}
+          className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all"
           onClick={() => handleButtonClick(action.prompt)}
-          disabled={!canSendMessage}
         >
-          {action.icon}
-          {action.label}
-        </button>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              {action.icon}
+              <span className="font-medium">{action.label}</span>
+            </div>
+          </div>
+        </Card>
       ))}
     </div>
   );

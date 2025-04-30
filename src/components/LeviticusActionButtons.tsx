@@ -5,6 +5,7 @@ import { icons } from 'lucide-react';
 import { ChatContext } from "./ActionButtons";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import { toast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
 
 interface Suggestion {
   id: string;
@@ -13,7 +14,11 @@ interface Suggestion {
   icon: string;
 }
 
-const LeviticusActionButtons = () => {
+interface LeviticusActionButtonsProps {
+  displayInModal?: boolean;
+}
+
+const LeviticusActionButtons = ({ displayInModal = false }: LeviticusActionButtonsProps) => {
   const { sendMessage } = useContext(ChatContext);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const { messageCount, MESSAGE_LIMIT, incrementMessageCount, canSendMessage } = useMessageCount();
@@ -54,20 +59,28 @@ const LeviticusActionButtons = () => {
     }
   };
 
+  // Se não estiver sendo exibido no modal e displayInModal for false, não renderizar nada
+  if (!displayInModal) {
+    return null;
+  }
+
   return (
-    <div className="flex gap-2 flex-wrap justify-center mt-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       {suggestions.map((suggestion) => {
         const IconComponent = icons[suggestion.icon as keyof typeof icons];
         return (
-          <button 
-            key={suggestion.id} 
-            className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
+          <Card
+            key={suggestion.id}
+            className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all"
             onClick={() => handleButtonClick(suggestion)}
-            disabled={!canSendMessage}
           >
-            {IconComponent && <IconComponent className="h-4 w-4 text-green-400" />}
-            {suggestion.label}
-          </button>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                {IconComponent && <IconComponent className="h-5 w-5 text-[#4483f4]" />}
+                <span className="font-medium">{suggestion.label}</span>
+              </div>
+            </div>
+          </Card>
         );
       })}
     </div>
