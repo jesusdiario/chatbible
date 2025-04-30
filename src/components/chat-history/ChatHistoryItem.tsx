@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ChatHistory } from "@/types/chat";
-import { MessageSquare, LockClosed, Star } from "lucide-react";
+import { MessageSquare, Lock, Star } from "lucide-react";
 import { format } from "date-fns";
 import ChatHistoryActionsMenu from "./ChatHistoryActionsMenu";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ export const ChatHistoryItem = ({
         {chat.is_accessible ? (
           <MessageSquare className="h-6 w-6 text-blue-500" />
         ) : (
-          <LockClosed className="h-6 w-6 text-gray-400" />
+          <Lock className="h-6 w-6 text-gray-400" />
         )}
         <div className="ml-3">
           <h3 className="text-lg font-semibold">{chat.title}</h3>
@@ -50,3 +50,4 @@ export const ChatHistoryItem = ({
     </div>
   );
 };
+

@@ -22,3 +22,4 @@ export async function loadSuggestionsForBook(slug: string) {
   if (error) throw error;
   return data as Suggestion[];
 }
+
