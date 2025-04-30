@@ -140,7 +140,7 @@ const MessageList: FC<MessageListProps> = ({
       </div>
       
       {showScrollToBottom && (
-        <div className="fixed bottom-24 right-8 z-10 flex flex-col items-center space-y-2">
+        <div className="fixed bottom-24 md:right-8 right-4 z-10 flex flex-col items-center space-y-2">
           <Progress value={scrollProgress} className="w-12 h-1 bg-gray-200" />
           <Button 
             size="icon" 
