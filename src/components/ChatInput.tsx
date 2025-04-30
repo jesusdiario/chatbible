@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, createContext } from 'react';
-import { Plus, Send } from 'lucide-react';
+import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -110,14 +110,14 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
           
           {/* Buttons row below the textarea */}
           <div className="flex flex-wrap items-center gap-2 mt-2">
-            {/* Add button */}
+            {/* Home button (previously Add button) */}
             <button 
               type="button"
               onClick={handleAddClick}
               className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 border border-gray-200"
               aria-label={t('chat.addChat')}
             >
-              <Plus className="h-5 w-5 text-gray-500" />
+              <Home className="h-5 w-5 text-gray-500" />
             </button>
             
             {/* Ready Questions button */}
