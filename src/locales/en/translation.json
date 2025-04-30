@@ -1,42 +1,101 @@
 
 {
   "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
     "back": "Back",
+    "save": "Save",
     "cancel": "Cancel",
-    "confirm": "Confirm",
-    "continue": "Continue",
     "delete": "Delete",
     "edit": "Edit",
-    "save": "Save",
-    "send": "Send"
+    "search": "Search",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Current"
   },
   "auth": {
     "login": "Login",
-    "signup": "Sign Up",
-    "logout": "Logout"
-  },
-  "books": {
-    "all": "All Books"
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "resetPassword": "Reset password",
+    "signin": "Sign in",
+    "signup": "Sign up",
+    "createAccount": "Create an account",
+    "alreadyHaveAccount": "Already have an account?",
+    "passwordChanged": "Your password has been changed successfully",
+    "accountCreated": "Account created successfully"
   },
   "profile": {
     "title": "Profile",
-    "language": {
-      "title": "Language",
-      "select": "Select your language",
-      "english": "English",
-      "portuguese": "Portuguese",
-      "spanish": "Spanish"
-    },
     "account": "Account",
+    "accountInfo": "Account Information",
+    "changePassword": "Change password",
+    "logout": "Log out",
+    "processing": "Processing...",
+    "usage": "Usage",
+    "messagesUsed": "Messages used",
+    "messageLimit": "of",
+    "daysUntilReset": "Days until next reset",
     "subscription": "Subscription",
-    "usage": "Usage"
+    "currentPlan": "Current plan",
+    "free": "Free",
+    "standard": "Standard",
+    "premium": "Premium",
+    "upgrade": "Upgrade",
+    "manageSubscription": "Manage subscription",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "languageChanged": "Language changed successfully",
+    "languageInfo": "Changing the language will affect the entire application interface."
+  },
+  "bible": {
+    "explore": "Explore the books of the Bible and deepen your knowledge",
+    "bibleBooks": "Bible Books",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "pentateuch": "Pentateuch",
+    "historical": "Historical",
+    "poetic": "Poetic",
+    "prophetic": "Prophetic",
+    "gospels": "Gospels",
+    "paulineLetters": "Pauline Letters",
+    "generalLetters": "General Letters",
+    "revelation": "Revelation"
   },
   "chat": {
-    "askAbout": "Ask a question about",
-    "bible": "the Bible",
-    "readyQuestions": "Ready Questions",
-    "disclaimer": "BibleChat may make mistakes. Consider verifying important information.",
-    "startChat": "Start chat"
+    "newChat": "New chat",
+    "typeMessage": "Type your message...",
+    "send": "Send",
+    "suggestion": "Suggestion",
+    "history": "History",
+    "pinned": "Pinned",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "previousSeven": "Previous 7 days",
+    "older": "Older",
+    "limitReached": "Message limit reached",
+    "upgradeMessage": "Upgrade to premium plan to send more messages."
+  },
+  "errors": {
+    "general": "An error occurred. Please try again.",
+    "login": "Login error. Check your credentials.",
+    "logout": "Error logging out. Try again.",
+    "loadProfile": "Error loading profile",
+    "notAuthenticated": "You need to be logged in to access this page."
+  },
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "bible": "Bible",
+    "courses": "Courses",
+    "chat": "Chat",
+    "lexicon": "Lexicon",
+    "contact": "Contact",
+    "admin": "Admin"
   },
   "loading": {
     "stage1": "Please wait...",
@@ -48,9 +107,5 @@
     "stage7": "Soli Deo Gloria...",
     "stage8": "Theological review...",
     "stage9": "Completed!"
-  },
-  "suggestions": {
-    "readyQuestions": "Ready Questions",
-    "notAvailable": "No suggestions available for this book."
   }
 }

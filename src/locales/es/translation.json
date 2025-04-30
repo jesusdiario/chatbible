@@ -1,42 +1,101 @@
 
 {
   "common": {
+    "welcome": "Bienvenido",
+    "loading": "Cargando...",
+    "error": "Error",
     "back": "Volver",
+    "save": "Guardar",
     "cancel": "Cancelar",
-    "confirm": "Confirmar",
-    "continue": "Continuar",
     "delete": "Eliminar",
     "edit": "Editar",
-    "save": "Guardar",
-    "send": "Enviar"
+    "search": "Buscar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "active": "Actual"
   },
   "auth": {
-    "login": "Iniciar Sesión",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer contraseña",
+    "signin": "Iniciar sesión",
     "signup": "Registrarse",
-    "logout": "Cerrar Sesión"
-  },
-  "books": {
-    "all": "Todos los Libros"
+    "createAccount": "Crear una cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "passwordChanged": "Tu contraseña ha sido cambiada con éxito",
+    "accountCreated": "Cuenta creada con éxito"
   },
   "profile": {
     "title": "Perfil",
-    "language": {
-      "title": "Idioma",
-      "select": "Selecciona tu idioma",
-      "english": "Inglés",
-      "portuguese": "Portugués",
-      "spanish": "Español"
-    },
     "account": "Cuenta",
+    "accountInfo": "Información de la cuenta",
+    "changePassword": "Cambiar contraseña",
+    "logout": "Cerrar sesión",
+    "processing": "Procesando...",
+    "usage": "Uso",
+    "messagesUsed": "Mensajes utilizados",
+    "messageLimit": "de",
+    "daysUntilReset": "Días hasta el próximo reinicio",
     "subscription": "Suscripción",
-    "usage": "Uso"
+    "currentPlan": "Plan actual",
+    "free": "Gratuito",
+    "standard": "Estándar",
+    "premium": "Premium",
+    "upgrade": "Actualizar",
+    "manageSubscription": "Administrar suscripción",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "languageChanged": "Idioma cambiado con éxito",
+    "languageInfo": "Cambiar el idioma afectará a toda la interfaz de la aplicación."
+  },
+  "bible": {
+    "explore": "Explora los libros de la Biblia y profundiza tu conocimiento",
+    "bibleBooks": "Libros de la Biblia",
+    "oldTestament": "Antiguo Testamento",
+    "newTestament": "Nuevo Testamento",
+    "pentateuch": "Pentateuco",
+    "historical": "Histórico",
+    "poetic": "Poético",
+    "prophetic": "Profético",
+    "gospels": "Evangelios",
+    "paulineLetters": "Cartas Paulinas",
+    "generalLetters": "Cartas Generales",
+    "revelation": "Apocalipsis"
   },
   "chat": {
-    "askAbout": "Haz una pregunta sobre",
-    "bible": "la Biblia",
-    "readyQuestions": "Preguntas Preparadas",
-    "disclaimer": "BibleChat puede cometer errores. Considera verificar información importante.",
-    "startChat": "Iniciar conversación"
+    "newChat": "Nueva conversación",
+    "typeMessage": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "suggestion": "Sugerencia",
+    "history": "Historial",
+    "pinned": "Fijados",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "previousSeven": "7 días atrás",
+    "older": "Más antiguos",
+    "limitReached": "Límite de mensajes alcanzado",
+    "upgradeMessage": "Actualiza al plan premium para enviar más mensajes."
+  },
+  "errors": {
+    "general": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+    "login": "Error al iniciar sesión. Verifica tus credenciales.",
+    "logout": "Error al cerrar sesión. Inténtalo de nuevo.",
+    "loadProfile": "Error al cargar el perfil",
+    "notAuthenticated": "Necesitas iniciar sesión para acceder a esta página."
+  },
+  "navigation": {
+    "home": "Inicio",
+    "profile": "Perfil", 
+    "bible": "Biblia",
+    "courses": "Cursos",
+    "chat": "Chat",
+    "lexicon": "Léxico",
+    "contact": "Contacto",
+    "admin": "Admin"
   },
   "loading": {
     "stage1": "Espere...",
@@ -48,9 +107,5 @@
     "stage7": "Soli Deo Gloria...",
     "stage8": "Revisión teológica...",
     "stage9": "¡Completado!"
-  },
-  "suggestions": {
-    "readyQuestions": "Preguntas Preparadas",
-    "notAvailable": "No hay sugerencias disponibles para este libro."
   }
 }

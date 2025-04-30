@@ -2,11 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, Plus, Globe, BookOpen } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useBibleBook } from '@/hooks/useBibleBook';
-import { useTranslation } from 'react-i18next';
-import BookSuggestionsModal from './BookSuggestionsModal';
+import { Send, Loader2 } from 'lucide-react';
+import { useMessageCount } from '@/hooks/useMessageCount';
+import MessageCounter from './MessageCounter';
+import { useSubscription } from '@/hooks/useSubscription';
+import { toast } from '@/components/ui/use-toast';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -17,19 +17,28 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { book } = useParams<{ book: string }>();
-  const { bookDetails } = useBibleBook(book);
-  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
-  
+  const { messageCount, messageLimit, canSendMessage, loading, incrementMessageCount, daysUntilReset } = useMessageCount();
+  const { startCheckout } = useSubscription();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!message.trim() || isLoading) return;
     
+    if (!canSendMessage) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Send message
     onSend(message.trim());
+    
+    // Increment counter
+    incrementMessageCount();
     
     // Clear input
     setMessage('');
@@ -63,109 +72,58 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
     adjustTextareaHeight();
   }, [message]);
 
-  const navigateToBibleBooks = () => {
-    navigate('/livros-da-biblia');
-  };
-
-  const navigateToBook = () => {
-    if (book) {
-      navigate(`/livros-da-biblia/${book}`);
-    }
-  };
-
-  const openSuggestionsModal = () => {
-    setShowSuggestionsModal(true);
-  };
-
-  const closeSuggestionsModal = () => {
-    setShowSuggestionsModal(false);
+  const handleUpgradeClick = () => {
+    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Pass the premium plan price ID
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto">
-      {/* Rounded chat container */}
-      <div className="relative rounded-2xl shadow-sm border bg-white">
+    <form onSubmit={handleSubmit} className="relative w-full">
+      <div className="relative rounded-md shadow-sm border">
         <Textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`${t('chat.askAbout')} ${bookDetails?.title || bookSlug || t('chat.bible')}...`}
-          className="pr-10 resize-none min-h-[52px] max-h-[200px] overflow-y-auto text-base py-3 px-4 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-          disabled={isLoading}
+          placeholder={`Faça uma pergunta sobre ${bookSlug || 'a Bíblia'}...`}
+          className="pr-10 resize-none min-h-[45px] max-h-[200px] overflow-y-auto"
+          disabled={isLoading || !canSendMessage}
           rows={1}
         />
-        
-        {/* Button Group */}
-        <div className="absolute left-3 bottom-3 flex items-center gap-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full bg-transparent hover:bg-gray-100"
-            onClick={navigateToBibleBooks}
-          >
-            <Plus className="h-5 w-5 text-gray-500" />
-          </Button>
-          
-          <div className="h-6 border-l border-gray-200 mx-1"></div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-full text-gray-500 hover:bg-gray-100 px-3 text-[13px] h-8 font-normal"
-            onClick={openSuggestionsModal}
-          >
-            <Globe className="h-4 w-4 mr-2 text-gray-500" />
-            {t('chat.readyQuestions')}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-full text-gray-500 hover:bg-gray-100 px-3 text-[13px] h-8 font-normal"
-            onClick={navigateToBook}
-          >
-            <BookOpen className="h-4 w-4 mr-2 text-gray-500" />
-            {bookDetails?.title || book || t('chat.bible')}
-          </Button>
-        </div>
-
-        {/* Send Button */}
-        <div className="absolute right-3 bottom-3">
+        <div className="absolute right-2 bottom-1">
           <Button 
             size="icon" 
-            variant="ghost"
-            className="h-8 w-8 rounded-full bg-transparent hover:bg-gray-100"
+            variant="ghost" 
             type="submit" 
-            onClick={handleSubmit}
-            disabled={!message.trim() || isLoading}
+            disabled={!message.trim() || isLoading || !canSendMessage}
           >
-            {isLoading ? 
-              <Loader2 className="h-5 w-5 text-gray-500 animate-spin" /> : 
-              <Send className="h-5 w-5 text-gray-500" />
-            }
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       </div>
       
-      {/* Disclaimer text */}
-      <div className="text-center text-xs text-gray-500 mt-2">
-        {t('chat.disclaimer')}
-      </div>
-
-      {/* Suggestions Modal */}
-      {showSuggestionsModal && book && (
-        <BookSuggestionsModal
-          bookSlug={book}
-          isOpen={showSuggestionsModal}
-          onClose={closeSuggestionsModal}
-          onSelectSuggestion={(suggestion) => {
-            onSend(suggestion);
-            closeSuggestionsModal();
-          }}
-        />
+      <MessageCounter 
+        currentCount={messageCount} 
+        limit={messageLimit} 
+        isLoading={loading} 
+        daysUntilReset={daysUntilReset}
+      />
+      
+      {!canSendMessage && !loading && (
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md text-sm">
+          <p className="text-red-700 mb-2">
+            Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.
+          </p>
+          <Button 
+            onClick={handleUpgradeClick} 
+            variant="default" 
+            size="sm" 
+            className="w-full"
+          >
+            Fazer upgrade para Premium
+          </Button>
+        </div>
       )}
-    </div>
+    </form>
   );
 };
 
