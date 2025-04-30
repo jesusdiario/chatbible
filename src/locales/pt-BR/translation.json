@@ -1,116 +1,42 @@
 
 {
   "common": {
-    "welcome": "Bem-vindo",
-    "loading": "Carregando...",
-    "error": "Erro",
     "back": "Voltar",
-    "save": "Salvar",
     "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
     "delete": "Excluir",
     "edit": "Editar",
-    "search": "Buscar",
-    "confirm": "Confirmar",
-    "yes": "Sim",
-    "no": "Não",
-    "active": "Atual",
-    "copy": "Copiar",
-    "download": "Baixar",
-    "listen": "Ouvir resposta",
-    "copied": "Copiado!",
-    "textCopied": "Texto copiado para área de transferência",
-    "downloadStarted": "Download iniciado!"
+    "save": "Salvar",
+    "send": "Enviar"
   },
   "auth": {
     "login": "Entrar",
-    "logout": "Sair",
-    "email": "Email",
-    "password": "Senha",
-    "forgotPassword": "Esqueceu sua senha?",
-    "resetPassword": "Redefinir senha",
-    "signin": "Entrar",
     "signup": "Cadastrar",
-    "createAccount": "Criar uma conta",
-    "alreadyHaveAccount": "Já tem uma conta?",
-    "passwordChanged": "Sua senha foi alterada com sucesso",
-    "accountCreated": "Conta criada com sucesso"
+    "logout": "Sair"
+  },
+  "books": {
+    "all": "Todos os Livros"
   },
   "profile": {
     "title": "Perfil",
+    "language": {
+      "title": "Idioma",
+      "select": "Selecione seu idioma",
+      "english": "Inglês",
+      "portuguese": "Português",
+      "spanish": "Espanhol"
+    },
     "account": "Conta",
-    "accountInfo": "Informações da Conta",
-    "changePassword": "Alterar senha",
-    "logout": "Sair da conta",
-    "processing": "Processando...",
-    "usage": "Uso",
-    "messagesUsed": "Mensagens utilizadas",
-    "messageLimit": "de",
-    "daysUntilReset": "Dias até o próximo reset",
     "subscription": "Assinatura",
-    "currentPlan": "Plano atual",
-    "free": "Gratuito",
-    "standard": "Standard",
-    "premium": "Premium",
-    "upgrade": "Fazer upgrade",
-    "manageSubscription": "Gerenciar assinatura",
-    "language": "Idioma",
-    "selectLanguage": "Selecione o idioma",
-    "languageChanged": "Idioma alterado com sucesso",
-    "languageInfo": "Alterar o idioma afetará toda a interface do aplicativo."
-  },
-  "bible": {
-    "explore": "Explore os livros da Bíblia e aprofunde seu conhecimento",
-    "bibleBooks": "Livros da Bíblia",
-    "oldTestament": "Antigo Testamento",
-    "newTestament": "Novo Testamento",
-    "pentateuch": "Pentateuco",
-    "historical": "Histórico",
-    "poetic": "Poético",
-    "prophetic": "Profético",
-    "gospels": "Evangelhos",
-    "paulineLetters": "Cartas Paulinas",
-    "generalLetters": "Cartas Gerais",
-    "revelation": "Apocalipse"
+    "usage": "Uso"
   },
   "chat": {
-    "newChat": "Nova conversa",
-    "typeMessage": "Digite sua mensagem...",
-    "send": "Enviar",
-    "suggestion": "Sugestão",
-    "history": "Histórico",
-    "pinned": "Fixados",
-    "today": "Hoje",
-    "yesterday": "Ontem",
-    "previousSeven": "7 dias atrás",
-    "older": "Mais antigos",
-    "limitReached": "Limite de mensagens atingido",
-    "upgradeMessage": "Faça upgrade para o plano premium para enviar mais mensagens."
-  },
-  "errors": {
-    "general": "Ocorreu um erro. Por favor, tente novamente.",
-    "login": "Erro ao entrar. Verifique suas credenciais.",
-    "logout": "Erro ao sair. Tente novamente.",
-    "loadProfile": "Erro ao carregar perfil",
-    "notAuthenticated": "Você precisa estar logado para acessar esta página.",
-    "copyError": "Erro ao copiar",
-    "copyFailed": "Não foi possível copiar o texto",
-    "downloadError": "Erro ao baixar",
-    "downloadFailed": "Não foi possível baixar o arquivo",
-    "textTooLong": "Texto muito longo",
-    "textTooLongForAudio": "Este texto é muito extenso para ser convertido em áudio. Por favor, tente com uma resposta menor.",
-    "audioGenerationFailed": "Não foi possível gerar o áudio",
-    "playbackError": "Erro ao reproduzir",
-    "audioSynthesisFailed": "Não foi possível sintetizar o áudio"
-  },
-  "navigation": {
-    "home": "Início",
-    "profile": "Perfil",
-    "bible": "Bíblia",
-    "courses": "Cursos",
-    "chat": "Chat",
-    "lexicon": "Léxico",
-    "contact": "Contato",
-    "admin": "Admin"
+    "askAbout": "Faça uma pergunta sobre",
+    "bible": "a Bíblia",
+    "readyQuestions": "Perguntas Prontas",
+    "disclaimer": "O BibleChat pode cometer erros. Considere verificar informações importantes.",
+    "startChat": "Iniciar conversa"
   },
   "loading": {
     "stage1": "Aguarde...",
@@ -122,5 +48,9 @@
     "stage7": "Soli Deo Gloria...",
     "stage8": "Revisão teológica...",
     "stage9": "Concluído!"
+  },
+  "suggestions": {
+    "readyQuestions": "Perguntas Prontas",
+    "notAvailable": "Nenhuma sugestão disponível para este livro."
   }
 }
