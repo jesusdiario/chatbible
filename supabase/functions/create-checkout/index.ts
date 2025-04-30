@@ -15,6 +15,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Create checkout iniciado");
+    
     // Inicialize o cliente Supabase com a service role key
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -24,6 +26,7 @@ serve(async (req) => {
     // Obtenha a autorização do cabeçalho
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("Erro de autorização: cabeçalho ausente");
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -35,16 +38,23 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
     if (userError || !user) {
+      console.error("Erro de autenticação:", userError);
       return new Response(JSON.stringify({ error: "Usuário não autenticado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    console.log(`Usuário autenticado: ${user.id}`);
+
     // Extrair dados da solicitação
-    const { priceId, successUrl, cancelUrl } = await req.json();
+    const requestData = await req.json();
+    const { priceId, successUrl, cancelUrl } = requestData;
+    
+    console.log(`Dados da requisição: priceId=${priceId}, successUrl=${successUrl}, cancelUrl=${cancelUrl}`);
     
     if (!priceId) {
+      console.error("ID do preço não fornecido");
       return new Response(JSON.stringify({ error: "ID do preço não fornecido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -52,25 +62,44 @@ serve(async (req) => {
     }
 
     // Obter o plano de assinatura da base de dados
-    const { data: planData } = await supabaseClient
+    console.log(`Buscando plano com price_id: ${priceId}`);
+    const { data: planData, error: planError } = await supabaseClient
       .from("subscription_plans")
       .select("*")
       .eq("stripe_price_id", priceId)
       .single();
 
-    if (!planData) {
-      return new Response(JSON.stringify({ error: "Plano não encontrado" }), {
+    if (planError) {
+      console.error("Erro ao buscar plano:", planError);
+      return new Response(JSON.stringify({ error: `Plano não encontrado: ${planError.message}` }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    if (!planData) {
+      console.error(`Plano com price_id ${priceId} não encontrado`);
+      // Tente criar a sessão mesmo sem encontrar o plano no banco
+    } else {
+      console.log(`Plano encontrado: ${planData.name}`);
+    }
+
     // Inicialize o Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      console.error("Chave do Stripe não configurada");
+      return new Response(JSON.stringify({ error: "Erro de configuração do servidor" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2022-11-15",
     });
 
     // Verificar se o cliente já existe no Stripe
+    console.log(`Buscando cliente com email: ${user.email}`);
     let customerId;
     const { data: customers } = await stripe.customers.list({
       email: user.email,
@@ -79,8 +108,10 @@ serve(async (req) => {
 
     if (customers.length > 0) {
       customerId = customers[0].id;
+      console.log(`Cliente existente encontrado: ${customerId}`);
     } else {
       // Criar um novo cliente no Stripe
+      console.log("Criando novo cliente no Stripe");
       const newCustomer = await stripe.customers.create({
         email: user.email,
         metadata: {
@@ -88,6 +119,7 @@ serve(async (req) => {
         },
       });
       customerId = newCustomer.id;
+      console.log(`Novo cliente criado: ${customerId}`);
       
       // Registrar cliente no banco de dados
       await supabaseClient
@@ -101,7 +133,12 @@ serve(async (req) => {
         });
     }
 
+    const origin = req.headers.get("origin") || "https://biblegpt.app";
+    const defaultSuccessUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`;
+    const defaultCancelUrl = `${origin}/profile`;
+    
     // Criar a sessão de checkout do Stripe
+    console.log(`Criando sessão de checkout para o cliente ${customerId} com price ${priceId}`);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -111,12 +148,13 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: successUrl || `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${req.headers.get("origin")}/profile`,
+      success_url: successUrl || defaultSuccessUrl,
+      cancel_url: cancelUrl || defaultCancelUrl,
       allow_promotion_codes: true,
       client_reference_id: user.id,
     });
 
+    console.log(`Sessão de checkout criada: ${session.id}, URL: ${session.url}`);
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

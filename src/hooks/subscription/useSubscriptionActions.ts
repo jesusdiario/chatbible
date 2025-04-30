@@ -92,18 +92,48 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
     
     try {
       setState(prev => ({ ...prev, isLoading: true }));
+      setIsProcessing(true);
       
+      console.log(`Iniciando checkout com priceId: ${priceId}`);
+      
+      // Verificar autenticação do usuário antes de iniciar o checkout
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !userData.user) {
+        console.error('Usuário não autenticado:', authError);
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para assinar um plano",
+          variant: "destructive",
+        });
+        setState(prev => ({ ...prev, isLoading: false }));
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Chamar a edge function para criar o checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId, successUrl, cancelUrl }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na função create-checkout:', error);
+        throw new Error(`Erro na função create-checkout: ${error.message}`);
+      }
       
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
+      if (!data) {
+        console.error('Dados de resposta vazios da função create-checkout');
+        throw new Error('Dados de resposta vazios da função create-checkout');
+      }
+      
+      if (!data.url) {
+        console.error('URL de checkout não recebida:', data);
         throw new Error('URL de checkout não recebida');
       }
+      
+      console.log('Checkout criado com sucesso, redirecionando para:', data.url);
+      window.location.href = data.url;
+      
     } catch (error) {
       console.error('Erro ao iniciar checkout:', error);
       toast({
@@ -112,6 +142,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         variant: "destructive",
       });
       setState(prev => ({ ...prev, isLoading: false }));
+      setIsProcessing(false);
     }
   };
 
