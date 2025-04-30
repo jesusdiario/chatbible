@@ -87,7 +87,7 @@ const BookActionButtons = ({
   }
 
   // Layout modificado para duas colunas
-  return <div className="grid grid-cols-2 gap-4 mt-4">
+  return <div className="grid grid-cols-1 gap-4 mt-4">
       {suggestions.map(suggestion => {
       return <Card key={suggestion.id} className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all" onClick={() => handleButtonClick(suggestion)}>
             <div className="flex items-center justify-between w-full">
