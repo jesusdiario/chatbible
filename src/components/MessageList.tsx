@@ -4,7 +4,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Message from './Message';
 import { Message as MessageType } from '@/types/chat';
 import { Button } from './ui/button';
-import { ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Progress } from './ui/progress';
 
 interface MessageListProps {
@@ -147,7 +147,7 @@ const MessageList: FC<MessageListProps> = ({
             className="h-10 w-10 rounded-full shadow-lg bg-white text-black hover:bg-gray-100"
             onClick={() => scrollToBottom()}
           >
-            <ChevronUp className="h-5 w-5" />
+            <ChevronDown className="h-5 w-5" />
           </Button>
         </div>
       )}
