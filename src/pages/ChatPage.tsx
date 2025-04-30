@@ -155,7 +155,6 @@ const ChatPage = () => {
           <ChatHeader 
             isSidebarOpen={isSidebarOpen} 
             onToggleSidebar={toggleSidebar} 
-            title={chatDetails?.title || "Conversa"}
           />
           <div className="pt-20 h-full flex items-center justify-center">
             <div className="text-center max-w-md mx-auto p-6">
@@ -195,7 +194,6 @@ const ChatPage = () => {
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
           onToggleSidebar={toggleSidebar} 
-          title={chatDetails?.title}
         />
         <div className="h-full">
           <BookChat

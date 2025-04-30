@@ -1,0 +1,88 @@
+
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "resetPassword": "Reset password",
+    "signin": "Sign in",
+    "signup": "Sign up",
+    "createAccount": "Create an account",
+    "alreadyHaveAccount": "Already have an account?",
+    "passwordChanged": "Your password has been changed successfully",
+    "accountCreated": "Account created successfully"
+  },
+  "profile": {
+    "title": "Profile",
+    "account": "Account",
+    "accountInfo": "Account Information",
+    "changePassword": "Change password",
+    "logout": "Log out",
+    "processing": "Processing...",
+    "usage": "Usage",
+    "messagesUsed": "Messages used",
+    "messageLimit": "of",
+    "daysUntilReset": "Days until next reset",
+    "subscription": "Subscription",
+    "currentPlan": "Current plan",
+    "free": "Free",
+    "standard": "Standard",
+    "premium": "Premium",
+    "upgrade": "Upgrade",
+    "manageSubscription": "Manage subscription",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "languageChanged": "Language changed successfully"
+  },
+  "bible": {
+    "explore": "Explore the books of the Bible and deepen your knowledge",
+    "bibleBooks": "Bible Books",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "pentateuch": "Pentateuch",
+    "historical": "Historical",
+    "poetic": "Poetic",
+    "prophetic": "Prophetic",
+    "gospels": "Gospels",
+    "paulineLetters": "Pauline Letters",
+    "generalLetters": "General Letters",
+    "revelation": "Revelation"
+  },
+  "chat": {
+    "newChat": "New chat",
+    "typeMessage": "Type your message...",
+    "send": "Send",
+    "suggestion": "Suggestion",
+    "history": "History",
+    "pinned": "Pinned",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "previousSeven": "Previous 7 days",
+    "older": "Older",
+    "limitReached": "Message limit reached",
+    "upgradeMessage": "Upgrade to premium plan to send more messages."
+  },
+  "errors": {
+    "general": "An error occurred. Please try again.",
+    "login": "Login error. Check your credentials.",
+    "logout": "Error logging out. Try again.",
+    "loadProfile": "Error loading profile",
+    "notAuthenticated": "You need to be logged in to access this page."
+  }
+}

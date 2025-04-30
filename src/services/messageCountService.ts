@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 // Default message limits by plan
 const MESSAGE_LIMITS = {
@@ -136,11 +136,41 @@ export const incrementMessageCount = async (): Promise<boolean> => {
     }
     
     // Update or insert message count record
-    const { data, error } = await supabase.rpc('increment_message_count', { user_id_param: userId });
-    
-    if (error) {
-      console.error("Error incrementing message count:", error);
-      return false;
+    // Use the standard update instead of the RPC function for compatibility
+    const { data: messageCountData } = await supabase
+      .from('message_counts')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (messageCountData) {
+      const { error } = await supabase
+        .from('message_counts')
+        .update({ 
+          count: messageCountData.count + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.error("Error incrementing message count:", error);
+        return false;
+      }
+    } else {
+      // Create new record if it doesn't exist
+      const { error } = await supabase
+        .from('message_counts')
+        .insert([{ 
+          user_id: userId, 
+          count: 1, 
+          last_reset_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
+      
+      if (error) {
+        console.error("Error creating message count:", error);
+        return false;
+      }
     }
     
     return true;
