@@ -3,6 +3,7 @@ import React, { useContext } from "react";
 import { icons } from 'lucide-react';
 import { ChatContext } from "./ActionButtons";
 import { useBibleSuggestions } from "@/hooks/useBibleSuggestions";
+import { Suggestion } from "@/services/suggestionsService";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import { toast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -17,19 +18,10 @@ interface BookActionButtonsProps {
   bookSlug: string;
 }
 
-export interface Suggestion {
-  id: string;
-  label: string;
-  user_message: string;
-  icon?: string;
-  prompt_override?: string;
-  description?: string;
-}
-
 const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
   const { sendMessage } = useContext(ChatContext);
   const { data: suggestions, isLoading } = useBibleSuggestions(bookSlug);
-  const { messageCount, messageLimit, canSendMessage, incrementMessageCount } = useMessageCount();
+  const { messageCount, messageLimit, canSendMessage, increment } = useMessageCount();
   const { startCheckout } = useSubscription();
 
   const handleButtonClick = (suggestion: Suggestion) => {
@@ -52,7 +44,7 @@ const BookActionButtons = ({ bookSlug }: BookActionButtonsProps) => {
       }
       
       // Incrementa o contador de mensagens quando uma sugestão é clicada
-      incrementMessageCount();
+      increment();
     }
   };
   

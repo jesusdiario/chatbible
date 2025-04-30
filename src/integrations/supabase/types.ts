@@ -793,21 +793,18 @@ export type Database = {
           avatar_url: string | null
           display_name: string | null
           id: string
-          preferred_language: string
           role: string
         }
         Insert: {
           avatar_url?: string | null
           display_name?: string | null
           id: string
-          preferred_language?: string
           role: string
         }
         Update: {
           avatar_url?: string | null
           display_name?: string | null
           id?: string
-          preferred_language?: string
           role?: string
         }
         Relationships: []
@@ -852,10 +849,6 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
-      }
-      map_country_to_language: {
-        Args: { country_code: string }
-        Returns: string
       }
     }
     Enums: {

@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
 interface AccountSectionProps {
   user: any;
@@ -24,7 +23,6 @@ const AccountSection = ({ user }: AccountSectionProps) => {
   const { handlePasswordReset, isUpdating } = useProfileManagement(user?.id);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useTranslation();
 
   const handleLogout = async () => {
     try {
@@ -32,8 +30,8 @@ const AccountSection = ({ user }: AccountSectionProps) => {
       navigate("/auth");
     } catch (error: any) {
       toast({
-        title: t('errors.logout'),
-        description: error.message || t('errors.general'),
+        title: "Erro ao sair",
+        description: error.message || "Não foi possível sair da sua conta.",
         variant: "destructive"
       });
     }
@@ -44,7 +42,7 @@ const AccountSection = ({ user }: AccountSectionProps) => {
       <Card>
         <CardContent className="pt-6">
           <p className="text-center text-muted-foreground">
-            {t('errors.notAuthenticated')}
+            Por favor, faça login para acessar seu perfil.
           </p>
         </CardContent>
       </Card>
@@ -53,11 +51,11 @@ const AccountSection = ({ user }: AccountSectionProps) => {
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-semibold mb-4">{t('profile.account')}</h2>
+      <h2 className="text-2xl font-semibold mb-4">Conta</h2>
       <Card>
         <CardHeader>
-          <CardTitle>{t('profile.accountInfo')}</CardTitle>
-          <CardDescription>{t('profile.accountInfo')}</CardDescription>
+          <CardTitle>Informações da Conta</CardTitle>
+          <CardDescription>Suas informações de acesso</CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -77,7 +75,7 @@ const AccountSection = ({ user }: AccountSectionProps) => {
               onClick={() => handlePasswordReset(user.email)}
               disabled={isUpdating}
             >
-              {isUpdating ? t('profile.processing') : t('profile.changePassword')}
+              {isUpdating ? "Processando..." : "Alterar senha"}
             </Button>
           </div>
 
@@ -88,7 +86,7 @@ const AccountSection = ({ user }: AccountSectionProps) => {
               className="flex items-center gap-2 text-destructive hover:text-destructive-foreground hover:bg-destructive"
             >
               <LogOut size={16} />
-              {t('profile.logout')}
+              Sair da conta
             </Button>
           </div>
         </CardContent>

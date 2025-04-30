@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -121,6 +121,7 @@ export const useMessageCount = (messageLimit?: number) => {
   
       const userId = session.user.id;
       
+      // Em vez de usar RPC, vamos fazer um update direto na tabela
       const { data, error } = await supabase
         .from('message_counts')
         .update({ 
@@ -146,27 +147,15 @@ export const useMessageCount = (messageLimit?: number) => {
   
   // Dias restantes para reset
   const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
-  
-  // Calcular a porcentagem de uso
-  const percentUsed = Math.round((messageCount / MESSAGE_LIMIT) * 100);
-
-  // Alias for incrementMessageCount to match the other components
-  const increment = incrementMessageCount;
-  
-  // Export messageLimit to match the other components
-  const messageLimit = MESSAGE_LIMIT;
 
   return {
     messageCount,
     setMessageCount,
     incrementMessageCount,
-    increment,
     timeUntilReset,
     daysUntilReset,
     loading,
     canSendMessage,
-    MESSAGE_LIMIT,
-    messageLimit,
-    percentUsed
+    MESSAGE_LIMIT
   };
 };

@@ -5,16 +5,13 @@ import ProfileLayout from "@/components/profile/ProfileLayout";
 import AccountSection from "@/components/profile/AccountSection";
 import SubscriptionSection from "@/components/profile/SubscriptionSection";
 import UsageSection from "@/components/profile/UsageSection";
-import LanguageSection from "@/components/profile/LanguageSection";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useTranslation } from "react-i18next";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { t } = useTranslation();
   
   useEffect(() => {
     // Verifica se existe uma sessão
@@ -34,8 +31,8 @@ const Profile = () => {
       } catch (error) {
         console.error('Erro na página de perfil:', error);
         toast({
-          title: t('errors.loadProfile'),
-          description: t('errors.general'),
+          title: "Erro ao carregar perfil",
+          description: "Não foi possível carregar seus dados de perfil.",
           variant: "destructive"
         });
       } finally {
@@ -59,7 +56,7 @@ const Profile = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast, t]);
+  }, [toast]);
 
   if (loading) {
     return (
@@ -76,7 +73,7 @@ const Profile = () => {
       <ProfileLayout>
         <Alert>
           <AlertDescription>
-            {t('errors.notAuthenticated')}
+            Você precisa estar logado para acessar esta página.
           </AlertDescription>
         </Alert>
       </ProfileLayout>
@@ -87,7 +84,6 @@ const Profile = () => {
     <ProfileLayout>
       <div className="space-y-8">
         <AccountSection user={user} />
-        <LanguageSection />
         <UsageSection />
         <SubscriptionSection />
       </div>

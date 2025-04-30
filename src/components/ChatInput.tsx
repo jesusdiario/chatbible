@@ -17,7 +17,7 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { messageCount, messageLimit, canSendMessage, loading, incrementMessageCount, daysUntilReset } = useMessageCount();
+  const { messageCount, messageLimit, canSendMessage, loading, increment, daysUntilReset } = useMessageCount();
   const { startCheckout } = useSubscription();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +38,7 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
     onSend(message.trim());
     
     // Increment counter
-    incrementMessageCount();
+    increment();
     
     // Clear input
     setMessage('');
