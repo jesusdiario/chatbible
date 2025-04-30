@@ -1,13 +1,14 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Plus, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BookActionButtons from '@/components/BookActionButtons';
+import { ChatContext } from './ActionButtons';
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, promptOverride?: string) => void;
   isLoading?: boolean;
   bookSlug?: string;
 }
@@ -81,6 +82,12 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
   // Toggle questions modal
   const handleQuestionsClick = () => {
     setIsModalOpen(true);
+  };
+
+  // Function to handle sending a message from BookActionButtons
+  const handleSendMessage = (content: string, promptOverride?: string) => {
+    onSend(content, promptOverride);
+    setIsModalOpen(false); // Close the modal after sending
   };
 
   return (
@@ -159,7 +166,9 @@ const ChatInput = ({ onSend, isLoading, bookSlug }: ChatInputProps) => {
           </DialogHeader>
           <div className="py-4">
             {bookSlug && (
-              <BookActionButtons bookSlug={bookSlug} />
+              <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
+                <BookActionButtons bookSlug={bookSlug} />
+              </ChatContext.Provider>
             )}
           </div>
         </DialogContent>
