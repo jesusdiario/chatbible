@@ -1,4 +1,3 @@
-
 import React from "react";
 import { History, Pin, Lock } from 'lucide-react';
 import { cn } from "@/lib/utils";
@@ -52,8 +51,8 @@ const ChatHistorySection: React.FC<ChatHistorySectionProps> = ({
   };
 
   const handleUpgradeClick = () => {
-    // Use o seu ID de preço real da Stripe aqui
-    startCheckout('price_1PhpOSLyyMwTutR9t2Ws2udT');
+    // Use o ID do produto real criado na Stripe
+    startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
   };
 
   return (

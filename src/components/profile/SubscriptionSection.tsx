@@ -35,8 +35,8 @@ const SubscriptionSection = () => {
         await openCustomerPortal();
       } else {
         // Se não tem assinatura, iniciar checkout
-        // Use o seu ID de preço real da Stripe aqui
-        await startCheckout('price_1PhpOSLyyMwTutR9t2Ws2udT');
+        // Use o ID do produto real criado na Stripe
+        await startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
       }
     } catch (error) {
       console.error('Erro ao gerenciar assinatura:', error);
