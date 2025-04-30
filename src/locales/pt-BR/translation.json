@@ -1,4 +1,3 @@
-
 {
   "common": {
     "welcome": "Bem-vindo",
@@ -9,17 +8,11 @@
     "cancel": "Cancelar",
     "delete": "Excluir",
     "edit": "Editar",
-    "search": "Buscar",
+    "search": "Pesquisar",
     "confirm": "Confirmar",
-    "yes": "Sim",
+    "yes": "Sim", 
     "no": "Não",
-    "active": "Atual",
-    "copy": "Copiar",
-    "download": "Baixar",
-    "listen": "Ouvir resposta",
-    "copied": "Copiado!",
-    "textCopied": "Texto copiado para área de transferência",
-    "downloadStarted": "Download iniciado!"
+    "active": "Atual"
   },
   "auth": {
     "login": "Entrar",
@@ -84,7 +77,12 @@
     "previousSeven": "7 dias atrás",
     "older": "Mais antigos",
     "limitReached": "Limite de mensagens atingido",
-    "upgradeMessage": "Faça upgrade para o plano premium para enviar mais mensagens."
+    "upgradeMessage": "Faça upgrade para o plano premium para enviar mais mensagens.",
+    "readyQuestions": "Perguntas Prontas",
+    "askAboutBook": "Faça uma pergunta sobre {{book}}...",
+    "askAboutBible": "Faça uma pergunta sobre a Bíblia...",
+    "addChat": "Adicionar Conversa",
+    "disclaimer": "O BibleChat pode cometer erros. Considere verificar informações importantes."
   },
   "errors": {
     "general": "Ocorreu um erro. Por favor, tente novamente.",

@@ -78,7 +78,12 @@
     "previousSeven": "Previous 7 days",
     "older": "Older",
     "limitReached": "Message limit reached",
-    "upgradeMessage": "Upgrade to premium plan to send more messages."
+    "upgradeMessage": "Upgrade to premium plan to send more messages.",
+    "readyQuestions": "Ready Questions",
+    "askAboutBook": "Ask a question about {{book}}...",
+    "askAboutBible": "Ask a question about the Bible...",
+    "addChat": "Add Chat",
+    "disclaimer": "BibleChat may make mistakes. Consider verifying important information."
   },
   "errors": {
     "general": "An error occurred. Please try again.",
