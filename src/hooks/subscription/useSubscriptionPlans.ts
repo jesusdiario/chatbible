@@ -1,34 +1,51 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionPlan } from './types';
+import { PricePlan, StripeItem } from '@/types/subscription';
 
 export const useSubscriptionPlans = (subscriptionTier: string | null) => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState<PricePlan[]>([]);
+  const [stripeItems, setStripeItems] = useState<StripeItem[]>([]);
 
-  // Carregar planos de assinatura
+  // Load subscription plans
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const { data, error } = await supabase
-          .from('subscription_plans')
+        // Get all price plans
+        const { data: planData, error: planError } = await supabase
+          .from('price_plans')
           .select('*')
-          .order('price_amount', { ascending: true });
+          .order('price_cents', { ascending: true });
         
-        if (error) throw error;
+        if (planError) throw planError;
         
-        if (data) {
-          // Converter os dados para o formato correto de SubscriptionPlan
-          const formattedPlans = data.map(plan => ({
-            ...plan,
+        // Get stripe mappings
+        const { data: stripeData, error: stripeError } = await supabase
+          .from('stripe_items')
+          .select('*');
+          
+        if (stripeError) throw stripeError;
+        
+        if (planData && stripeData) {
+          // Format plans
+          const formattedPlans = planData.map(plan => ({
+            id: plan.id,
+            code: plan.code,
+            name: plan.name,
+            description: plan.description,
+            message_limit: plan.message_limit,
+            price_cents: plan.price_cents,
+            currency: plan.currency,
+            period: plan.period,
             features: Array.isArray(plan.features) 
               ? plan.features 
               : typeof plan.features === 'string' 
                 ? JSON.parse(plan.features) 
                 : []
-          } as SubscriptionPlan));
+          } as PricePlan));
           
           setPlans(formattedPlans);
+          setStripeItems(stripeData);
         }
       } catch (error) {
         console.error('Erro ao carregar planos:', error);
@@ -38,5 +55,14 @@ export const useSubscriptionPlans = (subscriptionTier: string | null) => {
     fetchPlans();
   }, []);
 
-  return plans;
+  // Helper function to get stripe price ID for a plan
+  const getStripePriceId = (planId: string): string | null => {
+    const item = stripeItems.find(item => item.price_plan_id === planId);
+    return item ? item.stripe_price_id : null;
+  };
+
+  return {
+    plans,
+    getStripePriceId
+  };
 };

@@ -18,13 +18,14 @@ import { cn } from "@/lib/utils";
 const UsageSection = () => {
   const { 
     plan, 
-    subscriptionTier, 
+    subscriptionTier,
     isLoading: subscriptionLoading,
+    getStripePriceIdByCode,
     startCheckout
   } = useSubscription();
   
   const { 
-    messageCount, 
+    messageCount: usedMessages, 
     messageLimit, 
     daysUntilReset, 
     percentUsed,
@@ -37,7 +38,10 @@ const UsageSection = () => {
   const isHighUsage = percentUsed >= 90;
   
   const handleUpgradeClick = () => {
-    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Use your premium plan price ID
+    const stripePriceId = getStripePriceIdByCode('PRO');
+    if (stripePriceId) {
+      startCheckout(stripePriceId);
+    }
   };
 
   return (
@@ -61,7 +65,7 @@ const UsageSection = () => {
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">Mensagens</span>
                   <span className={`text-sm ${isHighUsage ? "text-red-500 font-medium" : isMediumUsage ? "text-amber-500" : "text-muted-foreground"}`}>
-                    {messageCount} de {messageLimit}
+                    {usedMessages} de {messageLimit}
                   </span>
                 </div>
                 <Progress 
@@ -72,14 +76,14 @@ const UsageSection = () => {
                   )}
                 />
                 
-                {isHighUsage && subscriptionTier === "Gratuito" && (
+                {isHighUsage && subscriptionTier === "FREE" && (
                   <div className="flex items-center gap-2 mt-2 text-xs text-red-500">
                     <AlertTriangle className="h-3 w-3" />
                     <span>Você está prestes a atingir seu limite mensal!</span>
                   </div>
                 )}
                 
-                {isMediumUsage && subscriptionTier === "Gratuito" && (
+                {isMediumUsage && subscriptionTier === "FREE" && (
                   <div className="flex items-center gap-2 mt-2 text-xs text-amber-500">
                     <AlertTriangle className="h-3 w-3" />
                     <span>Você está se aproximando do seu limite mensal.</span>
@@ -91,7 +95,7 @@ const UsageSection = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Plano</span>
                   <span className="text-sm font-medium">
-                    {subscriptionTier || "Gratuito"}
+                    {plan?.name || "Gratuito"}
                   </span>
                 </div>
                 
@@ -137,7 +141,7 @@ const UsageSection = () => {
           )}
         </CardContent>
         
-        {!isLoading && subscriptionTier === "Gratuito" && (
+        {!isLoading && subscriptionTier === "FREE" && (
           <CardFooter>
             <Button 
               onClick={handleUpgradeClick}

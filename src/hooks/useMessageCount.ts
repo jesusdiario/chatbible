@@ -2,168 +2,78 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "./useSubscription";
 
-interface MessageCount {
-  id: string;
-  user_id: string;
-  count: number;
-  last_reset_time: string;
-}
-
-export const useMessageCount = (messageLimitFromProps?: number) => {
-  const [messageCount, setMessageCount] = useState(0);
-  const [timeUntilReset, setTimeUntilReset] = useState(0);
+export const useMessageCount = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { 
+    usedMessages, 
+    messageLimit, 
+    subscriptionEnd, 
+    canSendMessage,
+    trackUsage
+  } = useSubscription();
 
-  const DEFAULT_MESSAGE_LIMIT = 10;
-  const MESSAGE_LIMIT = messageLimitFromProps || DEFAULT_MESSAGE_LIMIT;
-  const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
+  // Calculate days until reset
+  const daysUntilReset = subscriptionEnd
+    ? Math.ceil((subscriptionEnd.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))
+    : 30;  // Default to 30 days if no subscription end date
 
-  useEffect(() => {
-    const fetchOrCreateMessageCount = async () => {
-      try {
-        setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          setLoading(false);
-          return;
-        }
+  // Calculate percentage of usage
+  const percentUsed = messageLimit > 0 
+    ? Math.round((usedMessages / messageLimit) * 100) 
+    : 0;
 
-        const userId = session.user.id;
-        const { data, error } = await supabase
-          .from('message_counts')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error("Erro ao buscar contador de mensagens:", error);
-          setLoading(false);
-          return;
-        }
-
-        if (!data) {
-          const { data: newData, error: insertError } = await supabase
-            .from('message_counts')
-            .insert([{ 
-              user_id: userId, 
-              count: 0, 
-              last_reset_time: new Date().toISOString() 
-            }])
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error("Erro ao criar contador de mensagens:", insertError);
-            setLoading(false);
-            return;
-          }
-
-          setMessageCount(0);
-        } else {
-          const lastResetTime = new Date(data.last_reset_time).getTime();
-          const currentTime = Date.now();
-          const timeElapsed = currentTime - lastResetTime;
-
-          if (timeElapsed >= RESET_TIME) {
-            const { error: updateError } = await supabase
-              .from('message_counts')
-              .update({ 
-                count: 0, 
-                last_reset_time: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq('user_id', userId);
-
-            if (updateError) {
-              console.error("Erro ao resetar contador de mensagens:", updateError);
-            }
-
-            setMessageCount(0);
-            setTimeUntilReset(RESET_TIME);
-          } else {
-            setMessageCount(data.count);
-            setTimeUntilReset(RESET_TIME - timeElapsed);
-          }
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Erro ao processar contador de mensagens:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchOrCreateMessageCount();
-
-    const intervalId = setInterval(() => {
-      if (timeUntilReset > 0) {
-        setTimeUntilReset(prev => {
-          const newTime = prev - 60000;
-          if (newTime <= 0) {
-            fetchOrCreateMessageCount();
-            return 0;
-          }
-          return newTime;
-        });
-      }
-    }, 60000);
-
-    return () => clearInterval(intervalId);
-  }, [messageLimitFromProps]);
-
+  // Function to increment message count
   const incrementMessageCount = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-  
-      const userId = session.user.id;
-      
-      const { data, error } = await supabase
-        .from('message_counts')
-        .update({ 
-          count: messageCount + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-        .select();
-      
-      if (error) {
-        console.error("Erro ao incrementar contador de mensagens:", error);
-        return;
-      }
-      
-      setMessageCount(prev => prev + 1);
+      const result = await trackUsage('chat_msg', 1);
+      return result?.success || false;
     } catch (error) {
-      console.error("Erro ao incrementar contador de mensagens:", error);
+      console.error("Error incrementing message count:", error);
+      return false;
     }
   };
 
-  // Verificar se o usuário ainda tem mensagens disponíveis
-  const canSendMessage = messageCount < MESSAGE_LIMIT;
-  
-  // Dias restantes para reset
-  const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
-  
-  // Calcular a porcentagem de uso
-  const percentUsed = Math.round((messageCount / MESSAGE_LIMIT) * 100);
+  // Helper function to check if the user can send another message
+  const checkCanSendMessage = useCallback(async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return true; // No session, assume can send (will be handled by auth)
+      
+      const userId = sessionData.session.user.id;
+      const { data } = await supabase.rpc('check_message_quota', { user_id_param: userId });
+      
+      return data !== false;
+    } catch (error) {
+      console.error("Error checking message quota:", error);
+      return true; // Default to true on error to avoid blocking
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadInitialState = async () => {
+      setLoading(true);
+      const canSend = await checkCanSendMessage();
+      setLoading(false);
+    };
+    
+    loadInitialState();
+  }, [checkCanSendMessage]);
 
   // Alias for incrementMessageCount
   const increment = incrementMessageCount;
   
   return {
-    messageCount,
-    setMessageCount,
-    incrementMessageCount,
-    increment,
-    timeUntilReset,
+    messageCount: usedMessages,
+    messageLimit,
     daysUntilReset,
     loading,
     canSendMessage,
-    MESSAGE_LIMIT,
-    messageLimit: MESSAGE_LIMIT,
-    percentUsed
+    percentUsed,
+    incrementMessageCount,
+    increment,
+    refresh: checkCanSendMessage
   };
 };

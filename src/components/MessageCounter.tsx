@@ -21,10 +21,10 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
   
   if (isLoading) return null;
   
-  // Calcula a porcentagem do limite utilizado
+  // Calculate usage percentage
   const usagePercentage = (currentCount / limit) * 100;
   
-  // Define cores com base no uso
+  // Define colors based on usage
   let textColor = "text-gray-500";
   let alertMessage = null;
   let progressBarColor = "bg-blue-500";
@@ -51,7 +51,7 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
       <div className="flex items-center justify-end gap-1">
         <div className={textColor}>
           {currentCount}/{limit} mensagens enviadas este mês 
-          {subscriptionTier && ` (Plano ${subscriptionTier})`}
+          {subscriptionTier && ` (Plano ${subscriptionTier === 'FREE' ? 'Gratuito' : subscriptionTier})`}
         </div>
         
         <TooltipProvider>
@@ -69,7 +69,7 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
         </TooltipProvider>
       </div>
       
-      {/* Barra de progresso */}
+      {/* Progress bar */}
       <div className="w-full h-1 bg-gray-200 rounded-full mt-1">
         <div 
           className={`h-1 rounded-full ${progressBarColor} transition-all duration-300 ease-in-out`}

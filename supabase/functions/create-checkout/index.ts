@@ -8,20 +8,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
-  // Lidar com requisições OPTIONS para CORS
+  // Handle OPTIONS requests for CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders, status: 204 });
   }
 
   try {
-    // Inicialize o cliente Supabase com a service role key
+    logStep("Function started");
+    
+    // Initialize the Supabase client with the service role key
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Obtenha a autorização do cabeçalho
+    // Get authorization from header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -30,7 +37,7 @@ serve(async (req) => {
       });
     }
 
-    // Verificar usuário autenticado
+    // Verify authenticated user
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
@@ -41,7 +48,9 @@ serve(async (req) => {
       });
     }
 
-    // Extrair dados da solicitação
+    logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Extract data from request
     const { priceId, successUrl, cancelUrl } = await req.json();
     
     if (!priceId) {
@@ -51,26 +60,26 @@ serve(async (req) => {
       });
     }
 
-    // Obter o plano de assinatura da base de dados
-    const { data: planData } = await supabaseClient
-      .from("subscription_plans")
-      .select("*")
+    // Look up the price plan from stripe_items
+    const { data: stripeItem, error: stripeItemError } = await supabaseClient
+      .from("stripe_items")
+      .select("price_plan_id")
       .eq("stripe_price_id", priceId)
       .single();
-
-    if (!planData) {
+      
+    if (stripeItemError || !stripeItem) {
       return new Response(JSON.stringify({ error: "Plano não encontrado" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Inicialize o Stripe
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
       apiVersion: "2022-11-15",
     });
 
-    // Verificar se o cliente já existe no Stripe
+    // Check if the customer already exists in Stripe
     let customerId;
     const { data: customers } = await stripe.customers.list({
       email: user.email,
@@ -79,8 +88,9 @@ serve(async (req) => {
 
     if (customers.length > 0) {
       customerId = customers[0].id;
+      logStep("Existing customer found", { customerId });
     } else {
-      // Criar um novo cliente no Stripe
+      // Create a new customer in Stripe
       const newCustomer = await stripe.customers.create({
         email: user.email,
         metadata: {
@@ -88,20 +98,20 @@ serve(async (req) => {
         },
       });
       customerId = newCustomer.id;
+      logStep("New customer created", { customerId });
       
-      // Registrar cliente no banco de dados
+      // Update customer in database
       await supabaseClient
-        .from("subscribers")
+        .from("customers")
         .upsert({
-          email: user.email,
           user_id: user.id,
+          email: user.email,
           stripe_customer_id: customerId,
-          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        }, { onConflict: 'user_id' });
     }
 
-    // Criar a sessão de checkout do Stripe
+    // Create the Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -117,13 +127,16 @@ serve(async (req) => {
       client_reference_id: user.id,
     });
 
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error("Erro no checkout:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Error in checkout", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

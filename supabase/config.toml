@@ -1,4 +1,45 @@
 
-[functions]
-[functions.detect-country]
-verify_jwt = false
+project_id = "qdukcxetdfidgxcuwjdo"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+port = 54325
+
+[auth]
+enabled = true
+port = 54326
+
+[realtime]
+enabled = true
+port = 54327
+
+[analytics]
+enabled = false
+port = 54328
+
+[vector]
+enabled = false
+port = 54329
+
+[global.env]
+STRIPE_SECRET_KEY = "sk_test_51KhClqLyyMwTutR9bepZetBkB6wiEZcEFDBJRbhoBzGBqTaXbGNixaQNVdInbNDz5kzWKMATsTBGDlk8go3UCvR700YKOZALmM"
+OPENAI_API_KEY = "your-openai-api-key-here"

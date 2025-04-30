@@ -14,13 +14,13 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  // Lidar com requisições OPTIONS para CORS
+  // Handle OPTIONS requests for CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders, status: 204 });
   }
 
   try {
-    logStep("Função iniciada");
+    logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("Chave do Stripe não configurada");
@@ -32,7 +32,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Obtenha a autorização do cabeçalho
+    // Get authorization from header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       logStep("Sem cabeçalho de autorização");
@@ -42,7 +42,7 @@ serve(async (req) => {
       });
     }
 
-    // Verificar usuário autenticado
+    // Verify authenticated user
     const token = authHeader.replace("Bearer ", "");
     logStep("Autenticando usuário com token");
     
@@ -57,36 +57,46 @@ serve(async (req) => {
 
     logStep("Usuário autenticado", { userId: user.id, email: user.email });
     
-    // Inicialize o Stripe
+    // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2022-11-15" });
     
-    // Verificar se o cliente existe no Stripe
+    // Check if customer exists in Stripe
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("Cliente não encontrado, atualizando estado sem assinatura");
-      await supabaseClient.from("subscribers").upsert({
-        email: user.email,
-        user_id: user.id,
-        stripe_customer_id: null,
-        subscribed: false,
-        subscription_tier: null,
-        subscription_end: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'email' });
       
-      // Obter o plano gratuito
+      // Get the FREE plan ID
       const { data: freePlan } = await supabaseClient
-        .from("subscription_plans")
-        .select("*")
-        .eq("stripe_price_id", "free_plan")
+        .from("price_plans")
+        .select("id")
+        .eq("code", "FREE")
         .single();
+      
+      if (!freePlan) {
+        return new Response(JSON.stringify({ error: "Plano gratuito não encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+      
+      // Upsert customer with FREE plan
+      await supabaseClient.from("customers").upsert(
+        {
+          user_id: user.id,
+          email: user.email,
+          current_plan_id: freePlan.id,
+          current_status: "inactive",
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id' }
+      );
       
       return new Response(JSON.stringify({ 
         subscribed: false,
-        subscription_tier: "Gratuito",
+        subscription_tier: "FREE",
         subscription_end: null,
-        message_limit: freePlan?.message_limit || 10
+        message_limit: 10
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -96,7 +106,7 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Cliente Stripe encontrado", { customerId });
 
-    // Verificar assinaturas ativas
+    // Check for active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
@@ -104,68 +114,128 @@ serve(async (req) => {
     });
     
     const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionTier = "Gratuito";
+    let subscriptionTier = "FREE";
     let subscriptionEnd = null;
     let messageLimit = 10;
-    let subscriptionData = null;
+    let pricePlanId = null;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Assinatura ativa encontrada", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determinar plano de assinatura com base no preço
+      // Get price ID from subscription
       const priceId = subscription.items.data[0].price.id;
       
-      // Buscar plano na base de dados
-      const { data: planData } = await supabaseClient
-        .from("subscription_plans")
-        .select("*")
+      // Look up price_plan_id from stripe_items table
+      const { data: stripeItem } = await supabaseClient
+        .from("stripe_items")
+        .select("price_plan_id")
         .eq("stripe_price_id", priceId)
         .single();
-      
-      if (planData) {
-        subscriptionTier = planData.name;
-        messageLimit = planData.message_limit;
-        subscriptionData = planData;
-        logStep("Plano determinado", { subscriptionTier, messageLimit });
+        
+      if (stripeItem) {
+        pricePlanId = stripeItem.price_plan_id;
+        
+        // Get plan details
+        const { data: planData } = await supabaseClient
+          .from("price_plans")
+          .select("*")
+          .eq("id", pricePlanId)
+          .single();
+          
+        if (planData) {
+          subscriptionTier = planData.code;
+          messageLimit = planData.message_limit;
+          logStep("Plano determinado", { subscriptionTier, messageLimit });
+        }
       } else {
-        // Fallback para o plano Pro se o plano não for encontrado na base
-        subscriptionTier = "Pro";
-        messageLimit = 200;
+        // Fallback: Get the PRO plan details if we can't find the specific price
+        const { data: proPlan } = await supabaseClient
+          .from("price_plans")
+          .select("*")
+          .eq("code", "PRO")
+          .single();
+          
+        if (proPlan) {
+          pricePlanId = proPlan.id;
+          subscriptionTier = "PRO";
+          messageLimit = proPlan.message_limit;
+        }
+        
         logStep("Plano não encontrado na base, usando fallback", { subscriptionTier });
       }
+      
+      // Update customer record
+      await supabaseClient.from("customers").upsert({
+        user_id: user.id,
+        email: user.email,
+        stripe_customer_id: customerId,
+        current_plan_id: pricePlanId,
+        current_status: "active",
+        current_period_end: subscriptionEnd,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+      // Add to subscriptions history if needed
+      const { data: existingSubscription } = await supabaseClient
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("stripe_subscription_id", subscription.id)
+        .single();
+        
+      if (!existingSubscription) {
+        await supabaseClient.from("subscriptions").insert({
+          user_id: user.id,
+          price_plan_id: pricePlanId,
+          status: "active",
+          period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+          period_end: subscriptionEnd,
+          stripe_subscription_id: subscription.id,
+          created_at: new Date().toISOString()
+        });
+      }
     } else {
-      // Obter o plano gratuito
+      // Get the FREE plan
       const { data: freePlan } = await supabaseClient
-        .from("subscription_plans")
+        .from("price_plans")
         .select("*")
-        .eq("stripe_price_id", "free_plan")
+        .eq("code", "FREE")
         .single();
       
       if (freePlan) {
+        pricePlanId = freePlan.id;
         messageLimit = freePlan.message_limit;
-        subscriptionData = freePlan;
       }
       
       logStep("Nenhuma assinatura ativa encontrada");
+      
+      // Update customer with FREE plan
+      await supabaseClient.from("customers").upsert({
+        user_id: user.id,
+        email: user.email,
+        stripe_customer_id: customerId,
+        current_plan_id: pricePlanId,
+        current_status: "inactive",
+        current_period_end: null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
     }
 
-    // Atualizar registro do assinante
-    await supabaseClient.from("subscribers").upsert({
-      email: user.email,
-      user_id: user.id,
-      stripe_customer_id: customerId,
-      subscribed: hasActiveSub,
-      subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'email' });
+    // Get current usage
+    const { data: usageData } = await supabaseClient.rpc(
+      'check_message_quota',
+      { user_id_param: user.id }
+    );
+    
+    const canSendMessage = usageData || true; // Default to true if no data
 
     logStep("Base de dados atualizada com informações da assinatura", { 
       subscribed: hasActiveSub, 
       subscriptionTier, 
-      messageLimit 
+      messageLimit,
+      canSendMessage
     });
     
     return new Response(JSON.stringify({
@@ -173,7 +243,7 @@ serve(async (req) => {
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
       message_limit: messageLimit,
-      subscription_data: subscriptionData
+      can_send_message: canSendMessage
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

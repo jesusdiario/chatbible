@@ -7,20 +7,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[TRACK-USAGE] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
-  // Lidar com requisições OPTIONS para CORS
+  // Handle OPTIONS requests for CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders, status: 204 });
   }
 
   try {
+    logStep("Function started");
+    
     // Initialize the Supabase client with the service role key
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Obtenha a autorização do cabeçalho
+    // Get authorization from header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -29,7 +36,7 @@ serve(async (req) => {
       });
     }
 
-    // Verificar usuário autenticado
+    // Verify authenticated user
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
@@ -38,96 +45,106 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    logStep("Usuário autenticado", { userId: user.id });
 
-    // Extrair dados da solicitação
-    const { endpoint, model, promptTokens, completionTokens, totalTokens } = await req.json();
+    // Extract data from request
+    const { usage_type, amount, context } = await req.json();
 
-    // Calcular custo estimado com base no modelo
-    let costPerToken = 0;
-    switch(model) {
-      case "gpt-4":
-        costPerToken = 0.00003; // Input: $0.03 per 1K tokens
-        break;
-      case "gpt-4-turbo":
-        costPerToken = 0.00001; // Input: $0.01 per 1K tokens
-        break;
-      case "gpt-3.5-turbo":
-        costPerToken = 0.0000015; // Input: $0.0015 per 1K tokens
-        break;
-      default:
-        costPerToken = 0.000002; // Default value
+    if (!usage_type || !amount) {
+      return new Response(JSON.stringify({ error: "Tipo de uso e quantidade são obrigatórios" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Calcular custo total estimado
-    const estimatedCost = totalTokens * costPerToken;
+    // Check if user has a customer record, create if not exists
+    const { data: customer } = await supabaseClient
+      .from("customers")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+      
+    if (!customer) {
+      // Get the FREE plan
+      const { data: freePlan } = await supabaseClient
+        .from("price_plans")
+        .select("id")
+        .eq("code", "FREE")
+        .single();
+        
+      if (!freePlan) {
+        return new Response(JSON.stringify({ error: "Plano gratuito não encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+      
+      // Create customer record with FREE plan
+      await supabaseClient.from("customers").insert({
+        user_id: user.id,
+        email: user.email,
+        current_plan_id: freePlan.id,
+        current_status: "inactive"
+      });
+      
+      logStep("Cliente criado com plano gratuito", { userId: user.id });
+    }
 
-    // Verificar se o usuário pode enviar outra mensagem
-    const { data: userData, error: userDataError } = await supabaseClient
-      .from('message_counts')
-      .select('count')
-      .eq('user_id', user.id)
-      .single();
-      
-    // Verificar assinatura do usuário
-    const { data: subData, error: subError } = await supabaseClient
-      .from('subscribers')
-      .select('subscribed, subscription_tier')
-      .eq('user_id', user.id)
-      .single();
-      
-    // Buscar limites do plano
-    const { data: planData } = await supabaseClient
-      .from('subscription_plans')
-      .select('message_limit')
-      .eq('name', subData?.subscription_tier || 'Gratuito')
-      .single();
-      
-    const messageLimit = planData?.message_limit || 10;
-    const isSubscribed = subData?.subscribed || false;
-      
-    if (userData && userData.count >= messageLimit && !isSubscribed) {
+    // Check if the user can send more messages
+    const { data: canSendMessage } = await supabaseClient.rpc(
+      'check_message_quota',
+      { user_id_param: user.id }
+    );
+    
+    // If not subscribed and over quota, return error
+    if (customer?.current_status !== 'active' && !canSendMessage) {
       return new Response(JSON.stringify({ 
-        error: "Limite de mensagens excedido",
+        error: "Limite de mensagens excedido", 
         limitExceeded: true,
-        currentCount: userData.count,
-        limit: messageLimit
+        canSendMessage: false
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
       });
     }
 
-    // Gravar registro de uso
-    const { data, error } = await supabaseClient.from("api_usage").insert({
-      user_id: user.id,
-      endpoint,
-      model,
-      prompt_tokens: promptTokens,
-      completion_tokens: completionTokens,
-      total_tokens: totalTokens,
-      estimated_cost_usd: estimatedCost,
-    });
+    // Record the usage
+    const { data: usage, error: usageError } = await supabaseClient
+      .from("usages")
+      .insert({
+        user_id: user.id,
+        usage_type,
+        amount,
+        context
+      })
+      .select()
+      .single();
 
-    if (error) {
-      throw new Error(`Erro ao registrar uso: ${error.message}`);
+    if (usageError) {
+      throw new Error(`Erro ao registrar uso: ${usageError.message}`);
     }
 
-    // Incrementar contador de mensagens
-    await supabaseClient.rpc('increment_message_count', { user_id_param: user.id });
+    // Get current usage statistics
+    const { data: currentUsage } = await supabaseClient
+      .from("v_current_usage")
+      .select("msgs_used, message_limit")
+      .eq("user_id", user.id)
+      .single();
 
     return new Response(JSON.stringify({ 
-      success: true, 
-      cost: estimatedCost,
-      messageCount: userData ? userData.count + 1 : 1,
-      messageLimit,
-      canSendMore: userData ? userData.count + 1 < messageLimit || isSubscribed : true
+      success: true,
+      usage_id: usage.id,
+      current_usage: currentUsage?.msgs_used || amount,
+      limit: currentUsage?.message_limit || 10,
+      canSendMessage: canSendMessage !== false
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    console.error("Erro ao rastrear uso:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("Erro ao rastrear uso", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
