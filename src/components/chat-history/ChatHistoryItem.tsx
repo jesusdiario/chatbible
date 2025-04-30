@@ -1,9 +1,9 @@
+
 import React from "react";
 import { ChatHistory } from "@/types/chat";
-import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
-import { LockClosedIcon, StarIcon } from "@heroicons/react/24/solid";
+import { MessageSquare, LockClosed, Star } from "lucide-react";
 import { format } from "date-fns";
-import { ChatHistoryActionsMenu } from "./ChatHistoryActionsMenu";
+import ChatHistoryActionsMenu from "./ChatHistoryActionsMenu";
 import { cn } from "@/lib/utils";
 
 export interface ChatHistoryItemProps {
@@ -31,9 +31,9 @@ export const ChatHistoryItem = ({
     >
       <div className="flex items-center">
         {chat.is_accessible ? (
-          <ChatBubbleLeftIcon className="h-6 w-6 text-blue-500" />
+          <MessageSquare className="h-6 w-6 text-blue-500" />
         ) : (
-          <LockClosedIcon className="h-6 w-6 text-gray-400" />
+          <LockClosed className="h-6 w-6 text-gray-400" />
         )}
         <div className="ml-3">
           <h3 className="text-lg font-semibold">{chat.title}</h3>

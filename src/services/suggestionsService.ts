@@ -8,6 +8,7 @@ export interface Suggestion {
   user_message: string;
   prompt_override?: string;
   icon?: string;
+  description?: string;
   display_order: number;
 }
 

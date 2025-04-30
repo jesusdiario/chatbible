@@ -11,19 +11,15 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Trash2, Pin, Edit } from 'lucide-react';
 
 interface ChatHistoryActionsMenuProps {
-  isPinned: boolean;
-  isUpdating: boolean;
-  onRename: () => void;
-  onTogglePin: () => void;
-  onDelete: () => void;
+  chatId: string;
+  onDelete: (chatId: string) => void;
+  onHistoryUpdated: () => void;
 }
 
 const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
-  isPinned,
-  isUpdating,
-  onRename,
-  onTogglePin,
-  onDelete
+  chatId,
+  onDelete,
+  onHistoryUpdated
 }) => {
   return (
     <DropdownMenu>
@@ -34,27 +30,21 @@ const ChatHistoryActionsMenu: React.FC<ChatHistoryActionsMenuProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={onRename}
-          disabled={isUpdating}
-        >
+        <DropdownMenuItem onClick={() => console.log('Renomear')}>
           <Edit className="h-4 w-4 mr-2" />
           Renomear
         </DropdownMenuItem>
         
-        <DropdownMenuItem 
-          onClick={onTogglePin}
-          disabled={isUpdating}
-        >
+        <DropdownMenuItem onClick={() => console.log('Toggle pin')}>
           <Pin className="h-4 w-4 mr-2" />
-          {isPinned ? 'Desafixar' : 'Fixar'}
+          Fixar
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         
         <DropdownMenuItem 
           className="text-red-600 focus:text-red-600" 
-          onClick={onDelete}
+          onClick={() => onDelete(chatId)}
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Excluir

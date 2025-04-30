@@ -10,14 +10,14 @@ interface MessageCount {
   last_reset_time: string;
 }
 
-export const useMessageCount = (messageLimit?: number) => {
+export const useMessageCount = (messageLimitFromProps?: number) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const DEFAULT_MESSAGE_LIMIT = 10;
-  const MESSAGE_LIMIT = messageLimit || DEFAULT_MESSAGE_LIMIT;
+  const MESSAGE_LIMIT = messageLimitFromProps || DEFAULT_MESSAGE_LIMIT;
   const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export const useMessageCount = (messageLimit?: number) => {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [messageLimit]);
+  }, [messageLimitFromProps]);
 
   const incrementMessageCount = async () => {
     try {
@@ -150,12 +150,9 @@ export const useMessageCount = (messageLimit?: number) => {
   // Calcular a porcentagem de uso
   const percentUsed = Math.round((messageCount / MESSAGE_LIMIT) * 100);
 
-  // Alias for incrementMessageCount to match the other components
+  // Alias for incrementMessageCount
   const increment = incrementMessageCount;
   
-  // Export messageLimit to match the other components
-  const messageLimit = MESSAGE_LIMIT;
-
   return {
     messageCount,
     setMessageCount,
@@ -166,7 +163,7 @@ export const useMessageCount = (messageLimit?: number) => {
     loading,
     canSendMessage,
     MESSAGE_LIMIT,
-    messageLimit,
+    messageLimit: MESSAGE_LIMIT,
     percentUsed
   };
 };
