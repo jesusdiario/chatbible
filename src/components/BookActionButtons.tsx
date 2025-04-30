@@ -116,7 +116,7 @@ const BookActionButtons = ({ bookSlug, displayInModal = false }: BookActionButto
                 </Tooltip>
               </TooltipProvider>
             )}
-          </div>
+          </Card>
         );
       })}
     </div>
