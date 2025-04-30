@@ -17,20 +17,15 @@ const Profile = () => {
   const { t } = useTranslation();
   
   useEffect(() => {
-    // Verifica se existe uma sessão
+    // Função para buscar dados do usuário
     const fetchUserData = async () => {
-      setLoading(true);
-      
       try {
         // Obtém a sessão
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (!session?.user) {
-          setLoading(false);
-          return;
+        if (session?.user) {
+          setUser(session.user);
         }
-        
-        setUser(session.user);
       } catch (error) {
         console.error('Erro na página de perfil:', error);
         toast({
@@ -39,21 +34,24 @@ const Profile = () => {
           variant: "destructive"
         });
       } finally {
+        // Defina loading como false independentemente do resultado
         setLoading(false);
       }
     };
     
-    // Configura o listener para mudanças no estado de autenticação
+    // Busca inicial dos dados do usuário
+    fetchUserData();
+    
+    // Configura o listener para mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
+        setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setLoading(false);
       }
     });
-    
-    // Busca inicial
-    fetchUserData();
     
     // Limpa a assinatura
     return () => {

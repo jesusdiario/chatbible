@@ -9,11 +9,21 @@ export function useProfileManagement(userId: string | undefined) {
 
   // Função para solicitar redefinição de senha
   const handlePasswordReset = async (email: string) => {
-    if (!email) return;
+    if (!email) {
+      toast({
+        title: "Erro",
+        description: "Email não fornecido",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsUpdating(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/auth?reset=true',
+      });
+      
       if (error) throw error;
       
       toast({
@@ -23,7 +33,7 @@ export function useProfileManagement(userId: string | undefined) {
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message,
+        description: error.message || "Não foi possível enviar o email de redefinição de senha",
         variant: "destructive"
       });
     } finally {
