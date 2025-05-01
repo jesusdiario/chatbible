@@ -45,3 +45,59 @@ export async function createCourse(course: Omit<Course, 'id' | 'created_at' | 'c
   if (error) throw error;
   return data;
 }
+
+export async function fetchPopularCourses(limit = 6) {
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data as Course[];
+}
+
+export async function fetchCourseDetails(courseId: string) {
+  const { data, error } = await supabase
+    .from('courses')
+    .select(`
+      *,
+      sections (
+        *,
+        lessons (*)
+      ),
+      feedbacks (*)
+    `)
+    .eq('id', courseId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function enrollInCourse(courseId: string, userId: string) {
+  const { data, error } = await supabase
+    .from('course_progress')
+    .insert({
+      course_id: courseId,
+      user_id: userId,
+      completed_lessons: []
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function checkEnrollmentStatus(courseId: string, userId: string) {
+  const { data, error } = await supabase
+    .from('course_progress')
+    .select('*')
+    .eq('course_id', courseId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return !!data;
+}
