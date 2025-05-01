@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Star, Clock, Certificate, Check, ChevronDown } from 'lucide-react';
+import { Loader2, Star, Clock, Award, Check, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
 import { useSidebarControl } from '@/hooks/useSidebarControl';
@@ -317,7 +316,7 @@ export default function CourseDetail() {
                   <span>9,839 estudantes</span>
                 </div>
                 <div className="flex items-center">
-                  <Certificate className="h-5 w-5 mr-2" />
+                  <Award className="h-5 w-5 mr-2" />
                   <span>Certificado</span>
                 </div>
               </div>
