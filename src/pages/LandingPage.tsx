@@ -16,7 +16,12 @@ import {
   Headphones,
   List,
   Calendar,
-  Info
+  Info,
+  BookOpen,
+  Rocket,
+  Award,
+  Heart,
+  Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,6 +30,7 @@ const LandingPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
+  const benefitsRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -91,10 +97,10 @@ const LandingPage = () => {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => scrollToSection(featuresRef)}
+              onClick={() => scrollToSection(benefitsRef)}
               className="border-chatgpt-accent text-chatgpt-accent hover:bg-chatgpt-accent/10"
             >
-              Saiba Mais <ArrowDown className="ml-2 h-4 w-4" />
+              Ver Benefícios <ArrowDown className="ml-2 h-4 w-4" />
             </Button>
           </div>
 
@@ -189,7 +195,452 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 3. Solução/Benefícios */}
+      {/* NOVA SEÇÃO: Cinco Pilares do Conhecimento Bíblico */}
+      <section ref={benefitsRef} className="py-20 px-4 md:px-8 bg-chatgpt-secondary">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Cinco Pilares do Conhecimento Bíblico</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              O Bible Chat fundamenta-se em princípios sólidos para transformar seu estudo da Palavra
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-5 gap-6">
+            <div className="animate-on-scroll">
+              <Card className="h-full border-t-4 border-t-blue-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="p-3 bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                    <BookOpen className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-lg">Contexto Histórico</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Compreensão dos cenários históricos, culturais e geográficos que dão sentido ao texto bíblico.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="animate-on-scroll">
+              <Card className="h-full border-t-4 border-t-green-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="p-3 bg-green-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                    <List className="h-6 w-6 text-green-600" />
+                  </div>
+                  <CardTitle className="text-lg">Análise Textual</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Exame detalhado das palavras originais, estrutura literária e significados nas línguas bíblicas.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="animate-on-scroll">
+              <Card className="h-full border-t-4 border-t-purple-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="p-3 bg-purple-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                    <Book className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <CardTitle className="text-lg">Coerência Bíblica</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Integração harmoniosa de todas as partes das Escrituras, respeitando sua unidade como revelação.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="animate-on-scroll">
+              <Card className="h-full border-t-4 border-t-orange-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="p-3 bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                    <Heart className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <CardTitle className="text-lg">Aplicação Prática</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Ponte entre os princípios eternos e os desafios contemporâneos para transformação pessoal.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="animate-on-scroll">
+              <Card className="h-full border-t-4 border-t-red-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="p-3 bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                    <Shield className="h-6 w-6 text-red-600" />
+                  </div>
+                  <CardTitle className="text-lg">Ortodoxia Teológica</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Compromisso com doutrinas fundamentais reconhecidas pelo cristianismo histórico.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NOVA SEÇÃO: Benefícios Para o Crescimento Espiritual */}
+      <section className="py-20 px-4 md:px-8 bg-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Benefícios Para o Crescimento Espiritual</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Como o Bible Chat fortalece sua jornada de fé e transforma sua relação com as Escrituras
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="animate-on-scroll">
+              <div className="relative">
+                <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gradient-to-b from-chatgpt-accent to-blue-300"></div>
+                <div className="space-y-12 pl-8">
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">1</span>
+                      Consistência nos Devocionais
+                    </h3>
+                    <p className="text-gray-600">
+                      Estabeleça uma rotina diária de estudo bíblico com orientação personalizada, adaptada ao seu nível de conhecimento e disponibilidade de tempo.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">2</span>
+                      Clareza nas Dúvidas
+                    </h3>
+                    <p className="text-gray-600">
+                      Resolva questionamentos teológicos de forma imediata, com explicações fundamentadas na Bíblia e tradição cristã, sem julgamentos.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">3</span>
+                      Aprofundamento Gradual
+                    </h3>
+                    <p className="text-gray-600">
+                      Evolua do conhecimento básico para análises mais profundas da Palavra, descobrindo camadas de significado à medida que avança.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="animate-on-scroll">
+              <div className="relative">
+                <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-300 to-chatgpt-accent"></div>
+                <div className="space-y-12 pl-8">
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">4</span>
+                      Visão Integradora
+                    </h3>
+                    <p className="text-gray-600">
+                      Conecte os pontos entre diferentes partes da Bíblia, reconhecendo padrões, temas recorrentes e a narrativa redentora que une toda a Escritura.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">5</span>
+                      Aplicabilidade Imediata
+                    </h3>
+                    <p className="text-gray-600">
+                      Traduza princípios bíblicos em ações práticas para seu cotidiano, enfrentando desafios modernos com sabedoria ancestral.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold mb-3 flex items-center">
+                      <span className="bg-chatgpt-accent text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-3">6</span>
+                      Comunhão Consciente
+                    </h3>
+                    <p className="text-gray-600">
+                      Enriqueça seus momentos de oração com insights das Escrituras, criando uma conexão mais profunda entre sua vida devocional e o conhecimento bíblico.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NOVA SEÇÃO: Impacto no Ministério e Liderança */}
+      <section className="py-20 px-4 md:px-8 bg-chatgpt-secondary">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Impacto no Ministério e Liderança</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Ferramentas poderosas para líderes que desejam potencializar seu serviço na obra de Deus
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="animate-on-scroll md:col-span-1">
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 p-5 bg-white rounded-lg shadow-md">
+                  <div className="bg-chatgpt-accent/10 p-3 rounded-full">
+                    <MessageSquare className="h-6 w-6 text-chatgpt-accent" />
+                  </div>
+                  <p className="font-medium">Sermões mais envolventes e biblicamente sólidos</p>
+                </div>
+
+                <div className="flex items-center gap-4 p-5 bg-white rounded-lg shadow-md">
+                  <div className="bg-chatgpt-accent/10 p-3 rounded-full">
+                    <Users className="h-6 w-6 text-chatgpt-accent" />
+                  </div>
+                  <p className="font-medium">Estudos bíblicos interativos para grupos</p>
+                </div>
+
+                <div className="flex items-center gap-4 p-5 bg-white rounded-lg shadow-md">
+                  <div className="bg-chatgpt-accent/10 p-3 rounded-full">
+                    <Book className="h-6 w-6 text-chatgpt-accent" />
+                  </div>
+                  <p className="font-medium">Material didático adaptado às idades</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="animate-on-scroll md:col-span-2">
+              <Card className="border-none shadow-lg h-full">
+                <CardHeader>
+                  <CardTitle>Como o Bible Chat Transforma seu Ministério</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Rocket className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Preparação Eficiente</h3>
+                      <p className="text-gray-600">Reduza o tempo de preparação de sermões e estudos em até 50%, mantendo a qualidade teológica e relevância prática.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <Award className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Excelência Exegética</h3>
+                      <p className="text-gray-600">Acesse insights de comentaristas bíblicos renomados e análise contextual aprofundada para fundamentar suas exposições.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                      <Users className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Discipulado Personalizado</h3>
+                      <p className="text-gray-600">Crie roteiros de mentoria adaptados ao perfil espiritual de cada pessoa, acompanhando seu crescimento de forma sistemática.</p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={handleGetStarted} className="bg-chatgpt-accent hover:bg-chatgpt-accent/90 text-white">
+                    Potencialize Seu Ministério
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NOVA SEÇÃO: Suporte ao Ensino Bíblico */}
+      <section className="py-20 px-4 md:px-8 bg-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Suporte ao Ensino Bíblico</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Recursos especializados para educadores e professores da Palavra de Deus
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="animate-on-scroll order-2 md:order-1">
+              <img 
+                src="/lovable-uploads/a70bfdc8-5c4c-4f43-8597-b7a62b57f00e.png" 
+                alt="Ensino Bíblico" 
+                className="rounded-xl shadow-xl w-full"
+              />
+            </div>
+
+            <div className="animate-on-scroll order-1 md:order-2">
+              <h3 className="text-2xl font-semibold mb-6">Transforme sua sala de aula bíblica</h3>
+              
+              <div className="space-y-6">
+                <div className="bg-chatgpt-secondary p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 flex items-center">
+                    <span className="w-8 h-8 rounded-full bg-chatgpt-accent text-white flex items-center justify-center mr-3">1</span>
+                    Planos de Aula Interativos
+                  </h4>
+                  <p className="text-gray-600 pl-11">
+                    Gere roteiros de ensino com atividades participativas, perguntas para discussão e recursos visuais.
+                  </p>
+                </div>
+
+                <div className="bg-chatgpt-secondary p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 flex items-center">
+                    <span className="w-8 h-8 rounded-full bg-chatgpt-accent text-white flex items-center justify-center mr-3">2</span>
+                    Material Adaptativo
+                  </h4>
+                  <p className="text-gray-600 pl-11">
+                    Personalize o conteúdo de acordo com a faixa etária, desde crianças pequenas até adultos com formação teológica.
+                  </p>
+                </div>
+
+                <div className="bg-chatgpt-secondary p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 flex items-center">
+                    <span className="w-8 h-8 rounded-full bg-chatgpt-accent text-white flex items-center justify-center mr-3">3</span>
+                    Ilustrações Contemporâneas
+                  </h4>
+                  <p className="text-gray-600 pl-11">
+                    Acesse exemplos relevantes e histórias impactantes que conectam princípios bíblicos à realidade dos alunos.
+                  </p>
+                </div>
+
+                <div className="bg-chatgpt-secondary p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 flex items-center">
+                    <span className="w-8 h-8 rounded-full bg-chatgpt-accent text-white flex items-center justify-center mr-3">4</span>
+                    Continuidade Pedagógica
+                  </h4>
+                  <p className="text-gray-600 pl-11">
+                    Desenvolva programas sequenciais que constroem conhecimento progressivamente através de módulos interligados.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-8">
+                <Button 
+                  onClick={handleGetStarted}
+                  className="bg-chatgpt-accent hover:bg-chatgpt-accent/90 text-white"
+                >
+                  Transforme Seu Ensino Hoje
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NOVA SEÇÃO: Jornada de Transformação Pessoal */}
+      <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-chatgpt-accent to-blue-700 text-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Jornada de Transformação Pessoal</h2>
+            <p className="text-xl max-w-3xl mx-auto text-white/90">
+              Como o Bible Chat acompanha seu crescimento espiritual dia após dia
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="animate-on-scroll">
+              <div className="bg-white/10 backdrop-blur p-6 rounded-xl border border-white/20 h-full">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-4">Descoberta</h3>
+                <p className="text-white/90 mb-4">
+                  Inicie explorando livros bíblicos de forma guiada, construindo uma base sólida de conhecimento escriturístico.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Visão panorâmica dos livros</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Principais personagens</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Contexto histórico básico</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="animate-on-scroll">
+              <div className="bg-white/10 backdrop-blur p-6 rounded-xl border border-white/20 h-full">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                  <Search className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-4">Aprofundamento</h3>
+                <p className="text-white/90 mb-4">
+                  Avance para estudos temáticos e análises mais profundas que conectam diferentes partes das Escrituras.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Estudos temáticos</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Significados nas línguas originais</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Conexões teológicas</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="animate-on-scroll">
+              <div className="bg-white/10 backdrop-blur p-6 rounded-xl border border-white/20 h-full">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                  <Heart className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-4">Aplicação</h3>
+                <p className="text-white/90 mb-4">
+                  Traduza o conhecimento em transformação pessoal, aplicando princípios bíblicos em todas as áreas da vida.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Devocionais personalizados</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Desafios práticos diários</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green-300" />
+                    <span>Planos de crescimento espiritual</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button 
+              onClick={handleGetStarted}
+              variant="outline" 
+              className="border-white text-white hover:bg-white/20"
+              size="lg"
+            >
+              Comece Sua Jornada
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Solução/Benefícios - Seção Original */}
       <section ref={featuresRef} className="py-20 px-4 md:px-8 bg-chatgpt-secondary">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-16 animate-on-scroll">
@@ -1046,7 +1497,8 @@ const LandingPage = () => {
       </footer>
       
       {/* Adiciona keyframes para a animação fade-in */}
-      <style jsx="true">{`
+      <style>
+        {`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -1059,9 +1511,11 @@ const LandingPage = () => {
         .animate-fade-in {
           animation: fadeIn 0.6s ease-out forwards;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
 
 export default LandingPage;
+
