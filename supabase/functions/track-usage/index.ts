@@ -71,7 +71,7 @@ serve(async (req) => {
     // Verificar assinatura do usuário
     const { data: subData, error: subError } = await supabaseClient
       .from('subscribers')
-      .select('subscribed, subscription_tier')
+      .select('subscribed, subscription_tier, subscription_end')
       .eq('user_id', user.id)
       .single();
       
@@ -84,6 +84,31 @@ serve(async (req) => {
       
     const messageLimit = planData?.message_limit || 10;
     const isSubscribed = subData?.subscribed || false;
+    
+    // If the subscription_end has changed since last reset, reset the count
+    if (userData && subData?.subscription_end) {
+      const { data: lastResetData } = await supabaseClient
+        .from('message_counts')
+        .select('last_reset_time')
+        .eq('user_id', user.id)
+        .single();
+        
+      const lastReset = lastResetData ? new Date(lastResetData.last_reset_time) : null;
+      const subscriptionEnd = new Date(subData.subscription_end);
+        
+      // If last reset is older than the subscription_end (meaning subscription was renewed),
+      // reset the count
+      if (lastReset && lastReset < subscriptionEnd) {
+        await supabaseClient.from('message_counts').update({
+          count: 0,
+          last_reset_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }).eq('user_id', user.id);
+        
+        // Reset count for future checks in this function
+        if (userData) userData.count = 0;
+      }
+    }
       
     if (userData && userData.count >= messageLimit && !isSubscribed) {
       return new Response(JSON.stringify({ 

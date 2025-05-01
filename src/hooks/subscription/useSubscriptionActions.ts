@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserSubscription } from "@/types/subscription";
+import { resetUserMessageCount } from "@/services/messageCountService";
 
 export const useSubscriptionActions = (setState?: (state: React.SetStateAction<UserSubscription>) => void) => {
   const { toast } = useToast();
@@ -63,6 +64,25 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
           
         if (planData) {
           plan = planData;
+        }
+      }
+      
+      // Check if we need to reset message count due to subscription changes
+      if (subscriberData?.subscription_end) {
+        const { data: messageCountData } = await supabase
+          .from('message_counts')
+          .select('last_reset_time')
+          .eq('user_id', userData.user.id)
+          .single();
+
+        if (messageCountData) {
+          const lastReset = new Date(messageCountData.last_reset_time);
+          const subscriptionEnd = new Date(subscriberData.subscription_end);
+          
+          // If the subscription_end is more recent than the last reset, reset the count
+          if (lastReset < subscriptionEnd) {
+            await resetUserMessageCount(userData.user.id);
+          }
         }
       }
       

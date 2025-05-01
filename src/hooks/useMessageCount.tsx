@@ -40,17 +40,12 @@ export const useMessageCount = () => {
     return success;
   }, [fetchMessageCount]);
 
-  // Days until reset
-  const daysUntilReset = state?.nextReset 
-    ? Math.ceil((state.nextReset.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))
-    : 30;
-
   return {
     messageCount: state?.count || 0,
     messageLimit: state?.limit || 10,
     percentUsed: state?.percentUsed || 0,
     canSendMessage: state?.canSendMessage ?? true,
-    daysUntilReset,
+    daysUntilReset: state?.daysUntilReset || 30,
     loading,
     increment,
     refresh: fetchMessageCount
