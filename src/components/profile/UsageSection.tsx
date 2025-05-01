@@ -31,10 +31,13 @@ const UsageSection = () => {
     messageCount, 
     messageLimit, 
     daysUntilReset, 
-    percentUsed,
+    percentUsed: rawPercentUsed,
     loading: messageCountLoading,
     refresh
   } = useMessageCount();
+
+  // Safely calculate percentUsed to avoid division by zero
+  const percentUsed = messageLimit ? Math.round((messageCount / messageLimit) * 100) : 0;
 
   const isLoading = subscriptionLoading || messageCountLoading;
   const isLowUsage = percentUsed < 70;
@@ -94,7 +97,7 @@ const UsageSection = () => {
                     isMediumUsage ? "text-amber-500" : 
                     "text-muted-foreground"
                   )}>
-                    {messageCount} de {messageLimit}
+                    {messageCount} de {messageLimit || '∞'}
                   </span>
                 </div>
                 <Progress 
@@ -131,7 +134,7 @@ const UsageSection = () => {
                 
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Limite de mensagens</span>
-                  <span className="text-sm font-medium">{messageLimit} por mês</span>
+                  <span className="text-sm font-medium">{messageLimit || '∞'} por mês</span>
                 </div>
                 
                 <div className="flex justify-between">
