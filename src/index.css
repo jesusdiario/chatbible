@@ -115,3 +115,58 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Adicionando estilos minimalistas para a landing page */
+.lp-section {
+  @apply py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto;
+}
+
+.lp-heading {
+  @apply font-heading text-3xl md:text-4xl lg:text-5xl font-semibold text-stone-800 mb-4;
+}
+
+.lp-subheading {
+  @apply text-xl md:text-2xl text-stone-600 mb-8 max-w-3xl mx-auto;
+}
+
+.lp-text {
+  @apply text-base md:text-lg text-stone-600 leading-relaxed;
+}
+
+.lp-card {
+  @apply bg-white rounded-lg p-6 shadow-sm transition-all duration-300 hover:shadow-md border border-stone-100;
+}
+
+.lp-button {
+  @apply px-6 py-3 rounded-md transition-all duration-300 font-medium text-sm md:text-base;
+}
+
+.lp-button-primary {
+  @apply bg-chatgpt-accent text-white hover:bg-blue-700;
+}
+
+.lp-button-secondary {
+  @apply bg-white text-chatgpt-accent border border-chatgpt-accent hover:bg-gray-50;
+}
+
+.lp-icon-container {
+  @apply flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-chatgpt-accent mb-4;
+}
+
+/* Estilos específicos para o design minimalista */
+.lp-minimal {
+  @apply bg-white text-stone-700;
+}
+
+.lp-testimonial {
+  @apply italic text-stone-600 mb-3;
+}
+
+.lp-testimonial-author {
+  @apply font-medium text-stone-800;
+}
+
+.lp-divider {
+  @apply w-20 h-1 bg-stone-200 my-12 mx-auto;
+}
+

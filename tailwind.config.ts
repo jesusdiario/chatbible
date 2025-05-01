@@ -33,6 +33,18 @@ export default {
           border: "#f7f7f8",
           accent: "#4483F4", // cor primária ChatGPT
         },
+        stone: {
+          50: "#fafaf9",
+          100: "#f5f5f4",
+          200: "#e7e5e4",
+          300: "#d6d3d1",
+          400: "#a8a29e",
+          500: "#78716c",
+          600: "#57534e",
+          700: "#44403c",
+          800: "#292524",
+          900: "#1c1917",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -74,7 +86,7 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            color: '#000000',
+            color: '#57534e',
             a: {
               color: '#4483F4',
               '&:hover': {
@@ -82,19 +94,19 @@ export default {
               },
             },
             h1: {
-              color: '#000000',
+              color: '#292524',
             },
             h2: {
-              color: '#000000',
+              color: '#292524',
             },
             h3: {
-              color: '#000000',
+              color: '#292524',
             },
             strong: {
-              color: '#000000',
+              color: '#292524',
             },
             code: {
-              color: '#000000',
+              color: '#292524',
             },
             pre: {
               backgroundColor: '#f7f7f8',
