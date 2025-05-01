@@ -853,6 +853,10 @@ export type Database = {
         Args: { _user_id: string; _role: string }
         Returns: boolean
       }
+      increment_message_count: {
+        Args: { uid: string }
+        Returns: undefined
+      }
       map_country_to_language: {
         Args: { country_code: string }
         Returns: string

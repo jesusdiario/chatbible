@@ -49,7 +49,13 @@
     "language": "Idioma",
     "selectLanguage": "Selecione o idioma",
     "languageChanged": "Idioma alterado com sucesso",
-    "languageInfo": "Alterar o idioma afetará toda a interface do aplicativo."
+    "languageInfo": "Alterar o idioma afetará toda a interface do aplicativo.",
+    "status": "Status",
+    "plan": "Plano",
+    "price": "Valor",
+    "nextRenewal": "Próxima cobrança",
+    "nextReset": "Próximo reset",
+    "includedFeatures": "Recursos incluídos"
   },
   "bible": {
     "explore": "Explore os livros da Bíblia e aprofunde seu conhecimento",

@@ -1,4 +1,3 @@
-
 {
   "common": {
     "welcome": "Welcome",
@@ -50,7 +49,13 @@
     "language": "Language",
     "selectLanguage": "Select language",
     "languageChanged": "Language changed successfully",
-    "languageInfo": "Changing the language will affect the entire application interface."
+    "languageInfo": "Changing the language will affect the entire application interface.",
+    "status": "Status",
+    "plan": "Plan",
+    "price": "Price",
+    "nextRenewal": "Next renewal",
+    "nextReset": "Next reset",
+    "includedFeatures": "Included features"
   },
   "bible": {
     "explore": "Explore the books of the Bible and deepen your knowledge",
