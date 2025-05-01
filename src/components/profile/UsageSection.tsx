@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -23,8 +23,7 @@ const UsageSection = () => {
     subscriptionTier, 
     isLoading: subscriptionLoading,
     subscriptionEnd,
-    startCheckout,
-    refreshSubscription
+    startCheckout
   } = useSubscription();
   
   const { 
@@ -33,7 +32,7 @@ const UsageSection = () => {
     daysUntilReset, 
     percentUsed,
     loading: messageCountLoading,
-    refresh
+    refresh: refreshMessageCount
   } = useMessageCount();
 
   const isLoading = subscriptionLoading || messageCountLoading;
@@ -43,24 +42,15 @@ const UsageSection = () => {
   
   // Ao carregar o componente ou quando os dados de assinatura mudarem,
   // atualizamos os dados de contagem de mensagens para garantir sincronização
-  useEffect(() => {
-    if (!subscriptionLoading && refresh) {
-      refresh();
+  React.useEffect(() => {
+    if (!subscriptionLoading) {
+      refreshMessageCount?.();
     }
-  }, [subscriptionLoading, refresh]);
-
-  useEffect(() => {
-    // Refresh subscription data when component mounts
-    refreshSubscription && refreshSubscription();
-  }, [refreshSubscription]);
+  }, [subscriptionLoading, refreshMessageCount]);
 
   const handleUpgradeClick = () => {
     // Use o ID do produto real criado na Stripe
-    if (plan?.stripe_price_id) {
-      startCheckout(plan.stripe_price_id);
-    } else {
-      startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA'); // Fallback ID
-    }
+    startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
   };
 
   // Format the reset date as "29 de abril de 2026"
@@ -88,12 +78,7 @@ const UsageSection = () => {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium">Mensagens</span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    isHighUsage ? "text-red-500" : 
-                    isMediumUsage ? "text-amber-500" : 
-                    "text-muted-foreground"
-                  )}>
+                  <span className={`text-sm ${isHighUsage ? "text-red-500 font-medium" : isMediumUsage ? "text-amber-500" : "text-muted-foreground"}`}>
                     {messageCount} de {messageLimit}
                   </span>
                 </div>
@@ -101,19 +86,18 @@ const UsageSection = () => {
                   value={percentUsed} 
                   className={cn(
                     "h-2",
-                    isHighUsage ? "bg-red-100" : 
-                    isMediumUsage ? "bg-amber-100" : ""
+                    isHighUsage ? "bg-red-100" : isMediumUsage ? "bg-amber-100" : ""
                   )}
                 />
                 
-                {isHighUsage && (subscriptionTier === "Gratuito" || subscriptionTier === "Free") && (
+                {isHighUsage && subscriptionTier === "Gratuito" && (
                   <div className="flex items-center gap-2 mt-2 text-xs text-red-500">
                     <AlertTriangle className="h-3 w-3" />
                     <span>Você está prestes a atingir seu limite mensal!</span>
                   </div>
                 )}
                 
-                {isMediumUsage && (subscriptionTier === "Gratuito" || subscriptionTier === "Free") && (
+                {isMediumUsage && subscriptionTier === "Gratuito" && (
                   <div className="flex items-center gap-2 mt-2 text-xs text-amber-500">
                     <AlertTriangle className="h-3 w-3" />
                     <span>Você está se aproximando do seu limite mensal.</span>
@@ -135,7 +119,7 @@ const UsageSection = () => {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Reinicia em</span>
+                  <span className="text-sm text-muted-foreground">Reset em</span>
                   <span className="text-sm font-medium">
                     {formattedResetDate || `${daysUntilReset} dia${daysUntilReset !== 1 ? "s" : ""}`}
                   </span>
@@ -146,7 +130,7 @@ const UsageSection = () => {
                 <div className="mt-4">
                   <p className="text-sm font-medium mb-2">Recursos incluídos:</p>
                   <ul className="space-y-1">
-                    {plan.features.map((feature, index) => (
+                    {plan.features.map((feature: string, index: number) => (
                       <li key={index} className="text-sm text-muted-foreground flex items-center">
                         <svg 
                           width="16" 
@@ -171,7 +155,7 @@ const UsageSection = () => {
           )}
         </CardContent>
         
-        {!isLoading && (subscriptionTier === "Gratuito" || subscriptionTier === "Free") && (
+        {!isLoading && subscriptionTier === "Gratuito" && (
           <CardFooter>
             <Button 
               onClick={handleUpgradeClick}

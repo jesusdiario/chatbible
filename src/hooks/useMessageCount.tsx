@@ -53,7 +53,7 @@ export const useMessageCount = () => {
     daysUntilReset,
     loading,
     increment,
-    refresh: fetchMessageCount // Expose the refresh function
+    refresh: fetchMessageCount
   };
 };
 
