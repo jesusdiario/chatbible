@@ -61,20 +61,13 @@ serve(async (req) => {
     // Calcular custo total estimado
     const estimatedCost = totalTokens * costPerToken;
 
-    // Verificar se o usuário pode enviar outra mensagem
-    const { data: userData, error: userDataError } = await supabaseClient
-      .from('message_counts')
-      .select('count')
-      .eq('user_id', user.id)
-      .single();
-      
     // Verificar assinatura do usuário
     const { data: subData, error: subError } = await supabaseClient
       .from('subscribers')
-      .select('subscribed, subscription_tier')
+      .select('subscribed, subscription_tier, subscription_end')
       .eq('user_id', user.id)
       .single();
-      
+
     // Buscar limites do plano
     const { data: planData } = await supabaseClient
       .from('subscription_plans')
@@ -82,14 +75,42 @@ serve(async (req) => {
       .eq('name', subData?.subscription_tier || 'Gratuito')
       .single();
       
+    // Verificar se o usuário pode enviar outra mensagem
+    const { data: userData, error: userDataError } = await supabaseClient
+      .from('message_counts')
+      .select('count, last_reset_time')
+      .eq('user_id', user.id)
+      .single();
+      
     const messageLimit = planData?.message_limit || 10;
     const isSubscribed = subData?.subscribed || false;
+    const currentCount = userData?.count || 0;
+    
+    // Verificar se o subscription_end mudou desde o último reset
+    if (userData && subData?.subscription_end) {
+      const lastResetTime = new Date(userData.last_reset_time);
+      const subscriptionEndDate = new Date(subData.subscription_end);
+      const previousSubscriptionEnd = new Date(lastResetTime);
+      previousSubscriptionEnd.setMonth(previousSubscriptionEnd.getMonth() + 1);
       
-    if (userData && userData.count >= messageLimit && !isSubscribed) {
+      // Se a data de expiração mudou, resetamos a contagem
+      if (subscriptionEndDate.getTime() !== previousSubscriptionEnd.getTime()) {
+        console.log("Subscription end date changed, resetting message count");
+        await supabaseClient
+          .from('message_counts')
+          .update({
+            count: 0,
+            last_reset_time: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+      }
+    }
+      
+    if (currentCount >= messageLimit && !isSubscribed) {
       return new Response(JSON.stringify({ 
         error: "Limite de mensagens excedido",
         limitExceeded: true,
-        currentCount: userData.count,
+        currentCount: currentCount,
         limit: messageLimit
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -118,9 +139,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       cost: estimatedCost,
-      messageCount: userData ? userData.count + 1 : 1,
+      messageCount: currentCount + 1,
       messageLimit,
-      canSendMore: userData ? userData.count + 1 < messageLimit || isSubscribed : true
+      canSendMore: (currentCount + 1) < messageLimit || isSubscribed
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

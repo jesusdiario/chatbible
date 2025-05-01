@@ -4,6 +4,7 @@ import { Message } from '@/types/chat';
 import { sendChatMessage } from '@/services/chatService';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { checkMessageLimitExceeded, incrementMessageCount } from '@/services/messageCountService';
 
 export const useChatOperations = (
   book: string | undefined,
@@ -21,6 +22,18 @@ export const useChatOperations = (
 
   const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
+    
+    // Check if user has exceeded message limit
+    const hasExceededLimit = await checkMessageLimitExceeded();
+    
+    if (hasExceededLimit) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     messageProcessingRef.current = true;
@@ -68,6 +81,9 @@ export const useChatOperations = (
       if (!slug && book) {
         navigate(`/livros-da-biblia/${book}/${result.slug}`);
       }
+      
+      // Increment message count after successful message
+      await incrementMessageCount();
 
     } catch (err: any) {
       toast({

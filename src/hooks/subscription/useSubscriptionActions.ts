@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserSubscription } from "@/types/subscription";
+import { resetMessageCount } from "@/services/messageCountService";
 
 export const useSubscriptionActions = (setState?: (state: React.SetStateAction<UserSubscription>) => void) => {
   const { toast } = useToast();
@@ -65,6 +66,18 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
           plan = planData;
         }
       }
+      
+      // Check if subscription_end has changed, and if so, reset message count
+      const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
+      const currentSubscriptionEnd = subscriberData?.subscription_end || '';
+      
+      if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
+        console.log('Subscription end date has changed, resetting message count');
+        await resetMessageCount(userData.user.id);
+      }
+      
+      // Store current subscription end in localStorage for future comparison
+      localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
       
       setState(prev => ({
         ...prev,

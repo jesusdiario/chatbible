@@ -1,5 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { checkMessageLimitExceeded, incrementMessageCount } from './messageCountService';
+import { toast } from '@/hooks/use-toast';
 
 export interface TranscriptionResult {
   text: string;
@@ -63,6 +65,18 @@ export const synthesizeSpeech = async (
   options?: SynthesisOptions
 ): Promise<SynthesisResult> => {
   try {
+    // Check if user has exceeded message limit
+    const hasExceededLimit = await checkMessageLimitExceeded();
+    
+    if (hasExceededLimit) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "Você atingiu seu limite mensal de mensagens. Não é possível gerar áudio.",
+        variant: "destructive",
+      });
+      throw new Error("Message limit exceeded");
+    }
+
     const { data, error } = await supabase.functions.invoke('synthesize-speech', {
       body: {
         text,
@@ -75,6 +89,9 @@ export const synthesizeSpeech = async (
       console.error('Error synthesizing speech:', error);
       throw new Error(`Speech synthesis failed: ${error.message || 'Unknown error'}`);
     }
+    
+    // Increment message count if successful
+    await incrementMessageCount();
 
     return data as SynthesisResult;
   } catch (error) {

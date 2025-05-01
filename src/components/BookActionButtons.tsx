@@ -1,3 +1,4 @@
+
 import React, { useContext } from "react";
 import { Send } from "lucide-react";
 import { ChatContext } from "./ActionButtons";
@@ -42,7 +43,7 @@ const BookActionButtons = ({
     messageCount,
     messageLimit,
     canSendMessage,
-    incrementMessageCount,
+    increment
   } = useMessageCount();
 
   const { startCheckout } = useSubscription();
@@ -65,7 +66,7 @@ const BookActionButtons = ({
       ? sendMessage(suggestion.user_message, suggestion.prompt_override)
       : sendMessage(suggestion.user_message);
 
-    incrementMessageCount();
+    increment();
   };
 
   const handleUpgradeClick = () => {
@@ -148,25 +149,3 @@ const BookActionButtons = ({
 };
 
 export default BookActionButtons;
-
-/* ------------------------------------------------------------------ */
-/* NOTAS PARA O MODAL QUE ENVOLVE ESTE COMPONENTE                     */
-/* ------------------------------------------------------------------ */
-/*
-1) Largura de 80 % em mobile
-   No wrapper (Dialog.Content, Sheet, etc.), adicione algo como:
-     className="
-       w-full sm:max-w-[80%]   // até 640 px (sm) = 80 % da tela
-       md:max-w-lg             // a partir de md (≥768 px) cresce
-       mx-auto                 // centraliza horizontalmente
-     "
-
-2) Clique fora fecha o modal
-   Se usar Radix Dialog, o overlay já dispara onOpenChange(false) ao
-   clicar fora. Caso seja custom, coloque:
-     <div onClick={() => setOpen(false)} />
-
-3) Desativar rolagem de fundo
-   Ao abrir o modal, adicione 'overflow-hidden' em <body> (Radix faz
-   isso automaticamente) para evitar rolagem “dupla”.
-*/
