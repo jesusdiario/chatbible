@@ -61,6 +61,7 @@ serve(async (req) => {
           reason: 'subscription_renewed'
         });
 
+        // Reset message count to 0 and update the last_reset_time
         await supabaseClient
           .from('message_counts')
           .update({
