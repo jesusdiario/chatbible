@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import BookActionButtons from '@/components/BookActionButtons';
 import ExodusActionButtons from '@/components/ExodusActionButtons'; // Import ExodusActionButtons
 import { ChatContext } from './ActionButtons';
+import { useBibleSuggestions } from '@/hooks/useBibleSuggestions';
 
 interface ChatInputProps {
   onSend: (message: string, promptOverride?: string) => void;

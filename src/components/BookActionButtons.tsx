@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import {
@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { useMessageCount } from '@/hooks/useMessageCount';
+import { ChatContext } from './ActionButtons';
+import { Card } from '@/components/ui/card';
+import { Send } from 'lucide-react';
+import { useBibleSuggestions } from '@/hooks/useBibleSuggestions';
 
 type ActionButtonsProps = {
   book?: string;
@@ -20,7 +24,7 @@ type ActionButtonsProps = {
   audioId?: string;
   onAudioClick?: () => void;
   hasAudio?: boolean;
-  displayInModal?: boolean; // Add this prop to match usage in ChatInput.tsx
+  displayInModal?: boolean;
 };
 
 const BookActionButtons = ({
@@ -30,11 +34,13 @@ const BookActionButtons = ({
   audioId,
   onAudioClick,
   hasAudio = false,
-  displayInModal = false, // Add default value for the new prop
+  displayInModal = false,
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { increment } = useMessageCount();
+  const { sendMessage } = useContext(ChatContext);
+  const { data: suggestions, isLoading } = useBibleSuggestions(bookSlug);
   
   // Handle action click
   const handleActionClick = async (action: string) => {
@@ -61,39 +67,70 @@ const BookActionButtons = ({
     }
   };
 
-  // If we're supposed to display in a modal, render a different UI
+  // Handle sending a suggestion
+  const handleSuggestionClick = (userMessage: string, promptOverride?: string) => {
+    if (sendMessage) {
+      sendMessage(userMessage, promptOverride);
+    }
+  };
+
+  // If we're supposed to display in a modal, render suggestions from the database
   if (displayInModal) {
+    if (isLoading) {
+      return <div className="text-center p-4">Carregando sugestões...</div>;
+    }
+
+    if (!suggestions || suggestions.length === 0) {
+      // If no suggestions are available, show default buttons
+      return (
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <Button
+            variant="outline"
+            className="flex items-center justify-between w-full p-4"
+            onClick={() => handleActionClick('summary')}
+          >
+            <span className="text-[14px] font-medium">Ver Resumo</span>
+          </Button>
+          <Button
+            variant="outline" 
+            className="flex items-center justify-between w-full p-4"
+            onClick={() => handleActionClick('characters')}
+          >
+            <span className="text-[14px] font-medium">Ver Personagens</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex items-center justify-between w-full p-4"
+            onClick={() => handleActionClick('themes')}
+          >
+            <span className="text-[14px] font-medium">Ver Temas</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex items-center justify-between w-full p-4"
+            onClick={() => handleActionClick('lessons')}
+          >
+            <span className="text-[14px] font-medium">Ver Lições</span>
+          </Button>
+        </div>
+      );
+    }
+
+    // If we have suggestions from the database, display them
     return (
       <div className="grid grid-cols-2 gap-4 mt-4">
-        {/* Add common actions for all books when displayed in modal */}
-        <Button
-          variant="outline"
-          className="flex items-center justify-between w-full p-4"
-          onClick={() => handleActionClick('summary')}
-        >
-          <span className="text-[14px] font-medium">Ver Resumo</span>
-        </Button>
-        <Button
-          variant="outline" 
-          className="flex items-center justify-between w-full p-4"
-          onClick={() => handleActionClick('characters')}
-        >
-          <span className="text-[14px] font-medium">Ver Personagens</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="flex items-center justify-between w-full p-4"
-          onClick={() => handleActionClick('themes')}
-        >
-          <span className="text-[14px] font-medium">Ver Temas</span>
-        </Button>
-        <Button
-          variant="outline"
-          className="flex items-center justify-between w-full p-4"
-          onClick={() => handleActionClick('lessons')}
-        >
-          <span className="text-[14px] font-medium">Ver Lições</span>
-        </Button>
+        {suggestions.map((suggestion) => (
+          <Card
+            key={suggestion.id}
+            className="flex flex-col items-center p-4 cursor-pointer border hover:border-[#4483f4] transition-all"
+            onClick={() => handleSuggestionClick(suggestion.user_message, suggestion.prompt_override)}
+          >
+            <div className="flex items-center justify-between w-full">
+              <span className="text-[14px] font-medium">{suggestion.label}</span>
+              <Send className="h-4 w-4 text-[#4483f4]" />
+            </div>
+          </Card>
+        ))}
       </div>
     );
   }
