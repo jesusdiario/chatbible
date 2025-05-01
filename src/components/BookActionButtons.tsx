@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { MoreHorizontal } from 'lucide-react';
@@ -9,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useRouter } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMessageCount } from '@/hooks/useMessageCount';
 
 type ActionButtonsProps = {
@@ -29,7 +30,7 @@ const BookActionButtons = ({
   onAudioClick,
   hasAudio = false,
 }: ActionButtonsProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { increment } = useMessageCount();
   
@@ -43,20 +44,20 @@ const BookActionButtons = ({
       // Try to increment message count first
       const canProceed = await increment();
       
-      if (!canProceed) {
+      if (canProceed === false) {
         // If incrementing failed (reached limit), return early
         return;
       }
       
       // If increment was successful, proceed with navigation
       if (action === 'summary') {
-        router.push(`/livros-da-biblia/${bookSlug}/leitura`);
+        navigate(`/livros-da-biblia/${bookSlug}/leitura`);
       } else if (action === 'characters') {
-        router.push(`/livros-da-biblia/${bookSlug}/personagens`);
+        navigate(`/livros-da-biblia/${bookSlug}/personagens`);
       } else if (action === 'themes') {
-        router.push(`/livros-da-biblia/${bookSlug}/temas`);
+        navigate(`/livros-da-biblia/${bookSlug}/temas`);
       } else if (action === 'lessons') {
-        router.push(`/livros-da-biblia/${bookSlug}/licoes`);
+        navigate(`/livros-da-biblia/${bookSlug}/licoes`);
       }
     } catch (error) {
       console.error('Error handling button click:', error);
