@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -17,9 +17,7 @@ const UsageSection = () => {
     plan,
     subscriptionTier,
     isLoading: subscriptionLoading,
-    subscriptionEnd,
-    startCheckout,
-    refreshSubscription
+    subscriptionEnd
   } = useSubscription();
   const {
     messageCount,
@@ -37,27 +35,12 @@ const UsageSection = () => {
   const isMediumUsage = percentUsed >= 70 && percentUsed < 90;
   const isHighUsage = percentUsed >= 90;
 
-  // Ao carregar o componente ou quando os dados de assinatura mudarem,
-  // atualizamos os dados de contagem de mensagens para garantir sincronização
+  // Refresh message count data when component mounts, but not on every render
   useEffect(() => {
-    if (!subscriptionLoading && refresh) {
+    if (refresh) {
       refresh();
     }
-  }, [subscriptionLoading, refresh]);
-  
-  useEffect(() => {
-    // Refresh subscription data when component mounts
-    refreshSubscription && refreshSubscription();
-  }, [refreshSubscription]);
-
-  const handleUpgradeClick = () => {
-    // Use o ID do produto real criado na Stripe
-    if (plan?.stripe_price_id) {
-      startCheckout(plan.stripe_price_id);
-    } else {
-      startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA'); // Fallback ID
-    }
-  };
+  }, [refresh]);
 
   // Format the reset date as "29 de abril de 2026"
   const formattedResetDate = subscriptionEnd ? format(new Date(subscriptionEnd), "dd 'de' MMMM 'de' yyyy", {
@@ -144,16 +127,6 @@ const UsageSection = () => {
                   <span>{daysUntilReset}</span>
                 </div>
               </div>
-
-              {isHighUsage && !subscriptionTier && (
-                <Button 
-                  className="w-full mt-2" 
-                  onClick={handleUpgradeClick} 
-                  disabled={isLoading}
-                >
-                  {t('profile.upgrade')}
-                </Button>
-              )}
             </div>
           )}
         </CardContent>

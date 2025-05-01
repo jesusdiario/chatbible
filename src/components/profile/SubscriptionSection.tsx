@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +27,6 @@ const SubscriptionSection = () => {
     plan, 
     isLoading,
     openCustomerPortal, 
-    refreshSubscription,
     startCheckout
   } = useSubscription();
   
@@ -37,8 +35,7 @@ const SubscriptionSection = () => {
     messageLimit,
     percentUsed: rawPercentUsed,
     daysUntilReset,
-    loading: messageCountLoading,
-    refresh: refreshMessageCount
+    loading: messageCountLoading
   } = useMessageCount();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,13 +45,6 @@ const SubscriptionSection = () => {
   const isLowUsage = percentUsed < 70;
   const isMediumUsage = percentUsed >= 70 && percentUsed < 90;
   const isHighUsage = percentUsed >= 90;
-  
-  // Sincronizar dados de contagem e assinatura
-  useEffect(() => {
-    if (!isLoading && !messageCountLoading) {
-      refreshMessageCount && refreshMessageCount();
-    }
-  }, [isLoading, subscriptionTier, refreshMessageCount, messageCountLoading]);
   
   const handleManageSubscription = async () => {
     try {
@@ -89,20 +79,6 @@ const SubscriptionSection = () => {
           <div>
             <CardTitle>{t('profile.subscription')}</CardTitle>
             <CardDescription>{t('profile.currentPlan')}: {subscriptionTier || t('profile.free')}</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                refreshSubscription && refreshSubscription();
-                refreshMessageCount && refreshMessageCount();
-              }}
-              disabled={isFullLoading}
-              className="h-8"
-            >
-              {t('common.refresh')}
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
