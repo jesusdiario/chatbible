@@ -44,7 +44,7 @@ const UsageSection = () => {
   // atualizamos os dados de contagem de mensagens para garantir sincronização
   React.useEffect(() => {
     if (!subscriptionLoading) {
-      refreshMessageCount?.();
+      refreshMessageCount();
     }
   }, [subscriptionLoading, refreshMessageCount]);
 
