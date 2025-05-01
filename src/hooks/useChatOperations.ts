@@ -5,7 +5,7 @@ import { sendChatMessage } from '@/services/chatService';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { incrementMessageCount } from '@/services/messageCountService';
-import useMessageCount from './useMessageCount';
+import { useMessageCount } from './useMessageCount';
 
 export const useChatOperations = (
   book: string | undefined,
