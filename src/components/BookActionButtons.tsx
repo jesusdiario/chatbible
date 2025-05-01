@@ -14,12 +14,13 @@ import { useNavigate } from 'react-router-dom';
 import { useMessageCount } from '@/hooks/useMessageCount';
 
 type ActionButtonsProps = {
-  book: string;
+  book?: string;
   bookSlug: string;
   className?: string;
   audioId?: string;
   onAudioClick?: () => void;
   hasAudio?: boolean;
+  displayInModal?: boolean; // Add this prop to match usage in ChatInput.tsx
 };
 
 const BookActionButtons = ({
@@ -29,6 +30,7 @@ const BookActionButtons = ({
   audioId,
   onAudioClick,
   hasAudio = false,
+  displayInModal = false, // Add default value for the new prop
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,14 +44,9 @@ const BookActionButtons = ({
     // Track which action was taken
     try {
       // Try to increment message count first
-      const canProceed = await increment();
+      await increment();
       
-      if (canProceed === false) {
-        // If incrementing failed (reached limit), return early
-        return;
-      }
-      
-      // If increment was successful, proceed with navigation
+      // If we get here, increment did not throw an error, so proceed with navigation
       if (action === 'summary') {
         navigate(`/livros-da-biblia/${bookSlug}/leitura`);
       } else if (action === 'characters') {
@@ -63,6 +60,43 @@ const BookActionButtons = ({
       console.error('Error handling button click:', error);
     }
   };
+
+  // If we're supposed to display in a modal, render a different UI
+  if (displayInModal) {
+    return (
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        {/* Add common actions for all books when displayed in modal */}
+        <Button
+          variant="outline"
+          className="flex items-center justify-between w-full p-4"
+          onClick={() => handleActionClick('summary')}
+        >
+          <span className="text-[14px] font-medium">Ver Resumo</span>
+        </Button>
+        <Button
+          variant="outline" 
+          className="flex items-center justify-between w-full p-4"
+          onClick={() => handleActionClick('characters')}
+        >
+          <span className="text-[14px] font-medium">Ver Personagens</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="flex items-center justify-between w-full p-4"
+          onClick={() => handleActionClick('themes')}
+        >
+          <span className="text-[14px] font-medium">Ver Temas</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="flex items-center justify-between w-full p-4"
+          onClick={() => handleActionClick('lessons')}
+        >
+          <span className="text-[14px] font-medium">Ver Lições</span>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
