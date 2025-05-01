@@ -31,7 +31,8 @@ const UsageSection = () => {
     messageLimit, 
     daysUntilReset, 
     percentUsed,
-    loading: messageCountLoading 
+    loading: messageCountLoading,
+    refresh: refreshMessageCount
   } = useMessageCount();
 
   const isLoading = subscriptionLoading || messageCountLoading;
@@ -39,6 +40,14 @@ const UsageSection = () => {
   const isMediumUsage = percentUsed >= 70 && percentUsed < 90;
   const isHighUsage = percentUsed >= 90;
   
+  // Ao carregar o componente ou quando os dados de assinatura mudarem,
+  // atualizamos os dados de contagem de mensagens para garantir sincronização
+  React.useEffect(() => {
+    if (!subscriptionLoading) {
+      refreshMessageCount?.();
+    }
+  }, [subscriptionLoading, refreshMessageCount]);
+
   const handleUpgradeClick = () => {
     // Use o ID do produto real criado na Stripe
     startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
