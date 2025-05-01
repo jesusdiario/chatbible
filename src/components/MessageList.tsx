@@ -1,4 +1,3 @@
-
 import { FC, useRef, useEffect, useState, useCallback } from 'react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Message from './Message';
@@ -32,7 +31,8 @@ const MessageList: FC<MessageListProps> = ({
     if (!containerRef.current) return;
     
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const scrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+    // Lowered the threshold to make the button appear sooner when scrolling up
+    const scrolledUp = scrollHeight - scrollTop - clientHeight > 50;
     const currentProgress = Math.min(
       100,
       Math.round((scrollTop / (scrollHeight - clientHeight)) * 100) || 100
@@ -74,6 +74,23 @@ const MessageList: FC<MessageListProps> = ({
       }
     }
   }, [messages, isTyping, isAutoScrollEnabled, scrollToBottom, isMobile, disableAutoScroll]);
+  
+  // Add this effect to register the scroll event listener and handle initial scroll position
+  useEffect(() => {
+    const currentRef = containerRef.current;
+    if (currentRef) {
+      // Initial check for scroll position
+      handleScroll();
+      
+      // Add event listener
+      currentRef.addEventListener('scroll', handleScroll);
+      
+      // Clean up
+      return () => {
+        currentRef.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [handleScroll]);
   
   return (
     <div 
@@ -140,12 +157,13 @@ const MessageList: FC<MessageListProps> = ({
       </div>
       
       {showScrollToBottom && (
-        <div className="fixed bottom-24 md:right-8 right-4 z-10 flex flex-col items-center space-y-2">
+        <div className="fixed bottom-24 right-4 md:right-8 z-10 flex flex-col items-center space-y-2">
           <Progress value={scrollProgress} className="w-12 h-1 bg-gray-200" />
           <Button 
             size="icon" 
             className="h-10 w-10 rounded-full shadow-lg bg-white text-black hover:bg-gray-100"
             onClick={() => scrollToBottom()}
+            aria-label="Scroll to bottom"
           >
             <ChevronDown className="h-5 w-5" />
           </Button>
