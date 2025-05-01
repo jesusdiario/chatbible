@@ -14,14 +14,11 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useMessageCount } from "@/hooks/useMessageCount";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 const UsageSection = () => {
   const { 
     plan, 
     subscriptionTier, 
-    subscriptionEnd,
     isLoading: subscriptionLoading,
     startCheckout
   } = useSubscription();
@@ -43,11 +40,6 @@ const UsageSection = () => {
     // Use o ID do produto real criado na Stripe
     startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
   };
-  
-  // Format reset date from subscription end if available
-  const formattedResetDate = subscriptionEnd 
-    ? format(new Date(subscriptionEnd), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
-    : null;
 
   return (
     <div className="mb-8">
@@ -112,7 +104,7 @@ const UsageSection = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Reset em</span>
                   <span className="text-sm font-medium">
-                    {formattedResetDate || `${daysUntilReset} dia${daysUntilReset !== 1 ? "s" : ""}`}
+                    {daysUntilReset} dia{daysUntilReset !== 1 ? "s" : ""}
                   </span>
                 </div>
               </div>

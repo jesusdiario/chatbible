@@ -1,10 +1,9 @@
+
 import { useCallback, useRef, useState } from 'react';
 import { Message } from '@/types/chat';
 import { sendChatMessage } from '@/services/chatService';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { incrementMessageCount } from '@/services/messageCount';
-import { useMessageCount } from './useMessageCount';
 
 export const useChatOperations = (
   book: string | undefined,
@@ -19,18 +18,9 @@ export const useChatOperations = (
   const lastMessageRef = useRef<string>('');
   const [isTyping, setIsTyping] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
-  
-  // Use the message count hook to check limits
-  const { canSendMessage } = useMessageCount();
 
   const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
-    
-    // First check if the user can send a message
-    const canProceed = await incrementMessageCount();
-    if (!canProceed) {
-      return;
-    }
     
     setIsLoading(true);
     messageProcessingRef.current = true;

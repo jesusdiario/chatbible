@@ -1,13 +1,10 @@
-
 import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import BookActionButtons from '@/components/BookActionButtons';
-import ExodusActionButtons from '@/components/ExodusActionButtons'; // Import ExodusActionButtons
 import { ChatContext } from './ActionButtons';
-import { useBibleSuggestions } from '@/hooks/useBibleSuggestions';
 
 interface ChatInputProps {
   onSend: (message: string, promptOverride?: string) => void;
@@ -91,28 +88,6 @@ const ChatInput = ({
     onSend(content, promptOverride);
     setIsModalOpen(false); // Close the modal after sending
   };
-
-  // Determine which actions component to show based on book slug
-  const getActionsComponent = () => {
-    if (!bookSlug) return null;
-    
-    // For Exodus book (Êxodo in Portuguese)
-    if (bookSlug === 'exodo') {
-      return (
-        <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
-          <ExodusActionButtons displayInModal={true} />
-        </ChatContext.Provider>
-      );
-    }
-    
-    // Default for other books
-    return (
-      <ChatContext.Provider value={{ sendMessage: handleSendMessage }}>
-        <BookActionButtons bookSlug={bookSlug} displayInModal={true} />
-      </ChatContext.Provider>
-    );
-  };
-
   return <div className="w-full">
       {/* Main input form */}
       <form onSubmit={handleSubmit} className="relative w-full">
@@ -156,7 +131,11 @@ const ChatInput = ({
             <DialogTitle>{t('chat.readyQuestions')}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            {getActionsComponent()}
+            {bookSlug && <ChatContext.Provider value={{
+            sendMessage: handleSendMessage
+          }}>
+                <BookActionButtons bookSlug={bookSlug} displayInModal={true} />
+              </ChatContext.Provider>}
           </div>
         </DialogContent>
       </Dialog>

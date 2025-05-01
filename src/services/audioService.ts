@@ -1,5 +1,5 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { incrementMessageCount } from '@/services/messageCount';
 
 export interface TranscriptionResult {
   text: string;
@@ -63,12 +63,6 @@ export const synthesizeSpeech = async (
   options?: SynthesisOptions
 ): Promise<SynthesisResult> => {
   try {
-    // First increment message count before calling the API
-    const canProceed = await incrementMessageCount();
-    if (!canProceed) {
-      throw new Error("Você atingiu seu limite mensal de mensagens.");
-    }
-    
     const { data, error } = await supabase.functions.invoke('synthesize-speech', {
       body: {
         text,

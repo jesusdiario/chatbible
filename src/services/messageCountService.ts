@@ -16,7 +16,6 @@ export interface MessageCountState {
   nextReset: Date;
   percentUsed: number;
   canSendMessage: boolean;
-  daysUntilReset: number;
 }
 
 /**
@@ -35,7 +34,7 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
     // Get user's subscription info
     const { data: subscriberData } = await supabase
       .from('subscribers')
-      .select('subscription_tier, subscribed, subscription_end')
+      .select('subscription_tier, subscribed')
       .eq('user_id', userId)
       .single();
     
@@ -63,26 +62,28 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
     if (!data) {
       // No record found, return default state
       const now = new Date();
-      const nextReset = subscriberData?.subscription_end ? new Date(subscriberData.subscription_end) : getNextMonthDate(now);
+      const nextMonth = new Date(now);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1);
       
       return {
         count: 0,
         limit: messageLimit,
         lastReset: now,
-        nextReset,
+        nextReset: nextMonth,
         percentUsed: 0,
-        canSendMessage: true,
-        daysUntilReset: calculateDaysUntilDate(nextReset)
+        canSendMessage: true
       };
     }
     
     const lastResetTime = new Date(data.last_reset_time);
     const now = new Date();
     
-    // Calculate next reset date based on subscription_end or default to next month if not available
-    const nextReset = subscriberData?.subscription_end 
-      ? new Date(subscriberData.subscription_end) 
-      : getNextMonthDate(now);
+    // Calculate next reset date (first day of next month)
+    const nextReset = new Date(now);
+    nextReset.setMonth(nextReset.getMonth() + 1);
+    nextReset.setDate(1);
+    nextReset.setHours(0, 0, 0, 0);
     
     // Calculate percentage used
     const percentUsed = Math.min(Math.round((data.count / messageLimit) * 100), 100);
@@ -90,17 +91,13 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
     // Determine if user can send message
     const canSendMessage = data.count < messageLimit;
     
-    // Calculate days until reset
-    const daysUntil = calculateDaysUntilDate(nextReset);
-    
     return {
       count: data.count,
       limit: messageLimit,
       lastReset: lastResetTime,
       nextReset,
       percentUsed,
-      canSendMessage,
-      daysUntilReset: daysUntil
+      canSendMessage
     };
   } catch (err) {
     console.error("Error in getMessageCount:", err);
@@ -139,6 +136,7 @@ export const incrementMessageCount = async (): Promise<boolean> => {
     }
     
     // Update or insert message count record
+    // Use the standard update instead of the RPC function for compatibility
     const { data: messageCountData } = await supabase
       .from('message_counts')
       .select('*')
@@ -183,9 +181,24 @@ export const incrementMessageCount = async (): Promise<boolean> => {
 };
 
 /**
- * Reset message counts for a user
+ * Calculate days until next reset (for displaying to user)
  */
-export const resetUserMessageCount = async (userId: string): Promise<boolean> => {
+export const getDaysUntilReset = (): number => {
+  const today = new Date();
+  const nextMonth = new Date(today);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  nextMonth.setDate(1);
+  nextMonth.setHours(0, 0, 0, 0);
+  
+  const timeDiff = nextMonth.getTime() - today.getTime();
+  return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * Reset message counts for all users (to be called by a cron job)
+ * This can be implemented as an Edge Function that runs monthly
+ */
+export const resetAllMessageCounts = async (): Promise<void> => {
   try {
     const { error } = await supabase
       .from('message_counts')
@@ -193,33 +206,12 @@ export const resetUserMessageCount = async (userId: string): Promise<boolean> =>
         count: 0, 
         last_reset_time: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      })
-      .eq('user_id', userId);
+      });
       
     if (error) {
-      console.error("Error resetting user message count:", error);
-      return false;
+      console.error("Error resetting message counts:", error);
     }
-    
-    return true;
   } catch (err) {
-    console.error("Error in resetUserMessageCount:", err);
-    return false;
+    console.error("Error in resetAllMessageCounts:", err);
   }
 };
-
-// Helper function to calculate days until a future date
-function calculateDaysUntilDate(futureDate: Date): number {
-  const now = new Date();
-  const diffTime = futureDate.getTime() - now.getTime();
-  return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-}
-
-// Helper function to get the first day of next month
-function getNextMonthDate(date: Date): Date {
-  const nextMonth = new Date(date);
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-  nextMonth.setDate(1);
-  nextMonth.setHours(0, 0, 0, 0);
-  return nextMonth;
-}

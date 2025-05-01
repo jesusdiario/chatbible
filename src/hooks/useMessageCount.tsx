@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useCallback } from "react";
-import { getMessageCount, incrementMessageCount, MessageCountState } from "@/services/messageCount";
+import { getMessageCount, incrementMessageCount, MessageCountState } from "@/services/messageCountService";
 
 export const useMessageCount = () => {
   const [state, setState] = useState<MessageCountState | null>(null);
@@ -39,17 +40,21 @@ export const useMessageCount = () => {
     return success;
   }, [fetchMessageCount]);
 
+  // Days until reset
+  const daysUntilReset = state?.nextReset 
+    ? Math.ceil((state.nextReset.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000))
+    : 30;
+
   return {
     messageCount: state?.count || 0,
     messageLimit: state?.limit || 10,
     percentUsed: state?.percentUsed || 0,
     canSendMessage: state?.canSendMessage ?? true,
-    daysUntilReset: state?.daysUntilReset || 30,
+    daysUntilReset,
     loading,
     increment,
     refresh: fetchMessageCount
   };
 };
 
-// Also export as default for backward compatibility
 export default useMessageCount;
