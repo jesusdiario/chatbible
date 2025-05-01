@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useCallback } from "react";
-import { getMessageCount, incrementMessageCount, MessageCountState } from "@/services/messageCountService";
+import { getMessageCount, incrementMessageCount, MessageCountState } from "@/services/messageCount";
 
 export const useMessageCount = () => {
   const [state, setState] = useState<MessageCountState | null>(null);

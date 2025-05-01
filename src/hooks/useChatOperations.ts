@@ -1,10 +1,9 @@
-
 import { useCallback, useRef, useState } from 'react';
 import { Message } from '@/types/chat';
 import { sendChatMessage } from '@/services/chatService';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { incrementMessageCount } from '@/services/messageCountService';
+import { incrementMessageCount } from '@/services/messageCount';
 import { useMessageCount } from './useMessageCount';
 
 export const useChatOperations = (

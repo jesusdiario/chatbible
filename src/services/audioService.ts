@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { incrementMessageCount } from './messageCountService';
+import { incrementMessageCount } from '@/services/messageCount';
 
 export interface TranscriptionResult {
   text: string;
