@@ -23,7 +23,6 @@ import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
-import Biblia from "@/pages/Biblia";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -114,11 +113,6 @@ const App = () => {
               <Route path="/livros-da-biblia/:book/:slug" element={
                 <ProtectedRoute>
                   <LivrosDaBibliaBook />
-                </ProtectedRoute>
-              } />
-              <Route path="/biblia" element={
-                <ProtectedRoute>
-                  <Biblia />
                 </ProtectedRoute>
               } />
               <Route path="/chat/:slug" element={
