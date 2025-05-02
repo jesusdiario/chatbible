@@ -145,6 +145,7 @@ const ChatHistoryPage = () => {
             onChatSelect={handleChatSelect}
             isLoading={isLoading}
             onHistoryUpdated={loadChatHistory}
+            searchQuery={searchQuery}
           />
         </div>
       </main>
