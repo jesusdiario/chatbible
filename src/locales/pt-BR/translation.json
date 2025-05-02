@@ -12,7 +12,8 @@
     "confirm": "Confirmar",
     "yes": "Sim", 
     "no": "Não",
-    "active": "Atual"
+    "active": "Atual",
+    "copied": "Copiado"
   },
   "auth": {
     "login": "Entrar",
@@ -63,7 +64,21 @@
     "gospels": "Evangelhos",
     "paulineLetters": "Cartas Paulinas",
     "generalLetters": "Cartas Gerais",
-    "revelation": "Apocalipse"
+    "revelation": "Apocalipse",
+    "read": "Ler",
+    "search": "Pesquisar",
+    "selectTestament": "Selecione o Testamento",
+    "selectBook": "Selecione o Livro",
+    "selectChapter": "Selecione o Capítulo",
+    "verses": "Versículos",
+    "searchPlaceholder": "Pesquisar na Bíblia...",
+    "noVersesFound": "Nenhum versículo encontrado",
+    "verseCopied": "Versículo copiado para a área de transferência",
+    "searchResults": "Resultados da Pesquisa",
+    "resultsFound": "resultados encontrados",
+    "noResultsFound": "Nenhum resultado encontrado para sua busca",
+    "tryDifferentSearch": "Tente termos diferentes ou verifique a ortografia",
+    "loading": "Carregando"
   },
   "chat": {
     "newChat": "Nova conversa",
