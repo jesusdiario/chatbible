@@ -225,16 +225,19 @@ const ChatPage = () => {
         </div>
       </main>
       
-      {/* Limit Reached Dialog */}
-      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+      {/* Limit Reached Dialog - Only show for non-subscribers */}
+      <Dialog 
+        open={showLimitDialog && !subscribed} 
+        onOpenChange={(open) => !open && setShowLimitDialog(false)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Perguntas Prontas</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Limite de Mensagens</DialogTitle>
           </DialogHeader>
           
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
             <p className="text-lg text-center font-medium mb-6">
-              Você atingiu seu limite de 10 mensagens neste mês.
+              Você atingiu seu limite de {messageLimit} mensagens neste mês.
             </p>
             
             <Button 

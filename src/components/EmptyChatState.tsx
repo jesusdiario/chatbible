@@ -13,7 +13,7 @@ interface EmptyChatStateProps {
 }
 
 const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
-  const { canSendMessage } = useMessageCount();
+  const { canSendMessage, isSubscribed } = useMessageCount();
   const { subscribed, startCheckout } = useSubscription();
   
   const handleUpgradeClick = () => {
@@ -30,10 +30,10 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
         <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />
       </div>
       
-      {!canSendMessage && (
+      {!canSendMessage && !subscribed && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
           <p className="font-medium">Você atingiu seu limite mensal de mensagens</p>
-          <p>Faça upgrade para o plano Premium para {subscribed ? "continuar sua conversa" : "mensagens ilimitadas"}.</p>
+          <p>Faça upgrade para o plano Premium para mensagens ilimitadas.</p>
           
           <button 
             onClick={handleUpgradeClick}

@@ -150,11 +150,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       
       // Check if user can send message (Pro users can always send)
       if (!isSubscribed && messageCount >= messageLimit) {
-        toast({
-          title: "Limite de mensagens atingido",
-          description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano Premium para mensagens ilimitadas.",
-          variant: "destructive",
-        });
+        // Não exibe toast aqui, pois os diálogos e alertas visuais já cuidam disso
         return false;
       }
 
@@ -205,7 +201,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
     canSendMessage,
     messageLimit,
     percentUsed,
-    refresh: fetchOrCreateMessageCount, // Add this line to expose the refresh function
+    refresh: fetchOrCreateMessageCount,
     isSubscribed
   };
 };

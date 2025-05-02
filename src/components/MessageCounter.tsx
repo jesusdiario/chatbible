@@ -29,14 +29,17 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
   let alertMessage = null;
   let progressBarColor = "bg-blue-500";
   
-  if (usagePercentage >= 90) {
-    textColor = "text-red-500 font-medium";
-    alertMessage = "Você está prestes a atingir seu limite mensal!";
-    progressBarColor = "bg-red-500";
-  } else if (usagePercentage >= 70) {
-    textColor = "text-amber-500";
-    alertMessage = "Você está se aproximando do seu limite mensal.";
-    progressBarColor = "bg-amber-500";
+  // Apenas define mensagens de alerta para usuários não assinantes
+  if (!subscribed) {
+    if (usagePercentage >= 90) {
+      textColor = "text-red-500 font-medium";
+      alertMessage = "Você está prestes a atingir seu limite mensal!";
+      progressBarColor = "bg-red-500";
+    } else if (usagePercentage >= 70) {
+      textColor = "text-amber-500";
+      alertMessage = "Você está se aproximando do seu limite mensal.";
+      progressBarColor = "bg-amber-500";
+    }
   }
 
   const handleUpgradeClick = () => {
