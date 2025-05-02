@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { TimeframedHistory, ChatHistory } from '@/types/chat';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatHistoryTabContent from './ChatHistoryTabContent';
 import { BookOpen, Clock, Pin } from 'lucide-react';
-
 interface ChatHistoryTabsProps {
   chatHistory: TimeframedHistory[];
   onChatSelect: (slug: string) => void;
@@ -13,7 +11,6 @@ interface ChatHistoryTabsProps {
   isSubscribed: boolean;
   searchQuery?: string;
 }
-
 const ChatHistoryTabs: React.FC<ChatHistoryTabsProps> = ({
   chatHistory,
   onChatSelect,
@@ -23,91 +20,41 @@ const ChatHistoryTabs: React.FC<ChatHistoryTabsProps> = ({
   searchQuery
 }) => {
   const [activeTab, setActiveTab] = useState('all');
-  
+
   // Get pinned conversations
-  const pinnedChats = chatHistory.length > 0 ? 
-    chatHistory
-      .flatMap(group => group.items)
-      .filter(chat => chat.pinned) : 
-    [];
+  const pinnedChats = chatHistory.length > 0 ? chatHistory.flatMap(group => group.items).filter(chat => chat.pinned) : [];
 
   // Get book conversations
-  const bookChats = chatHistory.length > 0 ?
-    chatHistory
-      .flatMap(group => group.items)
-      .filter(chat => chat.book_slug) :
-    [];
-    
+  const bookChats = chatHistory.length > 0 ? chatHistory.flatMap(group => group.items).filter(chat => chat.book_slug) : [];
   const isEmptyHistory = chatHistory.length === 0 || chatHistory.every(group => group.items.length === 0);
   const isEmptyPinned = pinnedChats.length === 0;
   const isEmptyBooks = bookChats.length === 0;
-
-  return (
-    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+  return <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
       <TabsList className="grid grid-cols-3 mb-6 bg-chatgpt-secondary border border-chatgpt-border">
-        <TabsTrigger 
-          value="all" 
-          className="data-[state=active]:bg-white flex items-center gap-2"
-        >
+        <TabsTrigger value="all" className="data-[state=active]:bg-white flex items-center gap-2">
           <Clock className="h-4 w-4" />
           <span>Cronologia</span>
         </TabsTrigger>
         
-        <TabsTrigger 
-          value="pinned" 
-          disabled={pinnedChats.length === 0}
-          className="data-[state=active]:bg-white flex items-center gap-2"
-        >
+        <TabsTrigger value="pinned" disabled={pinnedChats.length === 0} className="data-[state=active]:bg-white flex items-center gap-2">
           <Pin className="h-4 w-4" />
           <span>Fixados</span>
         </TabsTrigger>
         
-        <TabsTrigger 
-          value="books" 
-          className="data-[state=active]:bg-white flex items-center gap-2"
-        >
-          <BookOpen className="h-4 w-4" />
-          <span>Livros</span>
-        </TabsTrigger>
+        
       </TabsList>
       
       <TabsContent value="all" className="animate-fade-in">
-        <ChatHistoryTabContent
-          chatHistory={chatHistory}
-          onChatSelect={onChatSelect}
-          onDelete={onDelete}
-          onHistoryUpdated={onHistoryUpdated}
-          isSubscribed={isSubscribed}
-          searchQuery={searchQuery}
-          isEmpty={isEmptyHistory}
-        />
+        <ChatHistoryTabContent chatHistory={chatHistory} onChatSelect={onChatSelect} onDelete={onDelete} onHistoryUpdated={onHistoryUpdated} isSubscribed={isSubscribed} searchQuery={searchQuery} isEmpty={isEmptyHistory} />
       </TabsContent>
       
       <TabsContent value="pinned" className="animate-fade-in">
-        <ChatHistoryTabContent
-          chatHistory={[]}
-          flatChats={pinnedChats}
-          onChatSelect={onChatSelect}
-          onDelete={onDelete}
-          onHistoryUpdated={onHistoryUpdated}
-          isSubscribed={isSubscribed}
-          isEmpty={isEmptyPinned}
-        />
+        <ChatHistoryTabContent chatHistory={[]} flatChats={pinnedChats} onChatSelect={onChatSelect} onDelete={onDelete} onHistoryUpdated={onHistoryUpdated} isSubscribed={isSubscribed} isEmpty={isEmptyPinned} />
       </TabsContent>
       
       <TabsContent value="books" className="animate-fade-in">
-        <ChatHistoryTabContent
-          chatHistory={[]}
-          flatChats={bookChats}
-          onChatSelect={onChatSelect}
-          onDelete={onDelete}
-          onHistoryUpdated={onHistoryUpdated}
-          isSubscribed={isSubscribed}
-          isEmpty={isEmptyBooks}
-        />
+        <ChatHistoryTabContent chatHistory={[]} flatChats={bookChats} onChatSelect={onChatSelect} onDelete={onDelete} onHistoryUpdated={onHistoryUpdated} isSubscribed={isSubscribed} isEmpty={isEmptyBooks} />
       </TabsContent>
-    </Tabs>
-  );
+    </Tabs>;
 };
-
 export default ChatHistoryTabs;
