@@ -218,31 +218,31 @@ export type Database = {
         }
         Relationships: []
       }
-      books: {
+      certificates: {
         Row: {
-          abbrev: string | null
-          id: number
-          name: string | null
-          testament_id: number | null
+          course_id: string | null
+          id: string
+          issued_at: string | null
+          user_id: string | null
         }
         Insert: {
-          abbrev?: string | null
-          id: number
-          name?: string | null
-          testament_id?: number | null
+          course_id?: string | null
+          id?: string
+          issued_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          abbrev?: string | null
-          id?: number
-          name?: string | null
-          testament_id?: number | null
+          course_id?: string | null
+          id?: string
+          issued_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "books_testament_id_fkey"
-            columns: ["testament_id"]
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
             isOneToOne: false
-            referencedRelation: "testaments"
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
@@ -295,6 +295,71 @@ export type Database = {
         }
         Relationships: []
       }
+      course_progress: {
+        Row: {
+          completed_lessons: Json | null
+          course_id: string | null
+          id: string
+          last_access: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_lessons?: Json | null
+          course_id?: string | null
+          id?: string
+          last_access?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_lessons?: Json | null
+          course_id?: string | null
+          id?: string
+          last_access?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          language: string | null
+          level: string
+          title: string
+          total_hours: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          language?: string | null
+          level: string
+          title: string
+          total_hours?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          language?: string | null
+          level?: string
+          title?: string
+          total_hours?: number | null
+        }
+        Relationships: []
+      }
       custom_pages: {
         Row: {
           category_id: string | null
@@ -326,6 +391,76 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "bible_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedbacks: {
+        Row: {
+          comment: string | null
+          course_id: string | null
+          id: string
+          rating: number | null
+          submitted_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          course_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          course_id?: string | null
+          id?: string
+          rating?: number | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedbacks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          duration: number | null
+          id: string
+          position: number
+          section_id: string | null
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          duration?: number | null
+          id?: string
+          position: number
+          section_id?: string | null
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          duration?: number | null
+          id?: string
+          position?: number
+          section_id?: string | null
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
         ]
@@ -480,6 +615,35 @@ export type Database = {
         }
         Relationships: []
       }
+      sections: {
+        Row: {
+          course_id: string | null
+          id: string
+          position: number
+          title: string
+        }
+        Insert: {
+          course_id?: string | null
+          id?: string
+          position: number
+          title: string
+        }
+        Update: {
+          course_id?: string | null
+          id?: string
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -597,21 +761,6 @@ export type Database = {
         }
         Relationships: []
       }
-      testaments: {
-        Row: {
-          id: number
-          name: string | null
-        }
-        Insert: {
-          id: number
-          name?: string | null
-        }
-        Update: {
-          id?: number
-          name?: string | null
-        }
-        Relationships: []
-      }
       usage_stats: {
         Row: {
           created_at: string
@@ -639,6 +788,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          id: string
+          preferred_language: string
+          role: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id: string
+          preferred_language?: string
+          role: string
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string
+          preferred_language?: string
+          role?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -662,41 +835,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      verses: {
-        Row: {
-          book_id: number | null
-          chapter: number | null
-          id: number
-          text: string | null
-          verse: number | null
-          version: string | null
-        }
-        Insert: {
-          book_id?: number | null
-          chapter?: number | null
-          id: number
-          text?: string | null
-          verse?: number | null
-          version?: string | null
-        }
-        Update: {
-          book_id?: number | null
-          chapter?: number | null
-          id?: number
-          text?: string | null
-          verse?: number | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verses_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
