@@ -1,3 +1,8 @@
+
+// Este arquivo está sendo mantido como um placeholder
+// A funcionalidade de cursos foi descontinuada
+// As interfaces abaixo são mantidas apenas para compatibilidade com código legado
+
 export type CourseLevel = 'iniciante' | 'intermediário' | 'avançado';
 
 export interface Course {
@@ -9,11 +14,6 @@ export interface Course {
   total_hours: number | null;
   created_by: string | null;
   created_at: string;
-  rating?: number;
-  student_count?: number;
-  image_url?: string;
-  price?: number;
-  original_price?: number;
 }
 
 export interface Section {
@@ -21,7 +21,6 @@ export interface Section {
   course_id: string;
   title: string;
   position: number;
-  lessons?: Lesson[];
 }
 
 export interface Lesson {
@@ -31,14 +30,11 @@ export interface Lesson {
   video_url: string | null;
   duration: number | null;
   position: number;
-  is_locked?: boolean;
 }
 
 export interface Instructor {
   id: string;
   display_name: string;
-  title?: string;
-  avatar_url?: string;
 }
 
 export interface CourseReview {
@@ -48,10 +44,6 @@ export interface CourseReview {
   rating: number;
   comment: string;
   submitted_at: string;
-  user?: {
-    display_name: string;
-    avatar_url?: string;
-  };
 }
 
 export interface CourseTab {

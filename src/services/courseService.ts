@@ -1,9 +1,8 @@
-import { supabase } from '@/integrations/supabase/client';
-import { Course, Section, Lesson } from '@/types/course';
 
-// Este arquivo está sendo mantido como um placeholder
+import { supabase } from '@/integrations/supabase/client';
+
+// Este arquivo contém apenas stubs/placeholders das funções relacionadas a cursos
 // A funcionalidade de cursos foi descontinuada
-// Mantemos este arquivo vazio para evitar erros de importação em arquivos que possam ainda não ter sido atualizados
 
 export async function fetchCourses() {
   return [];
