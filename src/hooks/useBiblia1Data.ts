@@ -39,21 +39,17 @@ export function useBooksByTestament() {
 }
 
 export function useBook(bookId: number) {
-  const { data: book, isLoading, error } = useQuery({
+  return useQuery({
     queryKey: ['bible-book', bookId],
     queryFn: () => getBook(bookId),
     enabled: !!bookId,
   });
-  
-  return { book, isLoading, error };
 }
 
 export function useVersesByBook(bookId: number) {
-  const { data: verses, isLoading, error } = useQuery({
+  return useQuery({
     queryKey: ['bible-verses', bookId],
     queryFn: () => getVersesByBook(bookId),
     enabled: !!bookId,
   });
-  
-  return { verses, isLoading, error };
 }

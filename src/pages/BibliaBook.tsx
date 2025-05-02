@@ -61,21 +61,21 @@ const BibliaBook: React.FC = () => {
       </header>
       
       <main>
-        {Object.entries(versesByChapter).map(([chapter, versesInChapter]) => (
-          <div key={chapter} className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Capítulo {chapter}</h2>
-            <div className="space-y-2">
-              {versesInChapter.map(verse => (
-                <p key={verse.verse} className="text-gray-800">
-                  <span className="text-xs align-super font-bold text-gray-500 mr-1">{verse.verse}</span>
-                  {verse.text}
-                </p>
-              ))}
+        {Object.entries(versesByChapter).length > 0 ? (
+          Object.entries(versesByChapter).map(([chapter, versesInChapter]) => (
+            <div key={chapter} className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Capítulo {chapter}</h2>
+              <div className="space-y-2">
+                {versesInChapter.map(verse => (
+                  <p key={verse.verse} className="text-gray-800">
+                    <span className="text-xs align-super font-bold text-gray-500 mr-1">{verse.verse}</span>
+                    {verse.text}
+                  </p>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-        
-        {Object.keys(versesByChapter).length === 0 && (
+          ))
+        ) : (
           <div className="py-12 text-center text-gray-500">
             <p>Não há versículos disponíveis para este livro.</p>
           </div>

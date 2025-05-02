@@ -60,7 +60,7 @@ export async function getBook(bookId: number): Promise<Book | null> {
   if (error) {
     console.error('Error fetching book:', error);
     if (error.code === 'PGRST116') {
-      // Nenhum resultado encontrado
+      // No results found
       return null;
     }
     throw error;

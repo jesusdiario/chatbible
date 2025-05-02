@@ -33,13 +33,17 @@ const Biblia: React.FC = () => {
       </header>
       
       <main>
-        {booksByTestament.map(({ testament, books }) => (
-          <Biblia1TestamentSection 
-            key={testament.id} 
-            testament={testament} 
-            books={books} 
-          />
-        ))}
+        {booksByTestament && booksByTestament.length > 0 ? (
+          booksByTestament.map(({ testament, books }) => (
+            <Biblia1TestamentSection 
+              key={testament.id} 
+              testament={testament} 
+              books={books} 
+            />
+          ))
+        ) : (
+          <p className="text-center text-gray-500 py-10">Nenhum livro encontrado</p>
+        )}
       </main>
       
       <Biblia1BottomNav />
