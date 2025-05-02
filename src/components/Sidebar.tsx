@@ -34,14 +34,9 @@ const Sidebar = ({
         } = await supabase.auth.getSession();
         
         if (session?.user) {
-          const {
-            data: profileData,
-            error
-          } = await supabase
-            .from('user_profiles')
-            .select('display_name, avatar_url')
-            .eq('id', session.user.id)
-            .single();
+          // Using raw SQL query instead since user_profiles might not be registered in the TypeScript types
+          const { data: profileData, error } = await supabase
+            .rpc('get_user_profile', { user_id: session.user.id });
           
           if (error) {
             console.error('Error fetching profile:', error);

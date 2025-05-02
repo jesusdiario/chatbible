@@ -7,6 +7,7 @@ import { useBibleData } from "@/hooks/useBibleData";
 import { useSidebarControl } from "@/hooks/useSidebarControl";
 import { BibleCategorySection } from "@/components/BibleCategorySection";
 import { useTranslation } from "react-i18next";
+import { BibleCategory } from "@/types/bible";
 
 const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar: () => void }> = ({
   error, isSidebarOpen, onToggleSidebar
@@ -54,10 +55,10 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
 };
 
 const CategoriesList: React.FC<{
-  categories: any[]; booksByCategory: Record<string, any[]>;
+  categories: BibleCategory[]; booksByCategory: Record<string, any[]>;
 }> = ({ categories, booksByCategory }) => (
   <div className="max-w-7xl mx-auto space-y-12">
-    {categories.map(category => {
+    {Array.isArray(categories) && categories.map(category => {
       const categoryBooks = booksByCategory[category.slug] || [];
       return (
         <BibleCategorySection key={category.slug} category={category} books={categoryBooks} />
@@ -88,7 +89,7 @@ const LivrosDaBiblia = () => {
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
         <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
-          <CategoriesList categories={categories} booksByCategory={booksByCategory} />
+          <CategoriesList categories={Array.isArray(categories) ? categories : []} booksByCategory={booksByCategory} />
         </div>
       </main>
     </div>

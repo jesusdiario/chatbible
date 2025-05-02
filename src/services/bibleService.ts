@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Book, Verse } from '@/types/bible';
+import { Book, Verse, BibleBook, BibleCategory } from '@/types/bible';
 
+// Original functions
 export async function getAllBooks(): Promise<Book[]> {
   const { data, error } = await supabase
     .from('books')
@@ -73,6 +74,69 @@ export async function searchVerses(query: string): Promise<Verse[]> {
     
   if (error) {
     console.error('Error searching verses:', error);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+// New functions needed for Bible feature
+export async function getBibleCategories(): Promise<BibleCategory[]> {
+  const { data, error } = await supabase
+    .from('bible_categories')
+    .select('*')
+    .order('display_order');
+    
+  if (error) {
+    console.error('Error fetching Bible categories:', error);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+export async function getBibleBooks(): Promise<BibleBook[]> {
+  const { data, error } = await supabase
+    .from('bible_books')
+    .select('*')
+    .order('display_order');
+    
+  if (error) {
+    console.error('Error fetching Bible books:', error);
+    throw error;
+  }
+  
+  return data || [];
+}
+
+export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null> {
+  if (!slug) return null;
+  
+  const { data, error } = await supabase
+    .from('bible_books')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+    
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No rows found
+    console.error('Error fetching book by slug:', error);
+    throw error;
+  }
+  
+  return data;
+}
+
+// Function to load suggestions for a book
+export async function loadSuggestionsForBook(bookSlug: string): Promise<Suggestion[]> {
+  const { data, error } = await supabase
+    .from('bible_suggestions')
+    .select('*')
+    .eq('book_slug', bookSlug)
+    .order('id');
+    
+  if (error) {
+    console.error('Error loading suggestions:', error);
     throw error;
   }
   

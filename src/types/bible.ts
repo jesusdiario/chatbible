@@ -23,3 +23,29 @@ export interface VerseWithReference extends Verse {
 export interface Chapter {
   number: number;
 }
+
+// Additional types needed for the Bible feature
+export interface BibleBook {
+  id: number;
+  title: string;
+  slug: string;
+  category_slug: string;
+  description?: string;
+  image_url?: string;
+  display_order: number;
+}
+
+export interface BibleCategory {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  display_order: number;
+}
+
+export interface Suggestion {
+  id: number;
+  text: string;
+  book_slug: string;
+  type: string;
+}
