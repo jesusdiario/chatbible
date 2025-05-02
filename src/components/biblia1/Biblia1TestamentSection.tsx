@@ -11,8 +11,8 @@ interface Biblia1TestamentSectionProps {
 const Biblia1TestamentSection: React.FC<Biblia1TestamentSectionProps> = ({ testament, books }) => {
   return (
     <section className="mb-8">
-      <h2 className="text-xl font-bold mb-4">{testament.name}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 justify-items-center">
+      <h2 className="text-xl font-bold mb-4 px-4">{testament.name}</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6 justify-items-center px-2">
         {books.map((book) => (
           <Biblia1BookItem key={book.id} book={book} />
         ))}

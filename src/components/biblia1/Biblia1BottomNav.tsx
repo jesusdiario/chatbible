@@ -8,7 +8,7 @@ const Biblia1BottomNav: React.FC = () => {
   const location = useLocation();
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-10">
       <NavItem 
         icon={<Home className="h-6 w-6" />} 
         label="Início" 
@@ -18,7 +18,7 @@ const Biblia1BottomNav: React.FC = () => {
       <NavItem 
         icon={<Book className="h-6 w-6" />} 
         label="Bíblia" 
-        active={location.pathname === '/biblia'} 
+        active={location.pathname.startsWith('/biblia')} 
         onClick={() => navigate('/biblia')} 
       />
       <NavItem 

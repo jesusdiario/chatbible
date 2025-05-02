@@ -3,10 +3,27 @@ import React from 'react';
 import { useBooksByTestament } from '@/hooks/useBiblia1Data';
 import Biblia1TestamentSection from '@/components/biblia1/Biblia1TestamentSection';
 import Biblia1BottomNav from '@/components/biblia1/Biblia1BottomNav';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowUp } from 'lucide-react';
 
 const Biblia: React.FC = () => {
   const { booksByTestament, isLoading, error } = useBooksByTestament();
+  const [showScrollTop, setShowScrollTop] = React.useState(false);
+  
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   if (isLoading) {
     return (
@@ -27,7 +44,7 @@ const Biblia: React.FC = () => {
   }
 
   return (
-    <div className="pb-20 max-w-4xl mx-auto px-4">
+    <div className="pb-20 pt-6 max-w-4xl mx-auto px-4">
       <header className="py-6 text-center">
         <h1 className="text-2xl font-bold">Bíblia Sagrada</h1>
       </header>
@@ -41,6 +58,16 @@ const Biblia: React.FC = () => {
           />
         ))}
       </main>
+      
+      {showScrollTop && (
+        <button 
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-4 bg-blue-500 text-white rounded-full p-2 shadow-md z-10"
+          aria-label="Voltar ao topo"
+        >
+          <ArrowUp className="h-6 w-6" />
+        </button>
+      )}
       
       <Biblia1BottomNav />
     </div>
