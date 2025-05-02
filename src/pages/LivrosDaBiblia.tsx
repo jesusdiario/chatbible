@@ -85,6 +85,11 @@ const LivrosDaBiblia = () => {
     return <LoadingState isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />;
   }
 
+  // Filter out "teologia" and "temas" categories
+  const filteredCategories = categories.filter(
+    category => !["teologia", "temas"].includes(category.slug)
+  );
+
   return (
     <div className="flex flex-col md:flex-row h-screen">
       <Sidebar 
@@ -98,7 +103,7 @@ const LivrosDaBiblia = () => {
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{t('bible.bibleBooks')}</h1>
             <p className="text-gray-600 text-center mb-12">{t('bible.explore')}</p>
-            <CategoriesList categories={categories} booksByCategory={booksByCategory} />
+            <CategoriesList categories={filteredCategories} booksByCategory={booksByCategory} />
           </div>
         </div>
       </main>
