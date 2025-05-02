@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Book, Testament } from '@/services/biblia1Service';
 import Biblia1BookItem from './Biblia1BookItem';
+import { Book, Testament } from '@/services/biblia1Service';
 
 interface Biblia1TestamentSectionProps {
   testament: Testament;
@@ -10,14 +10,14 @@ interface Biblia1TestamentSectionProps {
 
 const Biblia1TestamentSection: React.FC<Biblia1TestamentSectionProps> = ({ testament, books }) => {
   return (
-    <section className="mb-8">
-      <h2 className="text-xl font-bold mb-4">{testament.name}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 justify-items-center">
-        {books.map((book) => (
+    <div className="mb-10">
+      <h2 className="text-xl font-semibold mb-4 px-1">{testament.name}</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+        {books.map(book => (
           <Biblia1BookItem key={book.id} book={book} />
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 
