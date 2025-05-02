@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileLayout from "@/components/profile/ProfileLayout";
@@ -7,10 +8,17 @@ import LanguageSection from "@/components/profile/LanguageSection";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
+import AvatarUpload from "@/components/profile/AvatarUpload";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User } from "lucide-react";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<{
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -21,7 +29,26 @@ const Profile = () => {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (session?.user) setUser(session.user);
+        if (session?.user) {
+          setUser(session.user);
+          
+          // Fetch user profile data using RPC
+          const { data: profileData, error: profileError } = await supabase
+            .rpc('get_user_profile', { user_id_param: session.user.id });
+          
+          if (!profileError && profileData) {
+            setUserProfile({
+              display_name: profileData.display_name,
+              avatar_url: profileData.avatar_url
+            });
+          } else {
+            console.error('Profile fetch error:', profileError);
+            setUserProfile({
+              display_name: session.user.email?.split('@')[0] || null,
+              avatar_url: null
+            });
+          }
+        }
       } catch (error) {
         console.error("Erro na página de perfil:", error);
         toast({
@@ -50,6 +77,10 @@ const Profile = () => {
     return () => subscription.unsubscribe();
   }, [toast, t]);
 
+  const handleAvatarChange = (url: string | null) => {
+    setUserProfile(prev => prev ? { ...prev, avatar_url: url } : { display_name: null, avatar_url: url });
+  };
+
   if (loading) {
     return (
       <ProfileLayout>
@@ -73,9 +104,27 @@ const Profile = () => {
   return (
     <ProfileLayout>
       <div className="space-y-8">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>{t("profile.profileInfo")}</CardTitle>
+              <User className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center">
+              <AvatarUpload 
+                userId={user.id}
+                avatarUrl={userProfile?.avatar_url || null}
+                displayName={userProfile?.display_name || user.email?.split('@')[0] || ''}
+                onAvatarChange={handleAvatarChange}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        
         <AccountSection user={user} />
         <LanguageSection />
-        {/* Uso removido */}
         <SubscriptionSection />
       </div>
     </ProfileLayout>
