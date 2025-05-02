@@ -91,7 +91,8 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
     // Calculate percentage used
     const percentUsed = Math.min(Math.round((data.count / messageLimit) * 100), 100);
     
-    // Determine if user can send message
+    // CORREÇÃO: Determine if user can send message
+    // Usuários com assinatura ativa (subscribed=true) devem ignorar o limite de mensagens
     const canSendMessage = subscriberData?.subscribed || data.count < messageLimit;
     
     // Calculate days until reset

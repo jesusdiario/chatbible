@@ -29,14 +29,17 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
   let alertMessage = null;
   let progressBarColor = "bg-blue-500";
   
-  if (usagePercentage >= 90) {
-    textColor = "text-red-500 font-medium";
-    alertMessage = "Você está prestes a atingir seu limite mensal!";
-    progressBarColor = "bg-red-500";
-  } else if (usagePercentage >= 70) {
-    textColor = "text-amber-500";
-    alertMessage = "Você está se aproximando do seu limite mensal.";
-    progressBarColor = "bg-amber-500";
+  // Usuários assinantes não veem o alerta de limite
+  if (!subscribed) {
+    if (usagePercentage >= 90) {
+      textColor = "text-red-500 font-medium";
+      alertMessage = "Você está prestes a atingir seu limite mensal!";
+      progressBarColor = "bg-red-500";
+    } else if (usagePercentage >= 70) {
+      textColor = "text-amber-500";
+      alertMessage = "Você está se aproximando do seu limite mensal.";
+      progressBarColor = "bg-amber-500";
+    }
   }
   
   return (
@@ -50,7 +53,7 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
       
       <div className="flex items-center justify-end gap-1">
         <div className={textColor}>
-          {currentCount}/{limit} mensagens enviadas este mês 
+          {currentCount}/{subscribed ? "∞" : limit} mensagens enviadas este mês 
           {subscriptionTier && ` (Plano ${subscriptionTier})`}
         </div>
         
@@ -62,20 +65,26 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
               </div>
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p>Seu limite de mensagens será renovado em {daysUntilReset} dia{daysUntilReset !== 1 ? 's' : ''}</p>
+              {subscribed ? (
+                <p>Com seu plano {subscriptionTier}, você tem mensagens ilimitadas!</p>
+              ) : (
+                <p>Seu limite de mensagens será renovado em {daysUntilReset} dia{daysUntilReset !== 1 ? 's' : ''}</p>
+              )}
               {!subscribed && <p className="mt-1">Faça upgrade para o plano Premium para aumentar seu limite</p>}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       
-      {/* Barra de progresso */}
-      <div className="w-full h-1 bg-gray-200 rounded-full mt-1">
-        <div 
-          className={`h-1 rounded-full ${progressBarColor} transition-all duration-300 ease-in-out`}
-          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-        />
-      </div>
+      {/* Barra de progresso - não mostra para usuários com assinatura ativa */}
+      {!subscribed && (
+        <div className="w-full h-1 bg-gray-200 rounded-full mt-1">
+          <div 
+            className={`h-1 rounded-full ${progressBarColor} transition-all duration-300 ease-in-out`}
+            style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 };
