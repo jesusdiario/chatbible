@@ -19,6 +19,7 @@ import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 import TemasDaBiblia from "@/pages/TemasDaBiblia";
+import TeologiaCrista from "@/pages/TeologiaCrista";
 import Lexicon from "@/pages/Lexicon";
 import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
@@ -111,6 +112,11 @@ const App = () => {
               <Route path="/temas-da-biblia" element={
                 <ProtectedRoute>
                   <TemasDaBiblia />
+                </ProtectedRoute>
+              } />
+              <Route path="/teologia-crista" element={
+                <ProtectedRoute>
+                  <TeologiaCrista />
                 </ProtectedRoute>
               } />
               <Route path="/livros-da-biblia/:book" element={

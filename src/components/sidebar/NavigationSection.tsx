@@ -26,6 +26,13 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
     }
   };
   
+  const goToTeologiaCrista = () => {
+    navigate('/teologia-crista');
+    if (window.innerWidth < 768) {
+      onToggle?.();
+    }
+  };
+  
   const goToBiblia = () => {
     navigate('/biblia');
     if (window.innerWidth < 768) {
@@ -55,6 +62,16 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
       >
         <Book className="h-5 w-5 text-gray-500" />
         <span>Temas da Bíblia</span>
+      </button>
+      <button 
+        onClick={goToTeologiaCrista} 
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2 rounded-lg mt-2", 
+          currentPath === '/teologia-crista' ? "bg-gray-100" : "hover:bg-gray-50"
+        )}
+      >
+        <Book className="h-5 w-5 text-gray-500" />
+        <span>Teologia Cristã</span>
       </button>
       <button 
         onClick={goToBiblia} 
