@@ -38,8 +38,8 @@ const Sidebar = ({
             data: profileData,
             error
           } = await supabase
-            .from('user_profiles')
-            .select('display_name, avatar_url')
+            .from('profiles')
+            .select('username, avatar_url')
             .eq('id', session.user.id)
             .single();
           
@@ -54,7 +54,7 @@ const Sidebar = ({
           
           if (profileData) {
             setUserProfile({
-              name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
+              name: profileData.username || session.user.email?.split('@')[0] || 'Usuário',
               avatar_url: profileData.avatar_url
             });
           } else {
