@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getBooks, getTestaments, Book, Testament } from '@/services/biblia1Service';
+import { getBooks, getTestaments, getVersesByBook, getBook, Book, Testament, Verse } from '@/services/biblia1Service';
 
 export function useBooks() {
   return useQuery({
@@ -36,4 +36,24 @@ export function useBooksByTestament() {
   }
   
   return { booksByTestament, isLoading, error };
+}
+
+export function useBook(bookId: number) {
+  const { data: book, isLoading, error } = useQuery({
+    queryKey: ['bible-book', bookId],
+    queryFn: () => getBook(bookId),
+    enabled: !!bookId,
+  });
+  
+  return { book, isLoading, error };
+}
+
+export function useVersesByBook(bookId: number) {
+  const { data: verses, isLoading, error } = useQuery({
+    queryKey: ['bible-verses', bookId],
+    queryFn: () => getVersesByBook(bookId),
+    enabled: !!bookId,
+  });
+  
+  return { verses, isLoading, error };
 }

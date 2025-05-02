@@ -12,3 +12,12 @@ export interface BibleBook {
   abbrev?: string;
   testament_id?: number;
 }
+
+export interface BibleVerse {
+  id: number;
+  book_id: number;
+  chapter: number | null;
+  verse: number | null;
+  text: string | null;
+  version: string | null;
+}

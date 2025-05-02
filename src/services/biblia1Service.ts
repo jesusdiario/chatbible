@@ -13,6 +13,15 @@ export interface Testament {
   name: string;
 }
 
+export interface Verse {
+  id: number;
+  book_id: number;
+  chapter: number | null;
+  verse: number | null;
+  text: string | null;
+  version: string | null;
+}
+
 export async function getBooks(): Promise<Book[]> {
   const { data, error } = await supabase
     .from('books')
@@ -35,6 +44,41 @@ export async function getTestaments(): Promise<Testament[]> {
     
   if (error) {
     console.error('Error fetching testaments:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getBook(bookId: number): Promise<Book | null> {
+  const { data, error } = await supabase
+    .from('books')
+    .select('*')
+    .eq('id', bookId)
+    .single();
+    
+  if (error) {
+    console.error('Error fetching book:', error);
+    if (error.code === 'PGRST116') {
+      // Nenhum resultado encontrado
+      return null;
+    }
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getVersesByBook(bookId: number): Promise<Verse[]> {
+  const { data, error } = await supabase
+    .from('verses')
+    .select('*')
+    .eq('book_id', bookId)
+    .order('chapter')
+    .order('verse');
+    
+  if (error) {
+    console.error('Error fetching verses:', error);
     throw error;
   }
 
