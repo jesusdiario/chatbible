@@ -19,6 +19,8 @@ import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 import Lexicon from "@/pages/Lexicon";
+import Courses from "@/pages/Courses";
+import CourseDetail from "@/pages/CourseDetail";
 import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
@@ -128,6 +130,16 @@ const App = () => {
               <Route path="/lexicon" element={
                 <ProtectedRoute>
                   <Lexicon />
+                </ProtectedRoute>
+              } />
+              <Route path="/courses" element={
+                <ProtectedRoute>
+                  <Courses />
+                </ProtectedRoute>
+              } />
+              <Route path="/course/:id" element={
+                <ProtectedRoute>
+                  <CourseDetail />
                 </ProtectedRoute>
               } />
               <Route path="/profile" element={

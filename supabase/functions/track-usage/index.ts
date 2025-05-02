@@ -106,8 +106,6 @@ serve(async (req) => {
       }
     }
       
-    // CORREÇÃO: Usuários com assinatura ativa (subscribed=true) podem enviar mensagens 
-    // independentemente do limite
     if (currentCount >= messageLimit && !isSubscribed) {
       return new Response(JSON.stringify({ 
         error: "Limite de mensagens excedido",
@@ -143,7 +141,7 @@ serve(async (req) => {
       cost: estimatedCost,
       messageCount: currentCount + 1,
       messageLimit,
-      canSendMore: isSubscribed || (currentCount + 1) < messageLimit
+      canSendMore: (currentCount + 1) < messageLimit || isSubscribed
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

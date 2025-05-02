@@ -34,10 +34,14 @@ const Sidebar = ({
         } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Without relying on type-safety for the user_profiles table
-          // Use RPC function instead which is safer
-          const { data, error } = await supabase
-            .rpc('get_user_profile', { user_id_param: session.user.id });
+          const {
+            data: profileData,
+            error
+          } = await supabase
+            .from('user_profiles')
+            .select('display_name, avatar_url')
+            .eq('id', session.user.id)
+            .single();
           
           if (error) {
             console.error('Error fetching profile:', error);
@@ -48,10 +52,10 @@ const Sidebar = ({
             return;
           }
           
-          if (data) {
+          if (profileData) {
             setUserProfile({
-              name: data.display_name || session.user.email?.split('@')[0] || 'Usuário',
-              avatar_url: data.avatar_url
+              name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: profileData.avatar_url
             });
           } else {
             setUserProfile({

@@ -55,12 +55,10 @@ export const useLanguage = () => {
       
       if (!session?.user) return;
       
-      // Use RPC function to update user profile language preference
       const { error } = await supabase
-        .rpc('update_user_language', {
-          user_id_param: session.user.id,
-          language_param: language
-        });
+        .from('user_profiles')
+        .update({ preferred_language: language })
+        .eq('id', session.user.id);
       
       if (error) throw error;
       
@@ -76,15 +74,15 @@ export const useLanguage = () => {
       
       if (!session?.user) return null;
       
-      // Use RPC function to get user's preferred language
       const { data, error } = await supabase
-        .rpc('get_user_language', { 
-          user_id_param: session.user.id 
-        });
+        .from('user_profiles')
+        .select('preferred_language')
+        .eq('id', session.user.id)
+        .single();
       
       if (error) throw error;
       
-      return data as SupportedLanguage;
+      return data.preferred_language as SupportedLanguage;
     } catch (error) {
       console.error('Erro ao carregar preferência de idioma:', error);
       return null;
