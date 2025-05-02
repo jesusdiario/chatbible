@@ -106,12 +106,15 @@ serve(async (req) => {
       }
     }
       
+    // MUDANÇA AQUI: Usuários Pro (inscritos) não devem ser bloqueados pelo limite de mensagens
+    // Apenas usuários gratuitos são bloqueados quando atingem o limite
     if (currentCount >= messageLimit && !isSubscribed) {
       return new Response(JSON.stringify({ 
         error: "Limite de mensagens excedido",
         limitExceeded: true,
         currentCount: currentCount,
-        limit: messageLimit
+        limit: messageLimit,
+        isPro: isSubscribed
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
@@ -133,15 +136,16 @@ serve(async (req) => {
       throw new Error(`Erro ao registrar uso: ${error.message}`);
     }
 
-    // Incrementar contador de mensagens
-    await supabaseClient.rpc('increment_message_count', { user_id_param: user.id });
+    // Incrementar contador de mensagens (mesmo para usuários Pro)
+    await supabaseClient.rpc('increment_message_count', { uid: user.id });
 
     return new Response(JSON.stringify({ 
       success: true, 
       cost: estimatedCost,
       messageCount: currentCount + 1,
       messageLimit,
-      canSendMore: (currentCount + 1) < messageLimit || isSubscribed
+      isPro: isSubscribed,
+      canSendMore: isSubscribed || (currentCount + 1) < messageLimit // Usuários Pro sempre podem enviar mais
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

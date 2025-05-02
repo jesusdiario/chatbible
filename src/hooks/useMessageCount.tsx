@@ -1,31 +1,27 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-/** Busca o limite de mensagens no plano ativo (`subscribers` + `subscription_plans`) */
-async function getPlanLimit(userId: string): Promise<number> {
-  const { data, error } = await supabase
-    .from("subscribers")
-    .select("subscription_plans(message_limit)")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) {
-    console.error("Erro buscando plano:", error);
-    return 10; // fallback
-  }
-  return data?.subscription_plans?.message_limit ?? 10;
+interface MessageCount {
+  id: string;
+  user_id: string;
+  count: number;
+  last_reset_time: string;
 }
 
-export const useMessageCount = () => {
+export const useMessageCount = (messageLimitFromProps?: number) => {
   const [messageCount, setMessageCount] = useState(0);
-  const [messageLimit, setMessageLimit] = useState(10);
+  const [messageLimit, setMessageLimit] = useState(messageLimitFromProps || 10);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { toast } = useToast();
 
   const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
-  /** Busca (ou cria) registro + limite do plano */
-  const fetchOrCreate = useCallback(async () => {
+  // Add this function to fetch or create the message count
+  const fetchOrCreateMessageCount = useCallback(async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -37,119 +33,180 @@ export const useMessageCount = () => {
 
       const userId = session.user.id;
 
-      // 1) quanto o plano permite?
-      setMessageLimit(await getPlanLimit(userId));
+      // First check if user is subscribed and get their plan limit
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscribed, subscription_tier')
+        .eq('user_id', userId)
+        .single();
 
-      // 2) registro em message_counts
-      let { data, error } = await supabase
-        .from("message_counts")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // If subscribed, set flag
+      const userIsSubscribed = subData?.subscribed || false;
+      setIsSubscribed(userIsSubscribed);
 
-      if (error && error.code !== "PGRST116") {
-        console.error("MsgCount query:", error);
+      // Get plan limit
+      if (subData?.subscription_tier) {
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('message_limit')
+          .eq('name', subData.subscription_tier)
+          .single();
+          
+        if (planData?.message_limit) {
+          setMessageLimit(planData.message_limit);
+        }
+      }
+
+      // Continue with message count fetch
+      const { data, error } = await supabase
+        .from('message_counts')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error("Erro ao buscar contador de mensagens:", error);
         setLoading(false);
         return;
       }
-      
+
       if (!data) {
-        const { data: newRow, error: insErr } = await supabase
-          .from("message_counts")
-          .insert({ user_id: userId, count: 0, last_reset_time: new Date() })
+        const { data: newData, error: insertError } = await supabase
+          .from('message_counts')
+          .insert([{ 
+            user_id: userId, 
+            count: 0, 
+            last_reset_time: new Date().toISOString() 
+          }])
           .select()
           .single();
-        
-        if (insErr) {
-          console.error("Erro ao criar contador de mensagens:", insErr);
+
+        if (insertError) {
+          console.error("Erro ao criar contador de mensagens:", insertError);
           setLoading(false);
           return;
         }
-        
-        data = newRow;
-      }
-      
-      /* ── reset se passou 30 dias ── */
-      const elapsed = Date.now() - new Date(data.last_reset_time).getTime();
-      if (elapsed >= RESET_TIME) {
-        const { error: updateError } = await supabase
-          .from("message_counts")
-          .update({ 
-            count: 0, 
-            last_reset_time: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq("user_id", userId);
-          
-        if (updateError) {
-          console.error("Erro ao resetar contador de mensagens:", updateError);
-        }
-        
+
         setMessageCount(0);
-        setTimeUntilReset(RESET_TIME);
       } else {
-        setMessageCount(data.count);
-        setTimeUntilReset(RESET_TIME - elapsed);
+        const lastResetTime = new Date(data.last_reset_time).getTime();
+        const currentTime = Date.now();
+        const timeElapsed = currentTime - lastResetTime;
+
+        if (timeElapsed >= RESET_TIME) {
+          const { error: updateError } = await supabase
+            .from('message_counts')
+            .update({ 
+              count: 0, 
+              last_reset_time: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
+
+          if (updateError) {
+            console.error("Erro ao resetar contador de mensagens:", updateError);
+          }
+
+          setMessageCount(0);
+          setTimeUntilReset(RESET_TIME);
+        } else {
+          setMessageCount(data.count);
+          setTimeUntilReset(RESET_TIME - timeElapsed);
+        }
       }
-      
+
       setLoading(false);
     } catch (error) {
       console.error("Erro ao processar contador de mensagens:", error);
       setLoading(false);
     }
-  }, []);
+  }, [RESET_TIME]);
 
-  useEffect(() => { 
-    fetchOrCreate(); 
-    
+  useEffect(() => {
+    fetchOrCreateMessageCount();
+
     const intervalId = setInterval(() => {
       if (timeUntilReset > 0) {
         setTimeUntilReset(prev => {
           const newTime = prev - 60000;
           if (newTime <= 0) {
-            fetchOrCreate();
+            fetchOrCreateMessageCount();
             return 0;
           }
           return newTime;
         });
       }
     }, 60000);
-    
-    return () => clearInterval(intervalId);
-  }, [fetchOrCreate, timeUntilReset]);
 
-  /** ++1 de forma transacional (evita race-condition) */
-  const increment = async () => {
+    return () => clearInterval(intervalId);
+  }, [fetchOrCreateMessageCount, timeUntilReset]);
+
+  const incrementMessageCount = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
+  
+      const userId = session.user.id;
       
-      const { error } = await supabase.rpc("increment_message_count", { uid: session.user.id });
-      if (error) { 
-        console.error("RPC increment_message_count:", error); 
-        return; 
+      // Check if user can send message (Pro users can always send)
+      if (!isSubscribed && messageCount >= messageLimit) {
+        toast({
+          title: "Limite de mensagens atingido",
+          description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano Premium para mensagens ilimitadas.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Proceed with increment
+      const { data, error } = await supabase
+        .from('message_counts')
+        .update({ 
+          count: messageCount + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select();
+      
+      if (error) {
+        console.error("Erro ao incrementar contador de mensagens:", error);
+        return;
       }
       
-      setMessageCount((c) => c + 1);
+      setMessageCount(prev => prev + 1);
+      return true;
     } catch (error) {
       console.error("Erro ao incrementar contador de mensagens:", error);
+      return false;
     }
   };
 
-  const percentUsed = messageLimit ? Math.round((messageCount / messageLimit) * 100) : 0;
-  const canSendMessage = messageCount < messageLimit;
+  // Verificar se o usuário ainda tem mensagens disponíveis
+  // Pro users (subscribed) can always send messages
+  const canSendMessage = isSubscribed || messageCount < messageLimit;
+  
+  // Dias restantes para reset
   const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
+  
+  // Calcular a porcentagem de uso
+  const percentUsed = Math.round((messageCount / messageLimit) * 100);
 
+  // Alias for incrementMessageCount
+  const increment = incrementMessageCount;
+  
   return {
     messageCount,
+    setMessageCount,
+    incrementMessageCount,
+    increment,
+    timeUntilReset,
+    daysUntilReset,
+    loading,
+    canSendMessage,
     messageLimit,
     percentUsed,
-    daysUntilReset,
-    canSendMessage,
-    loading,
-    increment,
-    incrementMessageCount: increment, // alias for backward compatibility
-    refresh: fetchOrCreate,
+    refresh: fetchOrCreateMessageCount, // Add this line to expose the refresh function
+    isSubscribed
   };
 };
 

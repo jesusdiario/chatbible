@@ -59,6 +59,7 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
       .single();
     
     const messageLimit = planData?.message_limit || MESSAGE_LIMITS.FREE;
+    const isSubscribed = subscriberData?.subscribed || false;
     
     if (!data) {
       // No record found, return default state
@@ -86,13 +87,16 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
     // Use subscription_end if available, otherwise default to next month
     const nextReset = subscriberData?.subscription_end 
       ? new Date(subscriberData.subscription_end) 
-      : getNextMonthDate(now);
+      : getNextMonthDate(lastResetTime);
     
-    // Calculate percentage used
-    const percentUsed = Math.min(Math.round((data.count / messageLimit) * 100), 100);
+    // Calculate percentage used - for Pro users we cap this at a lower visual value
+    const percentUsed = isSubscribed
+      ? Math.min(Math.round((data.count / messageLimit) * 100), 50) // Pro users: visualmente limitado a 50%
+      : Math.min(Math.round((data.count / messageLimit) * 100), 100); // Free users: normal calc up to 100%
     
-    // Determine if user can send message
-    const canSendMessage = subscriberData?.subscribed || data.count < messageLimit;
+    // Determine if user can send message - usuários Pro sempre podem enviar
+    // Changed this logic: Pro users can ALWAYS send messages regardless of count
+    const canSendMessage = isSubscribed || data.count < messageLimit;
     
     // Calculate days until reset
     const daysUntilReset = Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -158,6 +162,7 @@ export const incrementMessageCount = async (): Promise<boolean> => {
       return false;
     }
     
+    // Check if user can send message (considering subscription)
     if (!currentState.canSendMessage) {
       toast({
         title: "Limite de mensagens atingido",
@@ -167,7 +172,8 @@ export const incrementMessageCount = async (): Promise<boolean> => {
       return false;
     }
     
-    // Update or insert message count record
+    // Update or insert message count record - even Pro users increase their count
+    // (for tracking purposes, although they don't get limited)
     const { data: messageCountData } = await supabase
       .from('message_counts')
       .select('*')

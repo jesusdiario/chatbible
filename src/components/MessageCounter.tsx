@@ -1,6 +1,6 @@
 
 import React from "react";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, Infinity } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { 
   Tooltip,
@@ -41,6 +41,7 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
   
   return (
     <div className="w-full text-xs mt-1 text-right">
+      {/* Mostra alerta apenas para usuários não assinantes que estão se aproximando do limite */}
       {alertMessage && !subscribed && (
         <div className="flex items-center justify-end gap-1 mb-1">
           <AlertTriangle className="h-3 w-3" />
@@ -49,8 +50,14 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
       )}
       
       <div className="flex items-center justify-end gap-1">
-        <div className={textColor}>
-          {currentCount}/{limit} mensagens enviadas este mês 
+        <div className={subscribed ? "text-green-600 font-medium" : textColor}>
+          {currentCount}/
+          {subscribed ? (
+            <span className="inline-flex items-center">
+              <Infinity className="h-3 w-3 mx-0.5" />
+            </span>
+          ) : limit}
+          {' '}mensagens enviadas este mês 
           {subscriptionTier && ` (Plano ${subscriptionTier})`}
         </div>
         
@@ -63,19 +70,21 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
             </TooltipTrigger>
             <TooltipContent side="top">
               <p>Seu limite de mensagens será renovado em {daysUntilReset} dia{daysUntilReset !== 1 ? 's' : ''}</p>
-              {!subscribed && <p className="mt-1">Faça upgrade para o plano Premium para aumentar seu limite</p>}
+              {!subscribed && <p className="mt-1">Faça upgrade para o plano Premium para mensagens ilimitadas</p>}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       
-      {/* Barra de progresso */}
-      <div className="w-full h-1 bg-gray-200 rounded-full mt-1">
-        <div 
-          className={`h-1 rounded-full ${progressBarColor} transition-all duration-300 ease-in-out`}
-          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-        />
-      </div>
+      {/* Barra de progresso (apenas para usuários não assinantes) */}
+      {!subscribed && (
+        <div className="w-full h-1 bg-gray-200 rounded-full mt-1">
+          <div 
+            className={`h-1 rounded-full ${progressBarColor} transition-all duration-300 ease-in-out`}
+            style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 };

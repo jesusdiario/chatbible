@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "./useSubscription";
 
 interface MessageCount {
   id: string;
@@ -14,6 +15,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { subscribed } = useSubscription();
   const { toast } = useToast();
 
   const DEFAULT_MESSAGE_LIMIT = 10;
@@ -32,6 +34,17 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       }
 
       const userId = session.user.id;
+
+      // Get subscription status
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', userId)
+        .single();
+
+      const isSubscribed = subData?.subscribed || false;
+
+      // Continue with message count fetch
       const { data, error } = await supabase
         .from('message_counts')
         .select('*')
@@ -122,6 +135,26 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
   
       const userId = session.user.id;
       
+      // Get subscription status for checking limits
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', userId)
+        .single();
+
+      const isUserSubscribed = subData?.subscribed || false;
+
+      // Check if user can send message (Pro users can always send)
+      if (!isUserSubscribed && messageCount >= MESSAGE_LIMIT) {
+        toast({
+          title: "Limite de mensagens atingido",
+          description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano Premium para mensagens ilimitadas.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Proceed with increment
       const { data, error } = await supabase
         .from('message_counts')
         .update({ 
@@ -137,13 +170,16 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       }
       
       setMessageCount(prev => prev + 1);
+      return true;
     } catch (error) {
       console.error("Erro ao incrementar contador de mensagens:", error);
+      return false;
     }
   };
 
   // Verificar se o usuário ainda tem mensagens disponíveis
-  const canSendMessage = messageCount < MESSAGE_LIMIT;
+  // Pro users (subscribed) can always send messages
+  const canSendMessage = subscribed || messageCount < MESSAGE_LIMIT;
   
   // Dias restantes para reset
   const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
@@ -166,7 +202,8 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
     MESSAGE_LIMIT,
     messageLimit: MESSAGE_LIMIT,
     percentUsed,
-    refresh: fetchOrCreateMessageCount // Add this line to expose the refresh function
+    refresh: fetchOrCreateMessageCount
   };
 };
 
+export default useMessageCount;

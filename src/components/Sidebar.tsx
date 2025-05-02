@@ -34,10 +34,10 @@ const Sidebar = ({
         } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Try to fetch the profile data
+          // Try to fetch the profile data directly from user_profiles table
           const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
+            .from('user_profiles')
+            .select('display_name, avatar_url')
             .eq('id', session.user.id)
             .single();
           
@@ -51,20 +51,11 @@ const Sidebar = ({
             return;
           }
           
-          // Check if profileData exists and ensure we handle possible undefined values
+          // Check if profileData exists and use it
           if (profileData) {
-            // Safely access profileData properties with fallbacks
-            const username = typeof profileData === 'object' && profileData !== null 
-              ? (profileData as any).username 
-              : null;
-              
-            const avatarUrl = typeof profileData === 'object' && profileData !== null 
-              ? (profileData as any).avatar_url 
-              : null;
-              
             setUserProfile({
-              name: username || session.user.email?.split('@')[0] || 'Usuário',
-              avatar_url: avatarUrl
+              name: profileData.display_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: profileData.avatar_url
             });
           } else {
             // Fallback if no profile data found
