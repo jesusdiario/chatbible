@@ -85,16 +85,16 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
           {formattedDate}
         </div>
         
-        {/* Book name if present */}
+        {/* Book name if present - Now in black */}
         {chat.book_slug && (
-          <div className="text-lg font-bold text-chatgpt-accent">
+          <div className="text-lg font-bold text-black">
             {chat.book_slug.charAt(0).toUpperCase() + chat.book_slug.slice(1)}
           </div>
         )}
         
-        {/* Chat title - Only make this element clickable */}
+        {/* Chat title - Only make this element clickable and now in blue */}
         <div 
-          className={`text-base font-medium py-1 cursor-pointer ${isAccessible ? 'hover:text-chatgpt-accent' : 'opacity-70'}`}
+          className={`text-base font-medium py-1 cursor-pointer ${isAccessible ? 'text-chatgpt-accent hover:text-chatgpt-accent/80' : 'opacity-70'}`}
           onClick={handleSelect}
         >
           "{chat.title}"
