@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Pin, Trash2 } from 'lucide-react';
 import { toggleChatPin, updateChatTitle, deleteChat } from '@/services/persistenceService';
 import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
+import { ptBR } from 'date-fns/locale/pt-BR';
 
 export interface ChatHistoryItemProps {
   chat: ChatHistory;
