@@ -1,15 +1,12 @@
 
 import React from 'react';
-import {
-  ChevronRight,
-  Pin,
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { ChatHistory } from '@/types/chat';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import ChatHistoryActionsMenu from './ChatHistoryActionsMenu';
+import { Pin } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale/pt-BR';
+import ChatHistoryActions from './ChatHistoryActions';
+import { toggleChatPin } from '@/services/persistenceService';
 
 export interface ChatHistoryItemProps {
   chat: ChatHistory;
@@ -27,6 +24,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
   isAccessible = true 
 }) => {
   const { toast } = useToast();
+  const [isPerformingAction, setIsPerformingAction] = React.useState(false);
 
   const handleSelect = () => {
     if (!isAccessible) {
@@ -40,56 +38,88 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
     onSelect(chat.slug || '');
   };
 
+  const handleTogglePin = async () => {
+    if (isPerformingAction) return;
+    
+    try {
+      setIsPerformingAction(true);
+      const success = await toggleChatPin(chat.slug || '', !chat.pinned);
+      
+      if (success) {
+        toast({
+          title: chat.pinned ? "Conversa desafixada" : "Conversa fixada",
+          description: chat.pinned 
+            ? "A conversa foi removida dos fixados." 
+            : "A conversa foi adicionada aos fixados.",
+        });
+        
+        if (onHistoryUpdated) {
+          onHistoryUpdated();
+        }
+      } else {
+        throw new Error("Falha ao fixar/desafixar conversa");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da conversa. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPerformingAction(false);
+    }
+  };
+
+  // Format date: "23 de abril 10:30"
+  const formattedDate = format(
+    new Date(chat.lastAccessed),
+    "d 'de' MMMM HH:mm",
+    { locale: ptBR }
+  );
+
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-      isAccessible ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-70'
-    }`}>
-      <div 
-        className="flex-1 min-w-0"
-        onClick={handleSelect}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            {chat.pinned && <Pin className="h-3 w-3 text-blue-600" />}
-            <p className="text-sm font-medium text-gray-800 truncate">{chat.title}</p>
-          </div>
-          <span className="text-xs text-gray-500">
-            {formatDistanceToNow(new Date(chat.lastAccessed), { 
-              addSuffix: true, 
-              locale: ptBR 
-            })}
-          </span>
+    <div className="relative border-b border-gray-100 last:border-none">
+      <div className="p-4 space-y-2">
+        {/* Date */}
+        <div className="text-sm text-gray-500 font-medium mb-1">
+          {formattedDate}
         </div>
         
+        {/* Book name if present - Now in black */}
+        {chat.book_slug && (
+          <div className="text-lg font-bold text-black">
+            {chat.book_slug.charAt(0).toUpperCase() + chat.book_slug.slice(1)}
+          </div>
+        )}
+        
+        {/* Chat title - Only make this element clickable and now in blue */}
+        <div 
+          className={`text-base font-medium py-1 cursor-pointer ${isAccessible ? 'text-chatgpt-accent hover:text-chatgpt-accent/80' : 'opacity-70'}`}
+          onClick={handleSelect}
+        >
+          "{chat.title}"
+          {chat.pinned && (
+            <Pin className="inline-block h-3 w-3 text-chatgpt-accent ml-1" />
+          )}
+        </div>
+        
+        {/* Last message preview */}
         {chat.last_message && (
-          <p className="text-xs text-gray-500 truncate">{chat.last_message}</p>
-        )}
-      </div>
-      
-      <div className="flex items-center">
-        {!isAccessible && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mr-2 text-xs px-2 py-1 h-auto"
-            onClick={() => window.location.href = '/profile?tab=subscription'}
-          >
-            Upgrade
-          </Button>
+          <p className="text-sm text-gray-500 line-clamp-2 mb-2">
+            {chat.last_message}
+          </p>
         )}
         
-        <ChatHistoryActionsMenu
-          chatId={chat.id}
-          slug={chat.slug || ''}
-          title={chat.title}
-          isPinned={chat.pinned || false}
+        {/* Action buttons component */}
+        <ChatHistoryActions 
+          chat={chat}
+          isAccessible={isAccessible}
           onDelete={onDelete}
-          onHistoryUpdated={onHistoryUpdated || (() => {})}
+          onTogglePin={handleTogglePin}
+          isPerformingAction={isPerformingAction}
+          setIsPerformingAction={setIsPerformingAction}
+          onHistoryUpdated={onHistoryUpdated}
         />
-        
-        {isAccessible && (
-          <ChevronRight className="h-4 w-4 text-gray-400" />
-        )}
       </div>
     </div>
   );

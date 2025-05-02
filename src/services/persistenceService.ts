@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Message } from '@/types/chat';
 
@@ -8,9 +7,23 @@ export const persistChatMessages = async (
   messages: Message[],
   book?: string
 ) => {
-  if (!userId || !slug || messages.length === 0) return;
+  if (!userId || !slug || messages.length === 0) {
+    console.log('persistChatMessages condições não atendidas:', { 
+      hasUserId: !!userId, 
+      hasSlug: !!slug, 
+      messagesCount: messages.length 
+    });
+    return;
+  }
 
   try {
+    console.log('Persistindo mensagens para o chat:', { 
+      slug, 
+      userId, 
+      messagesCount: messages.length,
+      book 
+    });
+
     // Get the first message (user's initial query)
     const firstUserMessage = messages.find(m => m.role === 'user')?.content || '';
     
@@ -24,6 +37,13 @@ export const persistChatMessages = async (
     const subscription_required = messages.length > 50;
     const stored_messages = subscription_required ? messages.slice(-50) : messages;
     
+    console.log('Dados preparados para persistência:', {
+      title,
+      lastMessage: lastMessage.substring(0, 30) + '...',
+      subscription_required,
+      storedMessagesCount: stored_messages.length
+    });
+
     await supabase
       .from('chat_history')
       .upsert({
@@ -36,12 +56,13 @@ export const persistChatMessages = async (
         messages: JSON.stringify(stored_messages),
         subscription_required,
         is_accessible: true,
-        is_deleted: false
+        is_deleted: false,
+        pinned: false // Garantir que o campo esteja definido
       }, { 
         onConflict: 'slug' 
       });
   } catch (err) {
-    console.error('Error persisting messages:', err);
+    console.error('Erro ao persistir mensagens:', err);
     throw err;
   }
 };

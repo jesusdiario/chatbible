@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -19,12 +18,12 @@ import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
 import Lexicon from "@/pages/Lexicon";
-import Courses from "@/pages/Courses";
-import CourseDetail from "@/pages/CourseDetail";
 import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
+import Biblia from "@/pages/Biblia";
+import BibliaBook from "@/pages/BibliaBook";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -132,22 +131,21 @@ const App = () => {
                   <Lexicon />
                 </ProtectedRoute>
               } />
-              <Route path="/courses" element={
-                <ProtectedRoute>
-                  <Courses />
-                </ProtectedRoute>
-              } />
-              <Route path="/course/:id" element={
-                <ProtectedRoute>
-                  <CourseDetail />
-                </ProtectedRoute>
-              } />
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
               } />
-              {/* Nova rota para a landing page */}
+              <Route path="/biblia" element={
+                <ProtectedRoute>
+                  <Biblia />
+                </ProtectedRoute>
+              } />
+              <Route path="/biblia/:bookId" element={
+                <ProtectedRoute>
+                  <BibliaBook />
+                </ProtectedRoute>
+              } />
               <Route path="/lp" element={<LandingPage />} />
             </Routes>
           </TooltipProvider>
