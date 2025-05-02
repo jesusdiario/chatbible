@@ -48,19 +48,15 @@ export const useLanguage = () => {
     }
   }, []);
 
-  // Não é possível salvar o idioma preferido no perfil do usuário pois não existe a coluna preferred_language
-  // Usar local storage para salvar a preferência
+  // Salvar o idioma preferido no perfil do usuário
   const saveLanguagePreference = useCallback(async (language: SupportedLanguage) => {
-    localStorage.setItem('i18nextLng', language);
-    // O resto da lógica fica comentado pois não temos o campo preferred_language
-    /*
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) return;
       
       const { error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .update({ preferred_language: language })
         .eq('id', session.user.id);
       
@@ -69,25 +65,17 @@ export const useLanguage = () => {
     } catch (error) {
       console.error('Erro ao salvar preferência de idioma:', error);
     }
-    */
   }, []);
 
-  // Carregar idioma preferido do localStorage apenas
-  const loadUserLanguagePreference = useCallback(async (): Promise<SupportedLanguage | null> => {
-    const storedLang = localStorage.getItem('i18nextLng');
-    if (storedLang && ['pt-BR', 'en', 'es'].includes(storedLang)) {
-      return storedLang as SupportedLanguage;
-    }
-    return null;
-    // O resto da lógica fica comentado pois não temos o campo preferred_language
-    /*
+  // Carregar idioma preferido do perfil do usuário
+  const loadUserLanguagePreference = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) return null;
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('preferred_language')
         .eq('id', session.user.id)
         .single();
@@ -99,7 +87,6 @@ export const useLanguage = () => {
       console.error('Erro ao carregar preferência de idioma:', error);
       return null;
     }
-    */
   }, []);
 
   // Mudar o idioma
@@ -145,7 +132,7 @@ export const useLanguage = () => {
           return;
         }
         
-        // Verificar preferência do usuário no localStorage
+        // Verificar preferência do usuário no banco de dados se estiver autenticado
         const userPrefLang = await loadUserLanguagePreference();
         
         if (userPrefLang) {

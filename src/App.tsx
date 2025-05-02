@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -22,8 +23,6 @@ import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
-import Biblia from "@/pages/Biblia";
-import BibliaBook from "@/pages/BibliaBook";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -136,16 +135,7 @@ const App = () => {
                   <Profile />
                 </ProtectedRoute>
               } />
-              <Route path="/biblia" element={
-                <ProtectedRoute>
-                  <Biblia />
-                </ProtectedRoute>
-              } />
-              <Route path="/biblia/:bookId" element={
-                <ProtectedRoute>
-                  <BibliaBook />
-                </ProtectedRoute>
-              } />
+              {/* Nova rota para a landing page */}
               <Route path="/lp" element={<LandingPage />} />
             </Routes>
           </TooltipProvider>
