@@ -33,7 +33,7 @@ const ChatHistoryTabContent: React.FC<ChatHistoryTabContentProps> = ({
   // If we're rendering a flat list (pinned or books)
   if (flatChats) {
     return (
-      <div className="space-y-1">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {flatChats.map((chat) => (
           <ChatHistoryItem
             key={chat.id}
