@@ -4,8 +4,9 @@ import { Loader2 } from 'lucide-react';
 
 const ChatHistoryLoading: React.FC = () => {
   return (
-    <div className="flex justify-center py-8">
-      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+    <div className="flex flex-col items-center justify-center py-12">
+      <Loader2 className="h-10 w-10 animate-spin text-chatgpt-accent mb-4" />
+      <p className="text-sm text-gray-500">Carregando conversas...</p>
     </div>
   );
 };

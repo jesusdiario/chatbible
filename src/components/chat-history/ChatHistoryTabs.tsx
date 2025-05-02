@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { TimeframedHistory, ChatHistory } from '@/types/chat';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatHistoryTabContent from './ChatHistoryTabContent';
+import { BookOpen, Clock, Pin } from 'lucide-react';
 
 interface ChatHistoryTabsProps {
   chatHistory: TimeframedHistory[];
@@ -43,13 +44,34 @@ const ChatHistoryTabs: React.FC<ChatHistoryTabsProps> = ({
 
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-      <TabsList className="grid grid-cols-3">
-        <TabsTrigger value="all">Todos</TabsTrigger>
-        <TabsTrigger value="pinned" disabled={pinnedChats.length === 0}>Fixados</TabsTrigger>
-        <TabsTrigger value="books">Livros</TabsTrigger>
+      <TabsList className="grid grid-cols-3 mb-6 bg-chatgpt-secondary border border-chatgpt-border">
+        <TabsTrigger 
+          value="all" 
+          className="data-[state=active]:bg-white flex items-center gap-2"
+        >
+          <Clock className="h-4 w-4" />
+          <span>Cronologia</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="pinned" 
+          disabled={pinnedChats.length === 0}
+          className="data-[state=active]:bg-white flex items-center gap-2"
+        >
+          <Pin className="h-4 w-4" />
+          <span>Fixados</span>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="books" 
+          className="data-[state=active]:bg-white flex items-center gap-2"
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>Livros</span>
+        </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="all">
+      <TabsContent value="all" className="animate-fade-in">
         <ChatHistoryTabContent
           chatHistory={chatHistory}
           onChatSelect={onChatSelect}
@@ -61,7 +83,7 @@ const ChatHistoryTabs: React.FC<ChatHistoryTabsProps> = ({
         />
       </TabsContent>
       
-      <TabsContent value="pinned">
+      <TabsContent value="pinned" className="animate-fade-in">
         <ChatHistoryTabContent
           chatHistory={[]}
           flatChats={pinnedChats}
@@ -73,7 +95,7 @@ const ChatHistoryTabs: React.FC<ChatHistoryTabsProps> = ({
         />
       </TabsContent>
       
-      <TabsContent value="books">
+      <TabsContent value="books" className="animate-fade-in">
         <ChatHistoryTabContent
           chatHistory={[]}
           flatChats={bookChats}

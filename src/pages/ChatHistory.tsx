@@ -10,7 +10,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, PlusCircle } from 'lucide-react';
 
 const ChatHistoryPage = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebarControl();
@@ -98,24 +98,30 @@ const ChatHistoryPage = () => {
         onToggle={toggleSidebar}
         currentPath="/history"
       />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'} bg-gray-50`}>
         <ChatHeader 
           isSidebarOpen={isSidebarOpen} 
           onToggleSidebar={toggleSidebar} 
         />
-        <div className="pt-20 pb-6 px-4">
-          <div className="flex flex-col gap-4 max-w-3xl mx-auto mb-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">Histórico de Conversas</h1>
-              <Button onClick={() => navigate('/chat/new')}>Nova Conversa</Button>
+        <div className="pt-20 pb-16 px-4 max-w-5xl mx-auto">
+          <div className="flex flex-col gap-6 mb-8">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-800">Histórico de Conversas</h1>
+              <Button 
+                onClick={() => navigate('/chat/new')} 
+                className="bg-chatgpt-accent hover:bg-blue-700 flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Nova Conversa
+              </Button>
             </div>
             
             {/* Search Bar */}
-            <div className="relative">
+            <div className="relative max-w-lg w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Buscar conversas..."
-                className="pl-10"
+                placeholder="Buscar conversas por título ou conteúdo..."
+                className="pl-10 border-gray-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -123,16 +129,16 @@ const ChatHistoryPage = () => {
           </div>
           
           {!subscribed && (
-            <div className="max-w-3xl mx-auto mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="font-medium mb-1 text-blue-800">Histórico Limitado</h3>
-              <p className="text-sm text-blue-700 mb-2">
+            <div className="max-w-3xl mx-auto mb-8 bg-blue-50 p-5 rounded-lg border border-blue-200">
+              <h3 className="font-medium mb-2 text-blue-800">Histórico Limitado</h3>
+              <p className="text-sm text-blue-700 mb-4">
                 Usuários do plano gratuito têm acesso limitado ao histórico completo. 
                 Para acessar todo o histórico e mensagens, faça upgrade para o plano premium.
               </p>
               <Button 
                 variant="outline" 
                 size="sm"
-                className="bg-blue-100 hover:bg-blue-200 border-blue-300"
+                className="bg-blue-100 hover:bg-blue-200 border-blue-300 text-blue-800"
                 onClick={() => navigate('/profile?tab=subscription')}
               >
                 Ver planos
