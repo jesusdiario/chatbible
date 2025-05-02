@@ -23,6 +23,7 @@ export interface Verse {
 }
 
 export async function getBooks(): Promise<Book[]> {
+  console.log('Fetching books');
   const { data, error } = await supabase
     .from('books')
     .select('*')
@@ -33,10 +34,12 @@ export async function getBooks(): Promise<Book[]> {
     throw error;
   }
 
+  console.log('Books retrieved:', data?.length);
   return data || [];
 }
 
 export async function getTestaments(): Promise<Testament[]> {
+  console.log('Fetching testaments');
   const { data, error } = await supabase
     .from('testaments')
     .select('*')
@@ -47,10 +50,12 @@ export async function getTestaments(): Promise<Testament[]> {
     throw error;
   }
 
+  console.log('Testaments retrieved:', data?.length);
   return data || [];
 }
 
 export async function getBook(bookId: number): Promise<Book | null> {
+  console.log('Fetching book with ID:', bookId);
   const { data, error } = await supabase
     .from('books')
     .select('*')
@@ -60,16 +65,18 @@ export async function getBook(bookId: number): Promise<Book | null> {
   if (error) {
     console.error('Error fetching book:', error);
     if (error.code === 'PGRST116') {
-      // Nenhum resultado encontrado
+      // No results found
       return null;
     }
     throw error;
   }
 
+  console.log('Book retrieved:', data?.name);
   return data;
 }
 
 export async function getVersesByBook(bookId: number): Promise<Verse[]> {
+  console.log('Fetching verses for book ID:', bookId);
   const { data, error } = await supabase
     .from('verses')
     .select('*')
@@ -82,5 +89,43 @@ export async function getVersesByBook(bookId: number): Promise<Verse[]> {
     throw error;
   }
 
+  console.log('Verses retrieved:', data?.length);
   return data || [];
+}
+
+// Add sample data if tables are empty - this is temporary helper function
+export async function createInitialData() {
+  // Check if testaments table is empty
+  const { data: testamentsData } = await supabase
+    .from('testaments')
+    .select('id')
+    .limit(1);
+    
+  if (testamentsData && testamentsData.length === 0) {
+    console.log('Adding initial testaments');
+    await supabase.from('testaments').insert([
+      { id: 1, name: 'Antigo Testamento' },
+      { id: 2, name: 'Novo Testamento' }
+    ]);
+  }
+  
+  // Check if books table is empty
+  const { data: booksData } = await supabase
+    .from('books')
+    .select('id')
+    .limit(1);
+    
+  if (booksData && booksData.length === 0) {
+    console.log('Adding initial books');
+    // Add a few sample books
+    await supabase.from('books').insert([
+      { id: 1, name: 'Gênesis', abbrev: 'Gn', testament_id: 1 },
+      { id: 2, name: 'Êxodo', abbrev: 'Ex', testament_id: 1 },
+      { id: 3, name: 'Levítico', abbrev: 'Lv', testament_id: 1 },
+      { id: 40, name: 'Mateus', abbrev: 'Mt', testament_id: 2 },
+      { id: 41, name: 'Marcos', abbrev: 'Mc', testament_id: 2 },
+      { id: 42, name: 'Lucas', abbrev: 'Lc', testament_id: 2 },
+      { id: 66, name: 'Apocalipse', abbrev: 'Ap', testament_id: 2 }
+    ]);
+  }
 }

@@ -65,7 +65,9 @@ const BibliaBook: React.FC = () => {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink as={Link} to="/biblia">Bíblia</BreadcrumbLink>
+                <BreadcrumbLink asChild>
+                  <Link to="/biblia">Bíblia</Link>
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -107,11 +109,15 @@ const BibliaBook: React.FC = () => {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink as={Link} to="/biblia">Bíblia</BreadcrumbLink>
+              <BreadcrumbLink asChild>
+                <Link to="/biblia">Bíblia</Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink as={Link} to={`/biblia/${bookId}`}>{book.name}</BreadcrumbLink>
+              <BreadcrumbLink asChild>
+                <Link to={`/biblia/${bookId}`}>{book.name}</Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

@@ -23,16 +23,19 @@ export function useBooksByTestament() {
   const isLoading = booksLoading || testamentsLoading;
   const error = booksError || testamentsError;
   
-  // Agrupar livros por testamento
+  // Group books by testament
   const booksByTestament: { testament: Testament; books: Book[] }[] = [];
   
   if (books && testaments) {
+    console.log('Books:', books.length, 'Testaments:', testaments.length);
     testaments.forEach(testament => {
       const testamentBooks = books.filter(book => book.testament_id === testament.id);
       if (testamentBooks.length > 0) {
         booksByTestament.push({ testament, books: testamentBooks });
       }
     });
+  } else {
+    console.log('Missing data:', { books, testaments });
   }
   
   return { booksByTestament, isLoading, error };
