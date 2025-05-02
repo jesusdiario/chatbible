@@ -159,6 +159,11 @@ const App = () => {
                   <BibliaBook />
                 </ProtectedRoute>
               } />
+              <Route path="/biblia/:bookId/:chapter" element={
+                <ProtectedRoute>
+                  <BibliaBook />
+                </ProtectedRoute>
+              } />
               <Route path="/lp" element={<LandingPage />} />
             </Routes>
           </TooltipProvider>

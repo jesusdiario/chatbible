@@ -1,18 +1,39 @@
 
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBook, useVersesByBook } from '@/hooks/useBiblia1Data';
 import Biblia1BottomNav from '@/components/biblia1/Biblia1BottomNav';
-import { Loader2, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Loader2, ChevronLeft, Grid, BookOpen } from 'lucide-react';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 const BibliaBook: React.FC = () => {
-  const { bookId } = useParams<{ bookId: string }>();
+  const { bookId, chapter } = useParams<{ bookId: string; chapter?: string }>();
+  const navigate = useNavigate();
   const { book, isLoading: isLoadingBook, error: bookError } = useBook(Number(bookId));
   const { verses, isLoading: isLoadingVerses, error: versesError } = useVersesByBook(Number(bookId));
   
   const isLoading = isLoadingBook || isLoadingVerses;
   const error = bookError || versesError;
+
+  // Get available chapters from verses
+  const availableChapters = React.useMemo(() => {
+    if (!verses) return [];
+    const chapters = new Set<number>();
+    verses.forEach(verse => {
+      if (verse.chapter) {
+        chapters.add(verse.chapter);
+      }
+    });
+    return Array.from(chapters).sort((a, b) => a - b);
+  }, [verses]);
+  
+  // Filter verses by chapter
+  const chapterVerses = React.useMemo(() => {
+    if (!verses || !chapter) return [];
+    return verses
+      .filter(verse => verse.chapter === Number(chapter))
+      .sort((a, b) => (a.verse || 0) - (b.verse || 0));
+  }, [verses, chapter]);
   
   if (isLoading) {
     return (
@@ -35,49 +56,128 @@ const BibliaBook: React.FC = () => {
       </div>
     );
   }
+
+  // If no chapter is selected, show chapter grid
+  if (!chapter) {
+    return (
+      <div className="pb-20 max-w-4xl mx-auto px-4">
+        <header className="py-6">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink as={Link} to="/biblia">Bíblia</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{book.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
+          <div className="flex items-center mt-2">
+            <Link to="/biblia" className="mr-4">
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-2xl font-bold">{book.name}</h1>
+          </div>
+          <p className="text-gray-600 mt-2">Selecione um capítulo</p>
+        </header>
+        
+        <div className="grid grid-cols-5 sm:grid-cols-8 gap-4 mt-4">
+          {availableChapters.map(chapterNum => (
+            <Link 
+              key={chapterNum} 
+              to={`/biblia/${bookId}/${chapterNum}`}
+              className="aspect-square bg-blue-50 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors"
+            >
+              <span className="text-lg font-medium">{chapterNum}</span>
+            </Link>
+          ))}
+        </div>
+        
+        <Biblia1BottomNav />
+      </div>
+    );
+  }
   
-  // Agrupar versos por capítulo
-  const versesByChapter: Record<number, Array<{ verse: number, text: string }>> = {};
-  
-  verses?.forEach(verse => {
-    if (verse.chapter) {
-      if (!versesByChapter[verse.chapter]) {
-        versesByChapter[verse.chapter] = [];
-      }
-      versesByChapter[verse.chapter].push({ 
-        verse: verse.verse || 0, 
-        text: verse.text || '' 
-      });
-    }
-  });
-  
+  // If chapter is selected, show verses
   return (
     <div className="pb-20 max-w-4xl mx-auto px-4">
-      <header className="py-6 flex items-center">
-        <Link to="/biblia" className="mr-4">
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <h1 className="text-2xl font-bold">{book.name}</h1>
+      <header className="py-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink as={Link} to="/biblia">Bíblia</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink as={Link} to={`/biblia/${bookId}`}>{book.name}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Capítulo {chapter}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center">
+            <Link to={`/biblia/${bookId}`} className="mr-4">
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-xl font-bold">{book.name} - Capítulo {chapter}</h1>
+          </div>
+          
+          <div className="flex space-x-2">
+            <button 
+              onClick={() => {
+                const currentIndex = availableChapters.indexOf(Number(chapter));
+                if (currentIndex > 0) {
+                  navigate(`/biblia/${bookId}/${availableChapters[currentIndex - 1]}`);
+                }
+              }}
+              disabled={availableChapters.indexOf(Number(chapter)) === 0}
+              className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Capítulo anterior"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <Link to={`/biblia/${bookId}`} className="p-2 rounded-full hover:bg-gray-100">
+              <Grid className="h-5 w-5" />
+            </Link>
+            
+            <button 
+              onClick={() => {
+                const currentIndex = availableChapters.indexOf(Number(chapter));
+                if (currentIndex < availableChapters.length - 1) {
+                  navigate(`/biblia/${bookId}/${availableChapters[currentIndex + 1]}`);
+                }
+              }}
+              disabled={availableChapters.indexOf(Number(chapter)) === availableChapters.length - 1}
+              className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Próximo capítulo"
+            >
+              <ChevronLeft className="h-5 w-5 transform rotate-180" />
+            </button>
+          </div>
+        </div>
       </header>
       
-      <main>
-        {Object.entries(versesByChapter).map(([chapter, versesInChapter]) => (
-          <div key={chapter} className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Capítulo {chapter}</h2>
-            <div className="space-y-2">
-              {versesInChapter.map(verse => (
-                <p key={verse.verse} className="text-gray-800">
-                  <span className="text-xs align-super font-bold text-gray-500 mr-1">{verse.verse}</span>
-                  {verse.text}
-                </p>
-              ))}
-            </div>
+      <main className="mt-4 pb-6">
+        {chapterVerses.length > 0 ? (
+          <div className="prose max-w-none">
+            {chapterVerses.map(verse => (
+              <p key={verse.verse} className="mb-4 leading-relaxed">
+                <span className="text-xs align-super font-bold text-gray-500 mr-1">{verse.verse}</span>
+                {verse.text}
+              </p>
+            ))}
           </div>
-        ))}
-        
-        {Object.keys(versesByChapter).length === 0 && (
+        ) : (
           <div className="py-12 text-center text-gray-500">
-            <p>Não há versículos disponíveis para este livro.</p>
+            <BookOpen className="mx-auto h-12 w-12 opacity-30 mb-2" />
+            <p>Não há versículos disponíveis para este capítulo.</p>
           </div>
         )}
       </main>
