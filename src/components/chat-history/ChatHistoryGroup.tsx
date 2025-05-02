@@ -23,9 +23,9 @@ const ChatHistoryGroup: React.FC<ChatHistoryGroupProps> = ({
   if (items.length === 0) return null;
 
   return (
-    <div className="mb-6">
+    <div className="space-y-2 mb-8">
       <h3 className="text-sm font-medium text-chatgpt-accent mb-3 px-3">{title}</h3>
-      <div className="bg-white rounded-lg shadow-sm p-2">
+      <div className="space-y-2 divide-y divide-gray-100">
         {items.map((chat) => (
           <ChatHistoryItem
             key={chat.id}

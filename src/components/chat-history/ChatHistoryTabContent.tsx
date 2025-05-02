@@ -30,10 +30,10 @@ const ChatHistoryTabContent: React.FC<ChatHistoryTabContentProps> = ({
     return <ChatHistoryEmptyState searchQuery={searchQuery} />;
   }
 
-  // Se estamos renderizando uma lista plana (fixados ou livros)
+  // If we're rendering a flat list (pinned or books)
   if (flatChats) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-2">
+      <div className="space-y-1">
         {flatChats.map((chat) => (
           <ChatHistoryItem
             key={chat.id}
@@ -48,7 +48,7 @@ const ChatHistoryTabContent: React.FC<ChatHistoryTabContentProps> = ({
     );
   }
 
-  // Renderizar chats agrupados
+  // Render grouped chats
   return (
     <div className="space-y-6">
       {chatHistory.map((group) => (
