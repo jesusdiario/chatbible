@@ -78,16 +78,10 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
   );
 
   return (
-    <div 
-      className={`
-        relative border-b border-gray-100 last:border-none
-        ${isAccessible ? 'hover:bg-chatgpt-hover cursor-pointer' : 'opacity-70'}
-      `}
-      onClick={handleSelect}
-    >
-      <div className="p-4 space-y-1">
+    <div className="relative border-b border-gray-100 last:border-none">
+      <div className="p-4 space-y-2">
         {/* Date */}
-        <div className="text-sm text-gray-500 font-medium">
+        <div className="text-sm text-gray-500 font-medium mb-1">
           {formattedDate}
         </div>
         
@@ -98,8 +92,11 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
           </div>
         )}
         
-        {/* Chat title */}
-        <div className="text-base font-medium">
+        {/* Chat title - Only make this element clickable */}
+        <div 
+          className={`text-base font-medium py-1 cursor-pointer ${isAccessible ? 'hover:text-chatgpt-accent' : 'opacity-70'}`}
+          onClick={handleSelect}
+        >
           "{chat.title}"
           {chat.pinned && (
             <Pin className="inline-block h-3 w-3 text-chatgpt-accent ml-1" />
@@ -108,7 +105,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({
         
         {/* Last message preview */}
         {chat.last_message && (
-          <p className="text-sm text-gray-500 line-clamp-2">
+          <p className="text-sm text-gray-500 line-clamp-2 mb-2">
             {chat.last_message}
           </p>
         )}
