@@ -1,4 +1,3 @@
-
 export type CourseLevel = 'iniciante' | 'intermediário' | 'avançado';
 
 export interface Course {
