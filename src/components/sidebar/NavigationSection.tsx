@@ -18,13 +18,6 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
       onToggle?.();
     }
   };
-  
-  const goToBiblia = () => {
-    navigate('/biblia/books');
-    if (window.innerWidth < 768) {
-      onToggle?.();
-    }
-  };
 
   return (
     <div className="mb-6">
@@ -38,17 +31,6 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
       >
         <Book className="h-5 w-5 text-gray-500" />
         <span>Livros da Bíblia</span>
-      </button>
-      
-      <button 
-        onClick={goToBiblia} 
-        className={cn(
-          "w-full flex items-center gap-3 px-3 py-2 rounded-lg mt-2", 
-          currentPath?.startsWith('/biblia') ? "bg-gray-100" : "hover:bg-gray-50"
-        )}
-      >
-        <Book className="h-5 w-5 text-gray-500" />
-        <span>Nova Bíblia</span>
       </button>
     </div>
   );

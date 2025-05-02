@@ -24,12 +24,6 @@ import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
 
-// Importação das páginas da Bíblia
-import BibleRoot from "@/pages/bible/BibleRoot";
-import BooksList from "@/pages/bible/BooksList";
-import ChaptersGrid from "@/pages/bible/ChaptersGrid";
-import Reader from "@/pages/bible/Reader";
-
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,15 +137,6 @@ const App = () => {
               } />
               {/* Nova rota para a landing page */}
               <Route path="/lp" element={<LandingPage />} />
-              
-              {/* Novas rotas para a Bíblia */}
-              <Route path="/biblia" element={<BibleRoot />}>
-                <Route index element={<Navigate to="/biblia/books" replace />} />
-                <Route path="books" element={<BooksList />} />
-                <Route path="books/:id" element={<ChaptersGrid />} />
-                <Route path="books/:id/:chapter" element={<Reader />} />
-                <Route path="books/:id/:chapter/:verse" element={<Reader />} />
-              </Route>
             </Routes>
           </TooltipProvider>
         </ErrorBoundary>

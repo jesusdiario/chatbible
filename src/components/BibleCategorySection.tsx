@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BibleBook, BibleCategory } from "@/types/bible";
+import { BibleBook, BibleCategory } from "@/services/bibleService";
 import { BookGrid } from "@/components/BookGrid";
 
 interface BibleCategorySectionProps {

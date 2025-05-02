@@ -1,144 +1,78 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Book, Verse, BibleBook, BibleCategory } from '@/types/bible';
 
-// Original functions
-export async function getAllBooks(): Promise<Book[]> {
-  const { data, error } = await supabase
-    .from('books')
-    .select('*')
-    .order('id');
-    
-  if (error) {
-    console.error('Error fetching books:', error);
-    throw error;
-  }
-  
-  return data || [];
+export interface BibleCategory {
+  slug: string;
+  title: string;
+  description?: string;
+  display_order: number;
 }
 
-export async function getBookById(id: number): Promise<Book | null> {
-  const { data, error } = await supabase
-    .from('books')
-    .select('*')
-    .eq('id', id)
-    .single();
-    
-  if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found
-    console.error('Error fetching book:', error);
-    throw error;
-  }
-  
-  return data;
+export interface BibleBook {
+  slug: string;
+  title: string;
+  image_url: string | null;
+  category_slug: string;
+  display_order: number;
 }
 
-export async function getVersesByBookAndChapter(bookId: number, chapter: number): Promise<Verse[]> {
-  const { data, error } = await supabase
-    .from('verses')
-    .select('*')
-    .eq('book_id', bookId)
-    .eq('chapter', chapter)
-    .order('verse');
-    
-  if (error) {
-    console.error('Error fetching verses:', error);
-    throw error;
-  }
-  
-  return data || [];
-}
-
-export async function getMaxChapterByBookId(bookId: number): Promise<number> {
-  const { data, error } = await supabase
-    .from('verses')
-    .select('chapter')
-    .eq('book_id', bookId)
-    .order('chapter', { ascending: false })
-    .limit(1);
-    
-  if (error) {
-    console.error('Error fetching max chapter:', error);
-    throw error;
-  }
-  
-  return data && data.length > 0 ? data[0].chapter : 0;
-}
-
-export async function searchVerses(query: string): Promise<Verse[]> {
-  const { data, error } = await supabase
-    .from('verses')
-    .select('*')
-    .textSearch('text', query)
-    .limit(50);
-    
-  if (error) {
-    console.error('Error searching verses:', error);
-    throw error;
-  }
-  
-  return data || [];
-}
-
-// New functions needed for Bible feature
 export async function getBibleCategories(): Promise<BibleCategory[]> {
   const { data, error } = await supabase
     .from('bible_categories')
-    .select('*')
-    .order('display_order');
+    .select('slug, title, description, display_order')
+    .order('display_order', { ascending: true });
     
   if (error) {
-    console.error('Error fetching Bible categories:', error);
+    console.error('Error fetching bible categories:', error);
     throw error;
   }
-  
+
   return data || [];
 }
 
 export async function getBibleBooks(): Promise<BibleBook[]> {
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*')
-    .order('display_order');
-    
+    .select('slug, title, image_url, book_category, display_order')
+    .order('display_order', { ascending: true });
+
   if (error) {
-    console.error('Error fetching Bible books:', error);
+    console.error('Error fetching bible books:', error);
     throw error;
   }
-  
-  return data || [];
+
+  // Map the book_category field to category_slug in the returned data
+  return (data || []).map(book => ({
+    slug: book.slug,
+    title: book.title,
+    image_url: book.image_url,
+    category_slug: book.book_category,
+    display_order: book.display_order
+  }));
 }
 
 export async function getBibleBookBySlug(slug: string): Promise<BibleBook | null> {
-  if (!slug) return null;
-  
   const { data, error } = await supabase
     .from('bible_books')
-    .select('*')
+    .select('slug, title, image_url, book_category, display_order')
     .eq('slug', slug)
     .single();
-    
-  if (error) {
-    if (error.code === 'PGRST116') return null; // No rows found
-    console.error('Error fetching book by slug:', error);
-    throw error;
-  }
-  
-  return data;
-}
 
-// Function to load suggestions for a book
-export async function loadSuggestionsForBook(bookSlug: string): Promise<Suggestion[]> {
-  const { data, error } = await supabase
-    .from('bible_suggestions')
-    .select('*')
-    .eq('book_slug', bookSlug)
-    .order('id');
-    
   if (error) {
-    console.error('Error loading suggestions:', error);
+    if (error.code === 'PGRST116') {
+      // No rows found
+      return null;
+    }
+    console.error('Error fetching bible book:', error);
     throw error;
   }
-  
-  return data || [];
+
+  // Map the book_category field to category_slug
+  return {
+    slug: data.slug,
+    title: data.title,
+    image_url: data.image_url,
+    category_slug: data.book_category,
+    display_order: data.display_order
+  };
 }

@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getBibleCategories, getBibleBooks } from '@/services/bibleService';
-import { BibleCategory, BibleBook } from '@/types/bible';
+import { getBibleCategories, getBibleBooks, BibleCategory, BibleBook } from '@/services/bibleService';
 
 // Mapa para corrigir slugs que não correspondem exatamente
 const categorySlugMap: Record<string, string> = {
@@ -43,13 +42,13 @@ export const useBibleData = () => {
   const booksByCategory: Record<string, BibleBook[]> = {};
   
   // Inicializa arrays vazios para todas as categorias
-  categories.forEach((category: BibleCategory) => {
+  categories.forEach(category => {
     const normalizedCategorySlug = normalizeSlug(category.slug);
     booksByCategory[normalizedCategorySlug] = [];
   });
   
   // Adiciona todos os livros às suas respectivas categorias
-  books.forEach((book: BibleBook) => {
+  books.forEach(book => {
     let normalizedCategorySlug = normalizeSlug(book.category_slug);
     
     // Aplica mapeamento se existir no dicionário de correção
@@ -65,7 +64,7 @@ export const useBibleData = () => {
   });
 
   // Adiciona logs para debug
-  console.log("Categorias disponíveis:", categories.map((c: BibleCategory) => c.slug));
+  console.log("Categorias disponíveis:", categories.map(c => c.slug));
   console.log("Livros por categoria:", booksByCategory);
   console.log("Mapeamento de categoria:", categorySlugMap);
 
