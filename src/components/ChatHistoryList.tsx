@@ -63,7 +63,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = ({
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 bg-white rounded-lg shadow-sm">
+    <div className="w-full max-w-3xl mx-auto">
       <ChatHistoryTabs
         chatHistory={localHistory}
         onChatSelect={handleChatClick}
