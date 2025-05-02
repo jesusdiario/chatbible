@@ -7,6 +7,7 @@ import { useBibleData } from "@/hooks/useBibleData";
 import { useSidebarControl } from "@/hooks/useSidebarControl";
 import { BibleCategorySection } from "@/components/BibleCategorySection";
 import { useTranslation } from "react-i18next";
+import { BookGrid } from "@/components/BookGrid";
 
 const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar: () => void }> = ({
   error, isSidebarOpen, onToggleSidebar
@@ -59,22 +60,9 @@ const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => vo
   );
 };
 
-const CategoriesList: React.FC<{
-  categories: any[]; booksByCategory: Record<string, any[]>;
-}> = ({ categories, booksByCategory }) => (
-  <div className="max-w-7xl mx-auto space-y-10">
-    {categories.map(category => {
-      const categoryBooks = booksByCategory[category.slug] || [];
-      return (
-        <BibleCategorySection key={category.slug} category={category} books={categoryBooks} />
-      );
-    })}
-  </div>
-);
-
 const TemasDaBiblia = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebarControl();
-  const { categories, booksByCategory, isLoading, isError, error } = useBibleData();
+  const { books, isLoading, isError, error } = useBibleData();
   const { t } = useTranslation();
 
   if (isError) {
@@ -84,6 +72,9 @@ const TemasDaBiblia = () => {
   if (isLoading) {
     return <LoadingState isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />;
   }
+
+  // Filtrar apenas os livros com categoria "temas"
+  const temasBooks = books.filter(book => book.category_slug === "temas");
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -98,7 +89,14 @@ const TemasDaBiblia = () => {
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">Temas da Bíblia</h1>
             <p className="text-gray-600 text-center mb-12">Explore os principais temas e doutrinas bíblicas</p>
-            <CategoriesList categories={categories} booksByCategory={booksByCategory} />
+            
+            {temasBooks.length > 0 ? (
+              <BookGrid books={temasBooks} />
+            ) : (
+              <div className="text-center p-8 bg-gray-100 rounded-lg">
+                <p className="text-gray-600">Nenhum tema encontrado. Entre em contato com o administrador.</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
