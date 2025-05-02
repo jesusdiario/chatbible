@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Book } from "lucide-react";
+import { Book, Bible } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +19,13 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
     }
   };
 
+  const goToBiblia = () => {
+    navigate('/biblia');
+    if (window.innerWidth < 768) {
+      onToggle?.();
+    }
+  };
+
   return (
     <div className="mb-6">
       <span className="text-sm text-gray-500 mb-2 block">Menu</span>
@@ -31,6 +38,17 @@ const NavigationSection: React.FC<NavigationSectionProps> = ({ currentPath, onTo
       >
         <Book className="h-5 w-5 text-gray-500" />
         <span>Livros da Bíblia</span>
+      </button>
+      
+      <button 
+        onClick={goToBiblia} 
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2 rounded-lg mt-2", 
+          currentPath === '/biblia' ? "bg-gray-100" : "hover:bg-gray-50"
+        )}
+      >
+        <Bible className="h-5 w-5 text-gray-500" />
+        <span>Bíblia</span>
       </button>
     </div>
   );
