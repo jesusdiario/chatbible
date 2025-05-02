@@ -762,6 +762,7 @@ export type Database = {
         | "cartas_paulinas"
         | "cartas_gerais"
         | "apocalipse"
+        | "temas"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -887,6 +888,7 @@ export const Constants = {
         "cartas_paulinas",
         "cartas_gerais",
         "apocalipse",
+        "temas",
       ],
     },
   },

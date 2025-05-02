@@ -13,7 +13,7 @@ interface EmptyChatStateProps {
 }
 
 const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
-  const { canSendMessage, isSubscribed } = useMessageCount();
+  const { canSendMessage } = useMessageCount();
   const { subscribed, startCheckout } = useSubscription();
   
   const handleUpgradeClick = () => {

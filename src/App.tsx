@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,6 +18,7 @@ import AdminPages from "@/pages/AdminPages";
 import AdminBooks from "@/pages/AdminBooks";
 import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
 import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
+import TemasDaBiblia from "@/pages/TemasDaBiblia";
 import Lexicon from "@/pages/Lexicon";
 import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
@@ -104,6 +106,11 @@ const App = () => {
               <Route path="/livros-da-biblia" element={
                 <ProtectedRoute>
                   <LivrosDaBiblia />
+                </ProtectedRoute>
+              } />
+              <Route path="/temas-da-biblia" element={
+                <ProtectedRoute>
+                  <TemasDaBiblia />
                 </ProtectedRoute>
               } />
               <Route path="/livros-da-biblia/:book" element={
