@@ -17,7 +17,7 @@ interface MessageCounterProps {
 }
 
 const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: MessageCounterProps) => {
-  const { subscriptionTier, subscribed } = useSubscription();
+  const { subscriptionTier, subscribed, startCheckout } = useSubscription();
   
   if (isLoading) return null;
   
@@ -38,6 +38,11 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
     alertMessage = "Você está se aproximando do seu limite mensal.";
     progressBarColor = "bg-amber-500";
   }
+
+  const handleUpgradeClick = () => {
+    // Use o ID do produto real criado na Stripe
+    startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
+  };
   
   return (
     <div className="w-full text-xs mt-1 text-right">
@@ -70,7 +75,17 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
             </TooltipTrigger>
             <TooltipContent side="top">
               <p>Seu limite de mensagens será renovado em {daysUntilReset} dia{daysUntilReset !== 1 ? 's' : ''}</p>
-              {!subscribed && <p className="mt-1">Faça upgrade para o plano Premium para mensagens ilimitadas</p>}
+              {!subscribed && (
+                <>
+                  <p className="mt-1">Faça upgrade para o plano Premium para mensagens ilimitadas</p>
+                  <button 
+                    onClick={handleUpgradeClick}
+                    className="mt-2 w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium py-1 px-2 rounded transition-colors"
+                  >
+                    Fazer upgrade agora
+                  </button>
+                </>
+              )}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

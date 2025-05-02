@@ -9,11 +9,18 @@ import Sidebar from '@/components/Sidebar';
 import ChatHeader from '@/components/ChatHeader';
 import BookChat from '@/components/BookChat';
 import { useSidebarControl } from '@/hooks/useSidebarControl';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, X } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { loadChatMessages } from '@/services/persistenceService';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
+import { useMessageCount } from '@/hooks/useMessageCount';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ChatPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -23,6 +30,8 @@ const ChatPage = () => {
   const [isLoadingChat, setIsLoadingChat] = useState(true);
   const { subscribed, startCheckout } = useSubscription();
   const [requiresSubscription, setRequiresSubscription] = useState(false);
+  const { messageCount, messageLimit, canSendMessage } = useMessageCount();
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   // Use the chatState hook to manage messages
   const {
@@ -47,6 +56,19 @@ const ChatPage = () => {
     setMessages, 
     setIsLoading
   );
+
+  // Check if user has reached message limit and is not subscribed
+  useEffect(() => {
+    if (!canSendMessage && !subscribed && messageCount >= messageLimit) {
+      setShowLimitDialog(true);
+    }
+  }, [canSendMessage, subscribed, messageCount, messageLimit]);
+
+  const handleUpgradeClick = () => {
+    // Use o ID do produto real criado na Stripe
+    startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
+    setShowLimitDialog(false); // Close dialog after clicking upgrade
+  };
 
   // Fetch chat details when the component mounts
   useEffect(() => {
@@ -116,10 +138,6 @@ const ChatPage = () => {
 
     fetchChatDetails();
   }, [slug, navigate, setMessages, subscribed]);
-
-  const handleUpgradeClick = () => {
-    startCheckout('price_1OeVptLyyMwTutR9oFF1m3aC'); // Use your premium plan price ID
-  };
 
   if (isLoadingChat) {
     return (
@@ -206,6 +224,28 @@ const ChatPage = () => {
           />
         </div>
       </main>
+      
+      {/* Limit Reached Dialog */}
+      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Perguntas Prontas</DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+            <p className="text-lg text-center font-medium mb-6">
+              Você atingiu seu limite de 10 mensagens neste mês.
+            </p>
+            
+            <Button 
+              onClick={handleUpgradeClick} 
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded transition-colors h-auto"
+            >
+              Fazer upgrade para continuar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
