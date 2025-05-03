@@ -1,187 +1,168 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, Settings, Sun, Moon, Type, BookOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Sun, Moon, Type, Book, ChevronRight } from 'lucide-react';
 import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
-import { BibleVersion } from '@/services/bibliaService';
+import { BibleVersion } from '@/types/biblia';
+import { BibleVersionSelectorFull } from '@/components/biblia/BibleVersionSelector';
 
-const BibliaConfiguracoes: React.FC = () => {
+const BibliaConfiguracoes = () => {
   // Estado para preferências do usuário
+  const [fontSize, setFontSize] = useState<string>('medium');
+  const [theme, setTheme] = useState<string>('light');
   const [defaultVersion, setDefaultVersion] = useState<BibleVersion>('acf');
-  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   
-  // Carregar configurações salvas
-  useEffect(() => {
-    const savedVersion = localStorage.getItem('bible-default-version') as BibleVersion | null;
-    if (savedVersion) setDefaultVersion(savedVersion);
-    
-    const savedFontSize = localStorage.getItem('bible-font-size') as 'small' | 'medium' | 'large' | null;
-    if (savedFontSize) setFontSize(savedFontSize);
-    
-    const savedTheme = localStorage.getItem('bible-theme') as 'light' | 'dark' | 'system' | null;
-    if (savedTheme) setTheme(savedTheme);
-  }, []);
-  
-  // Salvar mudanças nas configurações
-  const saveVersion = (version: BibleVersion) => {
-    setDefaultVersion(version);
-    localStorage.setItem('bible-default-version', version);
-  };
-  
-  const saveFontSize = (size: 'small' | 'medium' | 'large') => {
-    setFontSize(size);
-    localStorage.setItem('bible-font-size', size);
-    
-    // Aplicar tamanho da fonte ao corpo do documento
-    document.documentElement.classList.remove('text-sm', 'text-base', 'text-lg');
-    
-    switch (size) {
-      case 'small':
-        document.documentElement.classList.add('text-sm');
-        break;
-      case 'medium':
-        document.documentElement.classList.add('text-base');
-        break;
-      case 'large':
-        document.documentElement.classList.add('text-lg');
-        break;
-    }
-  };
-  
-  const saveTheme = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
-    localStorage.setItem('bible-theme', newTheme);
-    
-    // Aplicar tema
-    if (newTheme === 'system') {
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', systemPrefersDark);
-    } else {
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    }
-  };
-  
-  // Opções para seleção de versão
-  const versionOptions: { value: BibleVersion; label: string }[] = [
-    { value: 'acf', label: 'ACF - Almeida Corrigida Fiel' },
-    { value: 'ara', label: 'ARA - Almeida Revista e Atualizada' },
-    { value: 'arc', label: 'ARC - Almeida Revista e Corrigida' },
-    { value: 'naa', label: 'NAA - Nova Almeida Atualizada' },
-    { value: 'ntlh', label: 'NTLH - Nova Tradução na Linguagem de Hoje' },
-    { value: 'nvi', label: 'NVI - Nova Versão Internacional' },
-    { value: 'nvt', label: 'NVT - Nova Versão Transformadora' }
+  // Opções de tamanho de texto
+  const fontSizeOptions = [
+    { id: 'small', label: 'Pequeno', class: 'text-sm' },
+    { id: 'medium', label: 'Médio', class: 'text-base' },
+    { id: 'large', label: 'Grande', class: 'text-lg' },
+    { id: 'xlarge', label: 'Extra Grande', class: 'text-xl' },
   ];
+  
+  // Opções de tema
+  const themeOptions = [
+    { id: 'light', label: 'Claro', icon: Sun },
+    { id: 'dark', label: 'Escuro', icon: Moon },
+  ];
+  
+  // Handler para salvar configurações
+  const saveSettings = () => {
+    // Salvar em localStorage ou em um serviço de configurações
+    localStorage.setItem('bible-font-size', fontSize);
+    localStorage.setItem('bible-theme', theme);
+    localStorage.setItem('bible-default-version', defaultVersion);
+    
+    // Notificar usuário
+    alert('Configurações salvas com sucesso!');
+  };
   
   return (
     <div className="pb-20 max-w-4xl mx-auto">
       <header className="py-4 px-4 flex items-center border-b sticky top-0 bg-white z-10">
-        <Link to="/biblia" className="mr-4">
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
         <h1 className="text-xl font-bold flex items-center">
           <Settings className="h-5 w-5 mr-2" />
           Configurações
         </h1>
       </header>
       
-      <div className="p-4 space-y-6">
-        {/* Versão padrão da Bíblia */}
-        <div>
-          <h2 className="text-lg font-medium mb-3 flex items-center">
-            <BookOpen className="h-5 w-5 mr-2" />
-            Versão padrão da Bíblia
-          </h2>
+      <main className="px-4 py-4">
+        <div className="space-y-6">
+          {/* Seção de Aparência */}
+          <section className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b">
+              <h3 className="font-medium">Aparência</h3>
+            </div>
+            
+            {/* Tamanho da Fonte */}
+            <div className="p-4 border-b">
+              <div className="flex items-center mb-3">
+                <Type className="h-5 w-5 text-gray-600 mr-2" />
+                <h4 className="font-medium">Tamanho da Fonte</h4>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                {fontSizeOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setFontSize(option.id)}
+                    className={`border rounded-lg p-3 text-center ${
+                      fontSize === option.id 
+                        ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    <span className={option.class}>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Tema */}
+            <div className="p-4">
+              <div className="flex items-center mb-3">
+                <Sun className="h-5 w-5 text-gray-600 mr-2" />
+                <h4 className="font-medium">Tema</h4>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                {themeOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setTheme(option.id)}
+                      className={`border rounded-lg p-3 flex items-center justify-center ${
+                        theme === option.id 
+                          ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mr-2" />
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
           
-          <select
-            value={defaultVersion}
-            onChange={(e) => saveVersion(e.target.value as BibleVersion)}
-            className="w-full border border-gray-300 rounded-lg py-2 px-3"
+          {/* Versão Padrão da Bíblia */}
+          <section className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b">
+              <h3 className="font-medium">Preferências de Leitura</h3>
+            </div>
+            
+            <div className="p-4">
+              <div className="flex items-center mb-3">
+                <Book className="h-5 w-5 text-gray-600 mr-2" />
+                <h4 className="font-medium">Versão Padrão da Bíblia</h4>
+              </div>
+              
+              <BibleVersionSelectorFull
+                version={defaultVersion}
+                onChange={setDefaultVersion}
+                className="w-full"
+              />
+              
+              <p className="text-sm text-gray-500 mt-2">
+                Esta será a versão exibida por padrão ao abrir qualquer passagem da Bíblia.
+              </p>
+            </div>
+          </section>
+          
+          {/* Outras Configurações */}
+          <section className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b">
+              <h3 className="font-medium">Outras Configurações</h3>
+            </div>
+            
+            <div className="divide-y">
+              <button className="w-full p-4 text-left flex items-center justify-between">
+                <span>Limpar Histórico de Leitura</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
+              
+              <button className="w-full p-4 text-left flex items-center justify-between">
+                <span>Reportar Problema</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
+              
+              <button className="w-full p-4 text-left flex items-center justify-between">
+                <span>Sobre</span>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+          </section>
+          
+          {/* Botão de Salvar */}
+          <button
+            onClick={saveSettings}
+            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium"
           >
-            {versionOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-gray-500 mt-2">
-            Esta será a versão padrão utilizada ao abrir a Bíblia.
-          </p>
+            Salvar Configurações
+          </button>
         </div>
-        
-        {/* Tamanho da fonte */}
-        <div>
-          <h2 className="text-lg font-medium mb-3 flex items-center">
-            <Type className="h-5 w-5 mr-2" />
-            Tamanho da fonte
-          </h2>
-          
-          <div className="flex gap-4">
-            <button
-              onClick={() => saveFontSize('small')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${fontSize === 'small' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              Pequena
-            </button>
-            <button
-              onClick={() => saveFontSize('medium')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${fontSize === 'medium' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              Média
-            </button>
-            <button
-              onClick={() => saveFontSize('large')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${fontSize === 'large' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              Grande
-            </button>
-          </div>
-        </div>
-        
-        {/* Tema */}
-        <div>
-          <h2 className="text-lg font-medium mb-3 flex items-center">
-            {theme === 'light' ? (
-              <Sun className="h-5 w-5 mr-2" />
-            ) : theme === 'dark' ? (
-              <Moon className="h-5 w-5 mr-2" />
-            ) : (
-              <div className="h-5 w-5 mr-2 relative">
-                <Sun className="h-5 w-5 absolute" style={{ clipPath: 'inset(0 50% 0 0)' }} />
-                <Moon className="h-5 w-5 absolute" style={{ clipPath: 'inset(0 0 0 50%)' }} />
-              </div>
-            )}
-            Tema
-          </h2>
-          
-          <div className="flex gap-4">
-            <button
-              onClick={() => saveTheme('light')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${theme === 'light' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              <Sun className="h-4 w-4 mx-auto mb-1" />
-              Claro
-            </button>
-            <button
-              onClick={() => saveTheme('dark')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${theme === 'dark' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              <Moon className="h-4 w-4 mx-auto mb-1" />
-              Escuro
-            </button>
-            <button
-              onClick={() => saveTheme('system')}
-              className={`flex-1 py-2 px-4 rounded-lg border ${theme === 'system' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
-            >
-              <div className="h-4 w-4 mx-auto mb-1 relative">
-                <Sun className="h-4 w-4 absolute" style={{ clipPath: 'inset(0 50% 0 0)' }} />
-                <Moon className="h-4 w-4 absolute" style={{ clipPath: 'inset(0 0 0 50%)' }} />
-              </div>
-              Sistema
-            </button>
-          </div>
-        </div>
-      </div>
+      </main>
       
       <BibliaBottomNav />
     </div>

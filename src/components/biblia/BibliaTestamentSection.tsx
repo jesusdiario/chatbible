@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Book } from '@/services/bibliaService';
+import { Book, Testament } from '@/types/biblia';
 import BibliaBookItem from './BibliaBookItem';
 
 interface BibliaTestamentSectionProps {
-  testament: { id: string, name: string };
+  testament: Testament;
   books: Book[];
 }
 

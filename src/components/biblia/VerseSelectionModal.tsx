@@ -1,144 +1,151 @@
 
 import React, { useState } from 'react';
-import { Verse, BibleVersion } from '@/services/bibliaService';
-import { Copy, Share, Bookmark, Heart, X } from 'lucide-react';
-import { useBibleFavorites } from '@/hooks/useBiblia';
+import { X, Copy, Share2, BookmarkPlus } from 'lucide-react';
+import { Verse, BibleVersion } from '@/types/biblia';
+import { toast } from 'sonner';
 
 interface VerseSelectionModalProps {
   verses: Verse[];
   version: BibleVersion;
   onClose: () => void;
+  onAddToFavorites?: (verses: Verse[]) => void;
 }
 
-const VerseSelectionModal: React.FC<VerseSelectionModalProps> = ({ verses, version, onClose }) => {
-  const [showCopySuccess, setShowCopySuccess] = useState(false);
-  const { addFavorite, isFavorite } = useBibleFavorites();
+const VerseSelectionModal: React.FC<VerseSelectionModalProps> = ({
+  verses,
+  version,
+  onClose,
+  onAddToFavorites
+}) => {
+  const [copied, setCopied] = useState(false);
   
   if (verses.length === 0) return null;
   
-  // Função para formatar o texto selecionado
-  const formatSelectedText = () => {
-    return verses.map(verse => {
-      const textKey = `text_${version}` as keyof Verse;
-      const verseText = verse[textKey] as string;
-      
-      // Se temos apenas um versículo, podemos também incluir o nome do livro
-      if (verses.length === 1 && verse.book_id) {
-        const [testament, abbrev] = String(verse.book_id).split('.');
-        return `${abbrev} ${verse.chapter}:${verse.verse} - ${verseText}`;
-      }
-      
-      return `${verse.verse}. ${verseText}`;
-    }).join('\n\n');
+  // Ordenar os versículos por ordem numérica
+  const sortedVerses = [...verses].sort((a, b) => {
+    if (a.chapter !== b.chapter) return (a.chapter || 0) - (b.chapter || 0);
+    return (a.verse || 0) - (b.verse || 0);
+  });
+  
+  // Obter informações do primeiro versículo para referência
+  const firstVerse = sortedVerses[0];
+  const book_name = firstVerse.book_name || '';
+  const chapter = firstVerse.chapter;
+  
+  // Criar texto completo para cópia
+  const getVerseText = (verse: Verse) => {
+    const textField = `text_${version}` as keyof Verse;
+    return verse[textField] as string || 'Versículo não disponível';
   };
   
-  // Manipular cópia de texto
+  const verseTexts = sortedVerses.map(verse => 
+    `${verse.verse} ${getVerseText(verse)}`
+  );
+  
+  // Calcular a referência completa
+  let reference = `${book_name} ${chapter}`;
+  if (verses.length === 1) {
+    reference += `:${sortedVerses[0].verse}`;
+  } else {
+    const firstVerseNum = sortedVerses[0].verse;
+    const lastVerseNum = sortedVerses[sortedVerses.length - 1].verse;
+    reference += `:${firstVerseNum}-${lastVerseNum}`;
+  }
+  
+  const fullText = `${reference}\n\n${verseTexts.join('\n')}`;
+  
   const handleCopy = () => {
-    const textToCopy = formatSelectedText();
-    navigator.clipboard.writeText(textToCopy).then(
+    navigator.clipboard.writeText(fullText).then(
       () => {
-        setShowCopySuccess(true);
-        setTimeout(() => setShowCopySuccess(false), 2000);
+        setCopied(true);
+        toast.success('Texto copiado para a área de transferência');
+        setTimeout(() => setCopied(false), 2000);
       },
-      (err) => {
-        console.error('Erro ao copiar: ', err);
+      () => {
+        toast.error('Falha ao copiar texto');
       }
     );
   };
   
-  // Manipular compartilhamento
-  const handleShare = () => {
-    const textToShare = formatSelectedText();
-    
-    if (navigator.share) {
-      navigator.share({
-        title: 'Versículo da Bíblia',
-        text: textToShare,
-      }).catch(err => {
-        console.error('Erro ao compartilhar: ', err);
-      });
-    } else {
-      // Fallback para navegadores que não suportam a API de compartilhamento
-      handleCopy();
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: reference,
+          text: fullText,
+        });
+      } else {
+        handleCopy();
+      }
+    } catch (error) {
+      console.error('Erro ao compartilhar:', error);
     }
   };
   
-  // Adicionar aos favoritos
-  const handleAddToFavorites = () => {
-    verses.forEach(verse => {
-      addFavorite(verse);
-    });
-    onClose();
+  const handleSaveToFavorites = () => {
+    if (onAddToFavorites) {
+      onAddToFavorites(verses);
+      toast.success('Adicionado aos favoritos');
+      onClose();
+    }
   };
-  
-  // Verificar se todos os versículos já são favoritos
-  const allFavorites = verses.every(verse => isFavorite(verse));
-  
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-medium">
-            {verses.length} {verses.length === 1 ? 'versículo selecionado' : 'versículos selecionados'}
-          </h3>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" onClick={onClose}>
+      <div 
+        className="w-full max-w-md bg-white rounded-t-lg sm:rounded-lg overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center p-4 border-b">
+          <h3 className="font-bold text-lg">{reference}</h3>
+          <button onClick={onClose} className="p-1">
             <X className="h-5 w-5" />
           </button>
         </div>
         
-        <div className="max-h-60 overflow-y-auto mb-4 p-2 bg-gray-50 rounded">
-          {verses.map(verse => {
-            const textKey = `text_${version}` as keyof Verse;
-            const verseText = verse[textKey] as string;
-            
-            return (
-              <div key={verse.id} className="mb-2">
-                <div className="flex">
-                  <span className="text-xs font-medium text-blue-500 mr-2 whitespace-nowrap">
-                    {verse.verse}
-                  </span>
-                  <p className="text-gray-800 text-sm">{verseText}</p>
-                </div>
-              </div>
-            );
-          })}
+        <div className="p-4 max-h-[60vh] overflow-y-auto">
+          {sortedVerses.map((verse) => (
+            <div key={verse.id} className="mb-3">
+              <p>
+                <span className="font-bold mr-2">{verse.verse}</span>
+                {getVerseText(verse)}
+              </p>
+            </div>
+          ))}
         </div>
         
-        <div className="flex gap-2 justify-between">
-          <button 
+        <div className="flex justify-around items-center p-4 bg-gray-50">
+          <button
             onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+            className="flex flex-col items-center text-sm text-gray-700"
           >
-            <Copy className="h-4 w-4" />
-            <span className="text-sm">{showCopySuccess ? 'Copiado!' : 'Copiar'}</span>
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm mb-1">
+              <Copy className="h-5 w-5" />
+            </div>
+            {copied ? 'Copiado!' : 'Copiar'}
           </button>
           
-          <button 
+          <button
             onClick={handleShare}
-            className="flex-1 flex items-center justify-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+            className="flex flex-col items-center text-sm text-gray-700"
           >
-            <Share className="h-4 w-4" />
-            <span className="text-sm">Compartilhar</span>
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm mb-1">
+              <Share2 className="h-5 w-5" />
+            </div>
+            Compartilhar
           </button>
           
-          <button 
-            onClick={handleAddToFavorites}
-            disabled={allFavorites}
-            className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg ${
-              allFavorites 
-                ? 'bg-pink-50 text-pink-600' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-          >
-            {allFavorites ? (
-              <Heart className="h-4 w-4 fill-pink-600 text-pink-600" />
-            ) : (
-              <Bookmark className="h-4 w-4" />
-            )}
-            <span className="text-sm">
-              {allFavorites ? 'Favorito' : 'Favoritar'}
-            </span>
-          </button>
+          {onAddToFavorites && (
+            <button
+              onClick={handleSaveToFavorites}
+              className="flex flex-col items-center text-sm text-gray-700"
+            >
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm mb-1">
+                <BookmarkPlus className="h-5 w-5" />
+              </div>
+              Favoritos
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book } from '@/services/bibliaService';
+import { Book } from '@/types/biblia';
 
 interface ChapterSelectorProps {
   book: Book | null;

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Book } from '@/services/bibliaService';
+import { Book } from '@/types/biblia';
 
 interface ChapterNavigationProps {
   book: Book | null;
@@ -20,7 +20,7 @@ const ChapterNavigation: React.FC<ChapterNavigationProps> = ({ book, chapter }) 
   
   const goToPrevChapter = () => {
     if (hasPrevChapter) {
-      navigate(`/biblia/${book.id}/${currentChapter - 1}`, { replace: true });
+      navigate(`/biblia/${book.id}/${currentChapter - 1}`);
       // Rolar para o topo da página com animação suave
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -28,14 +28,14 @@ const ChapterNavigation: React.FC<ChapterNavigationProps> = ({ book, chapter }) 
   
   const goToNextChapter = () => {
     if (hasNextChapter) {
-      navigate(`/biblia/${book.id}/${currentChapter + 1}`, { replace: true });
+      navigate(`/biblia/${book.id}/${currentChapter + 1}`);
       // Rolar para o topo da página com animação suave
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
   
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200">
+    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
       <button
         onClick={goToPrevChapter}
         disabled={!hasPrevChapter}
@@ -45,7 +45,7 @@ const ChapterNavigation: React.FC<ChapterNavigationProps> = ({ book, chapter }) 
         <span>Anterior</span>
       </button>
       
-      <span className="text-sm font-medium">
+      <span className="text-lg font-medium text-center">
         {book.name} {chapter}
       </span>
       

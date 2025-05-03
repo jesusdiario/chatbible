@@ -1,77 +1,78 @@
 
 import React, { useState } from 'react';
-import { Search } from 'lucide-react';
-import { BibleVersion } from '@/services/bibliaService';
+import { Search, X } from 'lucide-react';
+import { BibleVersion } from '@/types/biblia';
+import BibleVersionSelector from './BibleVersionSelector';
 
 interface BibleSearchFormProps {
-  onSearch: (term: string) => void;
-  version: BibleVersion;
-  onVersionChange: (version: BibleVersion) => void;
+  onSearch: (term: string, version: BibleVersion) => void;
+  isLoading?: boolean;
+  initialVersion?: BibleVersion;
 }
 
-const BibleSearchForm: React.FC<BibleSearchFormProps> = ({ onSearch, version, onVersionChange }) => {
+const BibleSearchForm: React.FC<BibleSearchFormProps> = ({ 
+  onSearch,
+  isLoading = false,
+  initialVersion = 'acf'
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [version, setVersion] = useState<BibleVersion>(initialVersion);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim().length >= 3) {
-      onSearch(searchTerm.trim());
+      onSearch(searchTerm.trim(), version);
     }
   };
   
-  const versionOptions: { value: BibleVersion; label: string }[] = [
-    { value: 'acf', label: 'ACF - Almeida Corrigida Fiel' },
-    { value: 'ara', label: 'ARA - Almeida Revista e Atualizada' },
-    { value: 'arc', label: 'ARC - Almeida Revista e Corrigida' },
-    { value: 'naa', label: 'NAA - Nova Almeida Atualizada' },
-    { value: 'ntlh', label: 'NTLH - Nova Tradução na Linguagem de Hoje' },
-    { value: 'nvi', label: 'NVI - Nova Versão Internacional' },
-    { value: 'nvt', label: 'NVT - Nova Versão Transformadora' }
-  ];
-  
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <div className="relative">
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="relative flex items-center">
+        <div className="absolute left-3 text-gray-400">
+          <Search className="h-5 w-5" />
+        </div>
+        
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar na Bíblia..."
-          className="w-full border border-gray-300 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          minLength={3}
+          placeholder="Buscar na Bíblia (mínimo 3 caracteres)"
+          className="w-full pl-10 pr-[90px] py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isLoading}
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+        
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            className="absolute right-[76px] text-gray-400"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+        
+        <div className="absolute right-2">
+          <BibleVersionSelector
+            version={version}
+            onChange={setVersion}
+            className="text-xs py-1 px-2"
+          />
+        </div>
       </div>
       
-      <div>
-        <label htmlFor="version-select" className="block text-sm font-medium text-gray-700 mb-1">
-          Versão da Bíblia
-        </label>
-        <select
-          id="version-select"
-          value={version}
-          onChange={(e) => onVersionChange(e.target.value as BibleVersion)}
-          className="w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="mt-2">
+        <button
+          type="submit"
+          disabled={searchTerm.trim().length < 3 || isLoading}
+          className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          {versionOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          {isLoading ? 'Buscando...' : 'Buscar'}
+        </button>
       </div>
-      
-      <button
-        type="submit"
-        disabled={searchTerm.trim().length < 3}
-        className={`w-full py-2 px-4 rounded-lg font-medium ${
-          searchTerm.trim().length < 3
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
-        }`}
-      >
-        Buscar
-      </button>
     </form>
   );
 };

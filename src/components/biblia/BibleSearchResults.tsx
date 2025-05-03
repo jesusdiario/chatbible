@@ -1,115 +1,87 @@
 
 import React from 'react';
-import { Verse } from '@/services/bibliaService';
 import { Link } from 'react-router-dom';
+import { Verse, BibleVersion } from '@/types/biblia';
+import { BookOpen } from 'lucide-react';
 
 interface BibleSearchResultsProps {
-  results: Verse[] | undefined;
-  isLoading: boolean;
-  error: Error | null;
+  results: Verse[];
   searchTerm: string;
-  version: string;
+  version: BibleVersion;
+  isLoading: boolean;
+  error?: Error | null;
 }
 
-const BibleSearchResults: React.FC<BibleSearchResultsProps> = ({ 
-  results, isLoading, error, searchTerm, version 
+const BibleSearchResults: React.FC<BibleSearchResultsProps> = ({
+  results,
+  searchTerm,
+  version,
+  isLoading,
+  error
 }) => {
+  const textField = `text_${version}` as keyof Verse;
+  
   if (isLoading) {
     return (
-      <div className="p-4 text-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-        <p className="mt-2 text-gray-600">Buscando resultados...</p>
+      <div className="py-8 text-center">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-600">Buscando "{searchTerm}"...</p>
       </div>
     );
   }
   
   if (error) {
     return (
-      <div className="p-4 text-center">
-        <p className="text-red-500">Erro ao buscar: {error.message}</p>
-      </div>
-    );
-  }
-  
-  if (!searchTerm || searchTerm.length < 3) {
-    return (
-      <div className="p-4 text-center text-gray-600">
-        <p>Digite pelo menos 3 caracteres para buscar na Bíblia.</p>
-      </div>
-    );
-  }
-  
-  if (!results || results.length === 0) {
-    return (
-      <div className="p-4 text-center text-gray-600">
-        <p>Nenhum resultado encontrado para "{searchTerm}".</p>
+      <div className="py-8 text-center text-red-600">
+        <p>Ocorreu um erro ao realizar a busca:</p>
+        <p className="text-sm mt-1">{error.message}</p>
       </div>
     );
   }
 
-  // Agrupar resultados por livro/capítulo para melhor visualização
-  const groupedResults: Record<string, Verse[]> = {};
+  if (results.length === 0 && searchTerm) {
+    return (
+      <div className="py-12 text-center text-gray-600">
+        <p>Nenhum resultado encontrado para "{searchTerm}".</p>
+      </div>
+    );
+  }
   
-  results.forEach(verse => {
-    const key = `${verse.book_id}-${verse.chapter}`;
-    if (!groupedResults[key]) {
-      groupedResults[key] = [];
-    }
-    groupedResults[key].push(verse);
-  });
-  
-  const textKey = `text_${version}` as keyof Verse;
+  const highlightText = (text: string | null, term: string): React.ReactNode => {
+    if (!text) return <span>Texto não disponível nesta versão</span>;
+    
+    const parts = text.split(new RegExp(`(${term})`, 'gi'));
+    return parts.map((part, i) => 
+      part.toLowerCase() === term.toLowerCase() 
+        ? <mark key={i} className="bg-yellow-200">{part}</mark> 
+        : part
+    );
+  };
   
   return (
-    <div className="p-4">
-      <h2 className="font-bold text-lg mb-4">
-        {results.length} resultado{results.length !== 1 ? 's' : ''} para "{searchTerm}"
-      </h2>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium mb-4">
+        {results.length} {results.length === 1 ? 'resultado' : 'resultados'} encontrado{results.length !== 1 ? 's' : ''}:
+      </h3>
       
-      <div className="space-y-6">
-        {Object.entries(groupedResults).map(([key, verses]) => {
-          const book = getBookNameFromId(String(verses[0].book_id));
-          const chapter = verses[0].chapter;
-          
-          return (
-            <div key={key} className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="bg-gray-50 p-3 border-b border-gray-200">
-                <Link to={`/biblia/${verses[0].book_id}/${chapter}`} className="font-medium text-blue-600">
-                  {book} {chapter}
-                </Link>
-              </div>
-              
-              <div className="divide-y divide-gray-100">
-                {verses.map(verse => (
-                  <div key={verse.id} className="p-3">
-                    <Link 
-                      to={`/biblia/${verse.book_id}/${verse.chapter}?highlight=${verse.verse}`}
-                      className="block hover:bg-gray-50 transition-colors rounded p-2"
-                    >
-                      <p>
-                        <span className="font-semibold">{verse.verse}</span>{' '}
-                        <span>{verse[textKey] as string || 'Texto não disponível'}</span>
-                      </p>
-                    </Link>
-                  </div>
-                ))}
-              </div>
+      {results.map((verse) => {
+        const text = verse[textField] as string;
+        return (
+          <div key={verse.id} className="border-b pb-3">
+            <div className="flex items-center text-blue-600 mb-1">
+              <BookOpen className="h-4 w-4 mr-1" />
+              <Link to={`/biblia/${verse.book_id}/${verse.chapter}?highlight=${verse.verse}`} className="hover:underline">
+                {verse.book_name} {verse.chapter}:{verse.verse}
+              </Link>
             </div>
-          );
-        })}
-      </div>
+            <p className="text-gray-800">
+              {highlightText(text, searchTerm)}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
-  
-  // Função para extrair nome do livro do book_id
-  function getBookNameFromId(bookId: string): string {
-    const parts = bookId.split('.');
-    if (parts.length < 2) return bookId;
-    
-    const abbrev = parts[1];
-    // Simplificação - em uma implementação completa teríamos um mapeamento de abreviações para nomes completos
-    return abbrev;
-  }
 };
 
 export default BibleSearchResults;
