@@ -10,9 +10,9 @@ interface BibliaTestamentSectionProps {
 
 const BibliaTestamentSection: React.FC<BibliaTestamentSectionProps> = ({ testament, books }) => {
   return (
-    <section className="mb-8">
-      <h2 className="text-xl font-bold mb-4">{testament.name}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    <section className="mb-10">
+      <h2 className="text-xl font-bold mb-6 px-4">{testament.name}</h2>
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {books.map((book) => (
           <BibliaBookItem key={book.id} book={book} />
         ))}

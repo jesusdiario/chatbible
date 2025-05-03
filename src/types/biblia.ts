@@ -21,6 +21,7 @@ export interface Book {
   id: string;
   name: string;
   abbrev: string;
+  slug?: string;
   chaptersCount: number;
   testament: string;
 }

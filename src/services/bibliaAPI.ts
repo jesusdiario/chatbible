@@ -10,7 +10,7 @@ export async function getBooks(): Promise<Book[]> {
     // Consultar os livros disponíveis a partir dos dados de versículos
     const { data, error } = await supabase
       .from('verses')
-      .select('book_id, book_name, abbrev')
+      .select('book_id, book_name, abbrev, book_slug')
       .not('book_id', 'is', null)
       .order('book_id', { ascending: true });
       
@@ -26,11 +26,13 @@ export async function getBooks(): Promise<Book[]> {
       if (verse.book_id && !bookMap.has(verse.book_id)) {
         const bookAbbrev = verse.abbrev || '';
         const bookName = verse.book_name || '';
+        const bookSlug = verse.book_slug || '';
         
         bookMap.set(verse.book_id, {
           id: String(verse.book_id),
           name: bookName,
           abbrev: bookAbbrev,
+          slug: bookSlug,
           chaptersCount: 0, // Será preenchido na próxima consulta
           testament: verse.book_id < 40 ? 'Antigo Testamento' : 'Novo Testamento'
         });
@@ -39,6 +41,7 @@ export async function getBooks(): Promise<Book[]> {
 
     const booksInfo = Array.from(bookMap.values());
     console.log(`Found ${booksInfo.length} unique books`);
+    console.log("Books data sample:", booksInfo.slice(0, 3));
 
     // Para cada livro, contar quantos capítulos existem
     const booksWithChapters = [];
@@ -61,7 +64,6 @@ export async function getBooks(): Promise<Book[]> {
         chaptersCount: uniqueChapters.length
       };
       booksWithChapters.push(bookWithChapters);
-      console.log(`Book ${book.name} has ${uniqueChapters.length} chapters`);
     }
 
     return booksWithChapters;

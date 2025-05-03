@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { Verse, Book, BibleVersion } from '@/types/biblia';
@@ -13,7 +14,7 @@ import {
   getFavoriteVerses 
 } from '@/services/bibliaFavoritos';
 
-// Hook para obter a lista de livros
+// Hook para obter a lista de todos os livros disponíveis
 export function useBooks() {
   return useQuery({
     queryKey: ['bible-books'],
