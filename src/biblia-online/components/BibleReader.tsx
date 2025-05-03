@@ -1,14 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
 import { ChapterNavigation } from './ChapterNavigation';
-import { BibleVerse } from './BibleVerse';
+import { BibleVerseConnected } from './BibleVerseConnected';
 import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BibleTranslation } from '../services/bibleService';
+import { BibleTranslation } from './BibleVerse';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -77,7 +77,7 @@ export const BibleReader: React.FC = () => {
             
             <div className="mt-8 mb-32">
               {chapterData.verses.map(verse => (
-                <BibleVerse 
+                <BibleVerseConnected 
                   key={verse.id} 
                   verse={verse} 
                   translation={currentTranslation} 
