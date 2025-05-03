@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Verse, Book, Testament, BibleVersion } from '@/types/biblia';
+import { Verse, Book, BibleVersion } from '@/types/biblia';
 import { parseBookInfo, toNumber } from '@/utils/bibliaUtils';
 
 // Função para obter a lista de todos os livros disponíveis
@@ -98,47 +98,6 @@ export async function getVersesByBookChapter(
   }
 
   return data as Verse[];
-}
-
-// Função para obter os testamentos
-export async function getTestaments(): Promise<Testament[]> {
-  try {
-    // Consultar os livros disponíveis
-    const { data, error } = await supabase
-      .from('verses')
-      .select('book_id')
-      .not('book_id', 'is', null);
-      
-    if (error) {
-      console.error('Erro ao buscar testamentos:', error);
-      throw error;
-    }
-
-    // Determinar testamentos baseando-se nos IDs dos livros
-    const hasOldTestament = data.some(v => v.book_id < 40);
-    const hasNewTestament = data.some(v => v.book_id >= 40);
-    
-    const testaments: Testament[] = [];
-    
-    if (hasOldTestament) {
-      testaments.push({
-        id: 'vt',
-        name: 'Antigo Testamento'
-      });
-    }
-    
-    if (hasNewTestament) {
-      testaments.push({
-        id: 'nt',
-        name: 'Novo Testamento'
-      });
-    }
-
-    return testaments;
-  } catch (error) {
-    console.error('Erro ao buscar testamentos:', error);
-    throw error;
-  }
 }
 
 // Função para buscar versículos por palavra-chave

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Verse, Book, BibleVersion } from '@/types/biblia';
 import { 
   getBooks, 
-  getTestaments, 
   getVersesByBookChapter, 
   getBook, 
   searchVerses 
@@ -20,47 +19,6 @@ export function useBooks() {
     queryKey: ['bible-books'],
     queryFn: getBooks,
   });
-}
-
-// Hook para obter a lista de testamentos
-export function useTestaments() {
-  return useQuery({
-    queryKey: ['bible-testaments'],
-    queryFn: getTestaments,
-  });
-}
-
-// Hook para agrupar os livros por testamento
-export function useBooksByTestament() {
-  const { data: books, isLoading: booksLoading, error: booksError } = useBooks();
-  const { data: testaments, isLoading: testamentsLoading, error: testamentsError } = useTestaments();
-  
-  const isLoading = booksLoading || testamentsLoading;
-  const error = booksError || testamentsError;
-  
-  // Agrupar livros por testamento
-  const booksByTestament = [];
-  
-  if (books && testaments) {
-    testaments.forEach(testament => {
-      const testamentBooks = books.filter(book => {
-        return testament.id === 'vt' ? 
-          Number(book.id) < 40 : 
-          Number(book.id) >= 40;
-      });
-      
-      if (testamentBooks.length > 0) {
-        booksByTestament.push({ testament, books: testamentBooks });
-      }
-    });
-  }
-  
-  // Log para debug
-  console.log("Books loaded:", books?.length || 0);
-  console.log("Testaments loaded:", testaments?.length || 0);
-  console.log("Books by testament:", booksByTestament);
-  
-  return { booksByTestament, isLoading, error };
 }
 
 // Hook para obter detalhes de um livro específico

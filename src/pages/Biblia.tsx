@@ -1,14 +1,14 @@
 
 import React, { useEffect } from 'react';
-import { useBooksByTestament } from '@/hooks/useBiblia';
-import BibliaTestamentSection from '@/components/biblia/BibliaTestamentSection';
+import { useBooks } from '@/hooks/useBiblia';
+import BibliaBookItem from '@/components/biblia/BibliaBookItem';
 import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
 import { Book, Search, User, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 
 const Biblia: React.FC = () => {
-  const { booksByTestament, isLoading, error } = useBooksByTestament();
+  const { data: books, isLoading, error } = useBooks();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -105,14 +105,14 @@ const Biblia: React.FC = () => {
       </header>
       
       <main>
-        {booksByTestament && booksByTestament.length > 0 ? (
-          booksByTestament.map(({ testament, books }) => (
-            <BibliaTestamentSection 
-              key={testament.id} 
-              testament={testament} 
-              books={books} 
-            />
-          ))
+        {books && books.length > 0 ? (
+          <section className="mb-10">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {books.map((book) => (
+                <BibliaBookItem key={book.id} book={book} />
+              ))}
+            </div>
+          </section>
         ) : (
           <div className="text-center py-10 flex flex-col items-center">
             <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
