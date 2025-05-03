@@ -699,7 +699,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      books_mv: {
+        Row: {
+          abbrev: string | null
+          chapter_count: number | null
+          id: number | null
+          name: string | null
+          slug: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {

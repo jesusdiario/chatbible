@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { useVerseSelection } from '@/hooks/useVerseSelection';
 import { useVerseFavorites } from '@/hooks/useVerseFavorites';
+import BookChapterTitle from './BookChapterTitle';
 
 interface BibliaBookContentProps {
   bookId: string;
@@ -97,7 +98,7 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
   // Obter título do livro e capítulo
   const bookTitle = book.name || '';
   const chapterTitle = chapter || '1';
-  
+
   return (
     <div className="pb-20 max-w-4xl mx-auto">
       <BookHeader 
@@ -108,6 +109,11 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
       />
       
       <ChapterSelector book={book} currentChapter={chapterTitle} />
+
+      <BookChapterTitle 
+        bookName={bookTitle}
+        chapter={chapterTitle}
+      />
       
       <main ref={versesContainerRef} className="px-4 py-2 space-y-1 mb-16">
         <VersesList
