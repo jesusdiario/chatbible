@@ -1,12 +1,11 @@
 
 import React from 'react';
-import { Book } from '@/services/bibleService';
+import { Book } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search, Volume2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Volume2 } from 'lucide-react';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface BooksNavigationProps {
   books: Book[];
@@ -29,7 +28,7 @@ export const BooksNavigation: React.FC<BooksNavigationProps> = ({
     
     const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     return books.filter(book => {
-      const normalizedBookName = book.book_name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const normalizedBookName = book.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       return normalizedBookName.includes(normalizedSearch);
     });
   }, [books, searchTerm]);
@@ -56,23 +55,11 @@ export const BooksNavigation: React.FC<BooksNavigationProps> = ({
         <Button variant="ghost" size="icon" className="ml-2">
           <span className="font-bold text-xl">AZ</span>
         </Button>
-        
-        <Button variant="ghost" size="icon" className="ml-2">
-          <span className="rounded-full border p-1.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </span>
-        </Button>
       </div>
       
       <div className="p-4">
         <div className="relative">
-          <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
           <Input
             placeholder="Pesquisar"
             className="pl-10 rounded-full bg-gray-100 border-0"
@@ -92,7 +79,7 @@ export const BooksNavigation: React.FC<BooksNavigationProps> = ({
                   className="w-full justify-start text-lg font-medium hover:bg-gray-100"
                   onClick={() => handleSelect(book.id, book.slug)}
                 >
-                  {book.book_name || book.name}
+                  {book.name}
                 </Button>
                 <Button
                   variant="ghost"

@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Interface para os livros da Bíblia
 export interface Book {
   id: number;
-  book_name: string;
-  name?: string;
+  name: string;
   abbrev: string;
   slug: string;
   chapter_count: number;
@@ -17,7 +16,6 @@ export interface Verse {
   book_id: number;
   chapter: number;
   verse: number;
-  text?: string;  // Tornando isso opcional já que usaremos campos específicos de tradução
   text_nvi?: string;
   text_acf?: string;
   text_ara?: string;
@@ -56,7 +54,6 @@ export const BibleService = {
   // Buscar todos os livros
   getBooks: async (): Promise<Book[]> => {
     try {
-      // Usar a view materializada books_mv
       const { data, error } = await supabase
         .from('books_mv')
         .select('*')
@@ -66,17 +63,13 @@ export const BibleService = {
       
       if (!data || data.length === 0) return [];
       
-      // Mapear os dados para nossa interface Book
-      const books: Book[] = data.map(book => ({
+      return data.map(book => ({
         id: book.id,
-        book_name: book.name, // Usamos o campo 'name' da view
         name: book.name,
         abbrev: book.abbrev,
         slug: book.slug,
         chapter_count: book.chapter_count
       }));
-      
-      return books;
     } catch (error) {
       console.error('Erro ao buscar livros:', error);
       throw new Error('Falha ao carregar a lista de livros');
@@ -101,7 +94,6 @@ export const BibleService = {
       
       return {
         id: data.id,
-        book_name: data.name,
         name: data.name,
         abbrev: data.abbrev,
         slug: data.slug,

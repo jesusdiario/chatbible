@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { BibleTranslation } from '@/services/bibleService';
+import { BibleTranslation } from '../services/bibleService';
 import { 
   Select,
   SelectContent,
@@ -61,10 +61,6 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
         <Button variant="ghost" size="icon" className="rounded-full">
           <Search className="h-5 w-5" />
         </Button>
-        
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <MoreHorizontal className="h-5 w-5" />
-        </Button>
       </div>
       
       <div className="flex items-center">
@@ -97,5 +93,3 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
     </div>
   );
 };
-
-export default BibleHeader;

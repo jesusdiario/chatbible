@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { useBible } from '@/hooks/useBible';
+import React, { useState } from 'react';
+import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { BooksNavigation } from '@/components/BooksNavigation';
-import { ChapterNavigation } from '@/components/ChapterNavigation';
-import { BibleVerse } from '@/components/BibleVerse';
-import { BibleHeader } from '@/components/BibleHeader';
-import { BibleFooter } from '@/components/BibleFooter';
+import { BooksNavigation } from './BooksNavigation';
+import { ChapterNavigation } from './ChapterNavigation';
+import { BibleVerse } from './BibleVerse';
+import { BibleHeader } from './BibleHeader';
+import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BibleTranslation } from '@/services/bibleService';
+import { BibleTranslation } from '../services/bibleService';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -66,14 +66,13 @@ export const BibleReader: React.FC = () => {
       <ScrollArea className="flex-1 pb-32">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bible-accent"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : chapterData ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
               <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
-              <h3 className="italic text-zinc-950 text-sm">jesusdiario.com.br</h3>
             </div>
             
             <div className="mt-8 mb-32">

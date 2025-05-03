@@ -1,6 +1,9 @@
 
+import React from 'react';
+import BibleReaderPage from './BibleReaderPage';
+
 const Index = () => {
-  return <div>Bible Online Index</div>;
+  return <BibleReaderPage />;
 };
 
 export default Index;

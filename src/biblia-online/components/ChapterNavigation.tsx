@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Volume2 } from 'lucide-react';
 
 interface ChapterNavigationProps {
   bookName: string;
@@ -46,21 +45,6 @@ export const ChapterNavigation: React.FC<ChapterNavigationProps> = ({
             <Volume2 className="h-5 w-5" />
           </Button>
         </div>
-        
-        <div className="flex-1"></div>
-        
-        <Button variant="ghost" size="icon" className="ml-2">
-          <span className="font-bold text-xl">AZ</span>
-        </Button>
-        
-        <Button variant="ghost" size="icon" className="ml-2">
-          <span className="rounded-full border p-1.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </span>
-        </Button>
       </div>
       
       <ScrollArea className="flex-1 p-4">
@@ -69,7 +53,7 @@ export const ChapterNavigation: React.FC<ChapterNavigationProps> = ({
             <Button
               key={chapter}
               variant="outline"
-              className={`h-16 w-full text-lg ${chapter === currentChapter ? 'bg-bible-accent text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}
+              className={`h-16 w-full text-lg ${chapter === currentChapter ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}
               onClick={() => handleSelect(chapter)}
             >
               {chapter}
