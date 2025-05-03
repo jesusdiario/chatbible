@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Auth from "@/pages/Auth";
@@ -14,6 +15,7 @@ import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage";
 import LandingPage from "@/pages/LandingPage";
+import BibliaOnline from "@/pages/BibliaOnline";
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -33,6 +35,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/history" element={<ChatHistory />} />
       <Route path="/lexicon" element={<Lexicon />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/biblia-online" element={<BibliaOnline />} />
       <Route path="/lp" element={<LandingPage />} />
     </Routes>
   );

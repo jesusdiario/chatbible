@@ -25,6 +25,7 @@ import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
 import Lexicon from "@/pages/Lexicon";
+import BibliaOnline from "@/pages/BibliaOnline";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -145,6 +146,11 @@ const App = () => {
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/biblia-online" element={
+                <ProtectedRoute>
+                  <BibliaOnline />
                 </ProtectedRoute>
               } />
               <Route path="/lp" element={<LandingPage />} />

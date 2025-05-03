@@ -1,136 +1,207 @@
 
-import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { Verse, Book, BibleVersion, DEFAULT_BIBLE_VERSION } from '@/types/biblia';
-import { getBooks, getVersesByBookChapter, getBook, searchVerses } from '@/services/biblia';
-import { createFavoriteKey, getFavoriteVerses } from '@/services/bibliaFavoritos';
+import { useToast } from '@/hooks/use-toast';
+import { BibleBook, Verse } from '@/types/biblia';
+import { getBibleBooks, getBookChapters, getChapterVerses } from '@/services/biblia';
+import { isFavoriteVerse, saveFavoriteVerse, removeFavoriteVerse } from '@/services/bibliaFavoritos';
 
-// Hook para obter a lista de todos os livros disponíveis
-export function useBooks() {
-  return useQuery({
-    queryKey: ['bible-books'],
-    queryFn: getBooks,
-  });
-}
+export function useBibleData() {
+  const [books, setBooks] = useState<BibleBook[]>([]);
+  const [currentBook, setCurrentBook] = useState<BibleBook | null>(null);
+  const [currentChapter, setCurrentChapter] = useState(1);
+  const [chapterCount, setChapterCount] = useState(0);
+  const [verses, setVerses] = useState<Verse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-// Hook para obter detalhes de um livro específico
-export function useBook(bookId: string | number) {
-  return useQuery({
-    queryKey: ['bible-book', bookId],
-    queryFn: () => getBook(bookId),
-    enabled: !!bookId,
-  });
-}
-
-// Hook para obter versículos de um livro e capítulo específicos
-export function useVersesByBookChapter(
-  bookId: string | number, 
-  chapter: string | number, 
-  version: BibleVersion = DEFAULT_BIBLE_VERSION
-) {
-  return useQuery({
-    queryKey: ['bible-verses', bookId, chapter, version],
-    queryFn: () => getVersesByBookChapter(bookId, chapter, version),
-    enabled: !!bookId && !!chapter,
-  });
-}
-
-// Hook para pesquisa de versículos
-export function useBibleSearch() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [version, setVersion] = useState<BibleVersion>(DEFAULT_BIBLE_VERSION);
-  
-  const { data: searchResults, isLoading, error, refetch } = useQuery({
-    queryKey: ['bible-search', searchTerm, version],
-    queryFn: () => searchVerses(searchTerm, version),
-    enabled: searchTerm.length >= 3, // Só busca se tiver pelo menos 3 caracteres
-  });
-  
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    if (term.length >= 3) {
-      refetch();
-    }
-  };
-  
-  return {
-    searchTerm,
-    setSearchTerm: handleSearch,
-    version,
-    setVersion,
-    searchResults,
-    isLoading,
-    error
-  };
-}
-
-// Hook para gerenciar versículos favoritos
-export function useBibleFavorites() {
-  const [favorites, setFavorites] = useState<string[]>([]);
-  
-  // Carregar favoritos do localStorage quando o componente montar
+  // Carregar lista de livros
   useEffect(() => {
-    const saved = localStorage.getItem('bible-favorites');
-    if (saved) {
+    const loadBooks = async () => {
       try {
-        const parsedFavorites = JSON.parse(saved);
-        setFavorites(parsedFavorites);
-      } catch (error) {
-        console.error('Erro ao carregar favoritos:', error);
-        localStorage.removeItem('bible-favorites');
+        setLoading(true);
+        const booksData = await getBibleBooks();
+        setBooks(booksData);
+        
+        // Inicialmente, selecione o primeiro livro
+        if (booksData.length > 0 && !currentBook) {
+          setCurrentBook(booksData[0]);
+        }
+      } catch (err) {
+        setError('Erro ao carregar livros da Bíblia');
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os livros da Bíblia',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    loadBooks();
   }, []);
-  
-  const addFavorite = (verse: Verse) => {
-    try {
-      const favoriteKey = createFavoriteKey(verse);
+
+  // Ao mudar o livro atual, carregar contagem de capítulos
+  useEffect(() => {
+    const loadChapterCount = async () => {
+      if (!currentBook?.id) return;
       
-      if (!favorites.includes(favoriteKey)) {
-        const newFavorites = [...favorites, favoriteKey];
-        setFavorites(newFavorites);
-        localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
+      try {
+        const count = await getBookChapters(currentBook.id);
+        setChapterCount(count);
+        
+        // Se o capítulo atual excede o número de capítulos, ajuste-o
+        if (currentChapter > count) {
+          setCurrentChapter(1);
+        }
+      } catch (err) {
+        setError('Erro ao carregar capítulos');
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os capítulos',
+          variant: 'destructive',
+        });
       }
-    } catch (error) {
-      console.error('Erro ao adicionar favorito:', error);
-    }
-  };
-  
-  const removeFavorite = (verse: Verse) => {
-    try {
-      const favoriteKey = createFavoriteKey(verse);
+    };
+
+    loadChapterCount();
+  }, [currentBook]);
+
+  // Ao mudar o livro ou capítulo, carregar versículos
+  useEffect(() => {
+    const loadVerses = async () => {
+      if (!currentBook?.id) return;
       
-      const newFavorites = favorites.filter(f => f !== favoriteKey);
-      setFavorites(newFavorites);
-      localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
-    } catch (error) {
-      console.error('Erro ao remover favorito:', error);
+      try {
+        setLoading(true);
+        const result = await getChapterVerses(currentBook.id, currentChapter);
+        if (result) {
+          setVerses(result.verses);
+          setError(null);
+        } else {
+          setVerses([]);
+          setError('Nenhum versículo encontrado');
+        }
+      } catch (err) {
+        setVerses([]);
+        setError('Erro ao carregar versículos');
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os versículos',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVerses();
+  }, [currentBook, currentChapter]);
+
+  const selectBook = (book: BibleBook) => {
+    setCurrentBook(book);
+    setCurrentChapter(1); // Reset para o primeiro capítulo ao trocar de livro
+  };
+
+  const navigateToChapter = (chapter: number) => {
+    if (chapter > 0 && chapter <= chapterCount) {
+      setCurrentChapter(chapter);
     }
   };
-  
-  const isFavorite = (verse: Verse) => {
+
+  const nextChapter = () => {
+    if (currentChapter < chapterCount) {
+      setCurrentChapter(currentChapter + 1);
+    } else if (books.length > 0 && currentBook) {
+      // Ir para o próximo livro, capítulo 1
+      const currentIndex = books.findIndex(b => b.id === currentBook.id);
+      if (currentIndex < books.length - 1) {
+        setCurrentBook(books[currentIndex + 1]);
+        setCurrentChapter(1);
+      }
+    }
+  };
+
+  const previousChapter = () => {
+    if (currentChapter > 1) {
+      setCurrentChapter(currentChapter - 1);
+    } else if (books.length > 0 && currentBook) {
+      // Ir para o livro anterior, último capítulo
+      const currentIndex = books.findIndex(b => b.id === currentBook.id);
+      if (currentIndex > 0) {
+        const prevBook = books[currentIndex - 1];
+        setCurrentBook(prevBook);
+        getBookChapters(prevBook.id).then(count => {
+          setCurrentChapter(count);
+        });
+      }
+    }
+  };
+
+  return {
+    books,
+    currentBook,
+    currentChapter,
+    chapterCount,
+    verses,
+    loading,
+    error,
+    selectBook,
+    navigateToChapter,
+    nextChapter,
+    previousChapter
+  };
+}
+
+export function useBibleFavorites() {
+  const { toast } = useToast();
+
+  const addFavorite = async (verse: Verse) => {
     try {
-      const favoriteKey = createFavoriteKey(verse);
-      return favorites.includes(favoriteKey);
-    } catch {
+      await saveFavoriteVerse(verse);
+      toast({
+        title: 'Versículo salvo',
+        description: 'Versículo adicionado aos seus favoritos'
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar o versículo',
+        variant: 'destructive'
+      });
       return false;
     }
   };
-  
-  // Hook para carregar os dados dos favoritos
-  const useFavoritesData = () => {
-    return useQuery({
-      queryKey: ['bible-favorites', favorites],
-      queryFn: () => getFavoriteVerses(favorites),
-      enabled: favorites.length > 0,
-    });
+
+  const removeFavorite = async (verse: Verse) => {
+    try {
+      if (!verse.id) throw new Error('ID do versículo é necessário');
+      await removeFavoriteVerse(verse.id);
+      toast({
+        title: 'Versículo removido',
+        description: 'Versículo removido dos seus favoritos'
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível remover o versículo',
+        variant: 'destructive'
+      });
+      return false;
+    }
   };
-  
-  return { 
-    favorites, 
-    addFavorite, 
-    removeFavorite, 
-    isFavorite,
-    useFavoritesData
+
+  const isFavorite = async (verse: Verse) => {
+    if (!verse.book_id || !verse.chapter || !verse.verse) return false;
+    return await isFavoriteVerse(verse.book_id, verse.chapter, verse.verse);
+  };
+
+  return {
+    addFavorite,
+    removeFavorite,
+    isFavorite
   };
 }

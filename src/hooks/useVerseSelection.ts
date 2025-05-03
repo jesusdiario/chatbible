@@ -9,11 +9,19 @@ export function useVerseSelection() {
   // Handle verse selection/deselection
   const handleVerseSelect = (verse: Verse) => {
     // Check if already selected
-    const isSelected = selectedVerses.some(v => v.id === verse.id);
+    const isSelected = selectedVerses.some(v => 
+      v.book_id === verse.book_id && 
+      v.chapter === verse.chapter && 
+      v.verse === verse.verse
+    );
     
     if (isSelected) {
       // Remove from selection
-      setSelectedVerses(prev => prev.filter(v => v.id !== verse.id));
+      setSelectedVerses(prev => prev.filter(v => 
+        v.book_id !== verse.book_id || 
+        v.chapter !== verse.chapter || 
+        v.verse !== verse.verse
+      ));
       
       // If was the last selected verse, close the modal
       if (selectedVerses.length === 1) {
