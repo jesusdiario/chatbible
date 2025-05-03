@@ -9,7 +9,8 @@ import ChapterNavigation from '@/components/biblia/ChapterNavigation';
 import ChapterSelector from '@/components/biblia/ChapterSelector';
 import VerseItem from '@/components/biblia/VerseItem';
 import VerseSelectionModal from '@/components/biblia/VerseSelectionModal';
-import { Verse, BibleVersion } from '@/services/bibliaService';
+import { Verse, BibleVersion } from '@/types/biblia';
+import BibleVersionSelector from '@/components/biblia/BibleVersionSelector';
 
 const BibliaBook: React.FC = () => {
   const { bookId, chapter } = useParams<{ bookId: string; chapter: string }>();
@@ -125,19 +126,10 @@ const BibliaBook: React.FC = () => {
         </h1>
         
         <div className="ml-auto">
-          <select
-            value={version}
-            onChange={(e) => setVersion(e.target.value as BibleVersion)}
-            className="border border-gray-200 rounded-lg py-1 px-2 text-sm"
-          >
-            <option value="acf">ACF</option>
-            <option value="ara">ARA</option>
-            <option value="arc">ARC</option>
-            <option value="naa">NAA</option>
-            <option value="ntlh">NTLH</option>
-            <option value="nvi">NVI</option>
-            <option value="nvt">NVT</option>
-          </select>
+          <BibleVersionSelector 
+            version={version} 
+            onChange={setVersion}
+          />
         </div>
       </header>
       

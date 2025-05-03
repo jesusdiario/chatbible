@@ -1,8 +1,20 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { getBooks, getTestaments, getVersesByBookChapter, getBook, searchVerses, BibleVersion, Book, Verse } from '@/services/bibliaService';
 import { useState, useEffect } from 'react';
+import { Verse, Book, BibleVersion } from '@/types/biblia';
+import { 
+  getBooks, 
+  getTestaments, 
+  getVersesByBookChapter, 
+  getBook, 
+  searchVerses 
+} from '@/services/bibliaAPI';
+import { 
+  createFavoriteKey, 
+  getFavoriteVerses 
+} from '@/services/bibliaFavoritos';
 
+// Hook para obter a lista de livros
 export function useBooks() {
   return useQuery({
     queryKey: ['bible-books'],
@@ -10,6 +22,7 @@ export function useBooks() {
   });
 }
 
+// Hook para obter a lista de testamentos
 export function useTestaments() {
   return useQuery({
     queryKey: ['bible-testaments'],
@@ -17,6 +30,7 @@ export function useTestaments() {
   });
 }
 
+// Hook para agrupar os livros por testamento
 export function useBooksByTestament() {
   const { data: books, isLoading: booksLoading, error: booksError } = useBooks();
   const { data: testaments, isLoading: testamentsLoading, error: testamentsError } = useTestaments();
@@ -30,8 +44,9 @@ export function useBooksByTestament() {
   if (books && testaments) {
     testaments.forEach(testament => {
       const testamentBooks = books.filter(book => {
-        const prefix = book.id.split('.')[0];
-        return testament.id === prefix;
+        return testament.id === 'vt' ? 
+          Number(book.id) < 40 : 
+          Number(book.id) >= 40;
       });
       
       if (testamentBooks.length > 0) {
@@ -43,7 +58,8 @@ export function useBooksByTestament() {
   return { booksByTestament, isLoading, error };
 }
 
-export function useBook(bookId: string) {
+// Hook para obter detalhes de um livro específico
+export function useBook(bookId: string | number) {
   return useQuery({
     queryKey: ['bible-book', bookId],
     queryFn: () => getBook(bookId),
@@ -51,7 +67,12 @@ export function useBook(bookId: string) {
   });
 }
 
-export function useVersesByBookChapter(bookId: string, chapter: string, version: BibleVersion = 'acf') {
+// Hook para obter versículos de um livro e capítulo específicos
+export function useVersesByBookChapter(
+  bookId: string | number, 
+  chapter: string | number, 
+  version: BibleVersion = 'acf'
+) {
   return useQuery({
     queryKey: ['bible-verses', bookId, chapter, version],
     queryFn: () => getVersesByBookChapter(bookId, chapter, version),
@@ -107,31 +128,54 @@ export function useBibleFavorites() {
   }, []);
   
   const addFavorite = (verse: Verse) => {
-    if (!verse.book_id || verse.chapter === null || verse.verse === null) return;
-    
-    const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
-    if (!favorites.includes(favoriteKey)) {
-      const newFavorites = [...favorites, favoriteKey];
-      setFavorites(newFavorites);
-      localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
+    try {
+      const favoriteKey = createFavoriteKey(verse);
+      
+      if (!favorites.includes(favoriteKey)) {
+        const newFavorites = [...favorites, favoriteKey];
+        setFavorites(newFavorites);
+        localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar favorito:', error);
     }
   };
   
   const removeFavorite = (verse: Verse) => {
-    if (!verse.book_id || verse.chapter === null || verse.verse === null) return;
-    
-    const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
-    const newFavorites = favorites.filter(f => f !== favoriteKey);
-    setFavorites(newFavorites);
-    localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
+    try {
+      const favoriteKey = createFavoriteKey(verse);
+      
+      const newFavorites = favorites.filter(f => f !== favoriteKey);
+      setFavorites(newFavorites);
+      localStorage.setItem('bible-favorites', JSON.stringify(newFavorites));
+    } catch (error) {
+      console.error('Erro ao remover favorito:', error);
+    }
   };
   
   const isFavorite = (verse: Verse) => {
-    if (!verse.book_id || verse.chapter === null || verse.verse === null) return false;
-    
-    const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
-    return favorites.includes(favoriteKey);
+    try {
+      const favoriteKey = createFavoriteKey(verse);
+      return favorites.includes(favoriteKey);
+    } catch {
+      return false;
+    }
   };
   
-  return { favorites, addFavorite, removeFavorite, isFavorite };
+  // Hook para carregar os dados dos favoritos
+  const useFavoritesData = () => {
+    return useQuery({
+      queryKey: ['bible-favorites', favorites],
+      queryFn: () => getFavoriteVerses(favorites),
+      enabled: favorites.length > 0,
+    });
+  };
+  
+  return { 
+    favorites, 
+    addFavorite, 
+    removeFavorite, 
+    isFavorite,
+    useFavoritesData
+  };
 }
