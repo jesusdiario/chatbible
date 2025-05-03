@@ -7,7 +7,7 @@ import {
   getVersesByBookChapter, 
   getBook, 
   searchVerses 
-} from '@/services/bibliaAPI';
+} from '@/services/biblia';
 import { 
   createFavoriteKey, 
   getFavoriteVerses 
