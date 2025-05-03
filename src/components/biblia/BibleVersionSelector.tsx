@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BibleVersion } from '@/types/biblia';
+import { BibleVersion, BIBLE_VERSIONS } from '@/types/biblia';
 
 interface BibleVersionSelectorProps {
   version: BibleVersion;

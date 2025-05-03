@@ -1,14 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useBook, useVersesByBookChapter } from '@/hooks/useBiblia';
-import { BibleVersion } from '@/types/biblia';
+import { BibleVersion, DEFAULT_BIBLE_VERSION } from '@/types/biblia';
 import BookHeader from './BookHeader';
 import ChapterSelector from './ChapterSelector';
 import ChapterNavigation from './ChapterNavigation';
 import VersesList from './VersesList';
 import VerseSelectionModal from './VerseSelectionModal';
-import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useVerseSelection } from '@/hooks/useVerseSelection';
 import { useVerseFavorites } from '@/hooks/useVerseFavorites';
 import BookChapterTitle from './BookChapterTitle';
@@ -26,8 +26,13 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
 }) => {
   // Estado para controlar a versão da Bíblia
   const [version, setVersion] = useState<BibleVersion>(() => {
-    return (localStorage.getItem('bible-default-version') as BibleVersion) || 'acf';
+    return (localStorage.getItem('bible-default-version') as BibleVersion) || DEFAULT_BIBLE_VERSION;
   });
+  
+  useEffect(() => {
+    // Salvar a versão selecionada no localStorage
+    localStorage.setItem('bible-default-version', version);
+  }, [version]);
   
   // Referência para o container de versículos
   const versesContainerRef = useRef<HTMLDivElement>(null);
@@ -47,12 +52,12 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
   } = useVerseFavorites();
   
   // Consulta de dados
-  const { data: book, isLoading: isLoadingBook, error: bookError } = useBook(bookId || '');
+  const { data: book, isLoading: isLoadingBook, error: bookError } = useBook(bookId);
   const { 
     data: verses, 
     isLoading: isLoadingVerses, 
     error: versesError 
-  } = useVersesByBookChapter(bookId || '', chapter || '1', version);
+  } = useVersesByBookChapter(bookId, chapter, version);
   
   const isLoading = isLoadingBook || isLoadingVerses;
   const error = bookError || versesError;
@@ -95,31 +100,32 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
     );
   }
   
-  // Obter título do livro e capítulo
-  const bookTitle = book.name || '';
-  const chapterTitle = chapter || '1';
-
+  // Determinar o subtítulo do capítulo, se houver
+  let subtitle;
+  if (book.name === "João" && chapter === "1") {
+    subtitle = "A encarnação do Verbo";
+  }
+  
   return (
     <div className="pb-20 max-w-4xl mx-auto">
       <BookHeader 
-        bookTitle={bookTitle} 
-        chapterTitle={chapterTitle}
+        bookTitle={book.name} 
+        chapterTitle={chapter}
         version={version}
         setVersion={setVersion}
       />
       
-      <ChapterSelector book={book} currentChapter={chapterTitle} />
-
       <BookChapterTitle 
-        bookName={bookTitle}
-        chapter={chapterTitle}
+        bookName={book.name}
+        chapter={chapter}
+        subtitle={subtitle}
       />
       
       <main ref={versesContainerRef} className="px-4 py-2 space-y-1 mb-16">
         <VersesList
           verses={verses}
-          bookTitle={bookTitle}
-          chapterTitle={chapterTitle}
+          bookTitle={book.name}
+          chapterTitle={chapter}
           version={version}
           highlightVerse={highlightVerse}
           selectedVerses={selectedVerses}
@@ -130,7 +136,11 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
       </main>
       
       <div className="fixed bottom-16 left-0 right-0 z-10">
-        <ChapterNavigation book={book} chapter={chapterTitle} />
+        <ChapterNavigation book={book} chapter={chapter} />
+      </div>
+      
+      <div className="fixed left-0 right-0 bottom-0">
+        <ChapterSelector book={book} currentChapter={chapter} />
       </div>
       
       {showModal && (

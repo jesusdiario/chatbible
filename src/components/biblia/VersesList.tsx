@@ -1,8 +1,7 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { Verse, BibleVersion } from '@/types/biblia';
 import VerseItem from './VerseItem';
-import BookChapterTitle from './BookChapterTitle';
 
 interface VersesListProps {
   verses: Verse[] | undefined;
@@ -27,8 +26,6 @@ const VersesList: React.FC<VersesListProps> = ({
   isFavorite,
   onToggleFavorite
 }) => {
-  const highlightedVerseRef = useRef<HTMLDivElement | null>(null);
-
   if (!verses || verses.length === 0) {
     return (
       <div className="py-12 text-center text-gray-500">
@@ -39,8 +36,6 @@ const VersesList: React.FC<VersesListProps> = ({
 
   return (
     <>
-      <BookChapterTitle bookName={bookTitle} chapter={chapterTitle} />
-      
       {verses.map((verse) => {
         const isHighlighted = highlightVerse === verse.verse;
         const isSelected = selectedVerses.some(v => v.id === verse.id);
@@ -49,7 +44,6 @@ const VersesList: React.FC<VersesListProps> = ({
         return (
           <div
             key={verse.id}
-            ref={isHighlighted ? highlightedVerseRef : null}
             className={`transition-colors ${
               isHighlighted ? 'bg-yellow-50' : ''
             } ${
@@ -62,6 +56,7 @@ const VersesList: React.FC<VersesListProps> = ({
               onSelect={onVerseSelect}
               isFavorite={isFav}
               onToggleFavorite={onToggleFavorite}
+              highlight={isHighlighted}
             />
           </div>
         );

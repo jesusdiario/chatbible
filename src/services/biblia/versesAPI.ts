@@ -7,7 +7,7 @@ import { toNumber } from '@/utils/bibliaUtils';
 export async function getVersesByBookChapter(
   bookId: string | number, 
   chapter: string | number, 
-  version: BibleVersion = 'acf'
+  version: BibleVersion = 'naa'
 ): Promise<Verse[]> {
   const bookIdNum = toNumber(bookId);
   const chapterNum = toNumber(chapter);
@@ -35,7 +35,7 @@ export async function getVerse(
   bookId: string | number,
   chapter: string | number,
   verse: string | number,
-  version: BibleVersion = 'acf'
+  version: BibleVersion = 'naa'
 ): Promise<Verse | null> {
   try {
     const bookIdNum = toNumber(bookId);

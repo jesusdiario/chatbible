@@ -75,23 +75,6 @@ export function getBookNameByAbbrev(abbrev: string): string {
   return booksMap[abbrev.toLowerCase()] || abbrev;
 }
 
-// Função para obter informações de livro a partir de um book_id
-export function parseBookInfo(bookId: string): { abbrev: string; name: string } {
-  // Remover lógica de testamento
-  const abbrev = String(bookId);
-  const name = getBookNameByAbbrev(abbrev || '');
-  
-  return {
-    abbrev: abbrev || '',
-    name
-  };
-}
-
-// Função para extrair o nome do livro do book_id
-export function getBookNameFromId(bookId: string): string {
-  return getBookNameByAbbrev(bookId);
-}
-
 // Função para converter string para número ou undefined
 export function toNumber(value: string | number | null | undefined): number | undefined {
   if (value === null || value === undefined) return undefined;

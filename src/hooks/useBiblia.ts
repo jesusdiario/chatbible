@@ -1,17 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { Verse, Book, BibleVersion } from '@/types/biblia';
-import { 
-  getBooks, 
-  getVersesByBookChapter, 
-  getBook, 
-  searchVerses 
-} from '@/services/biblia';
-import { 
-  createFavoriteKey, 
-  getFavoriteVerses 
-} from '@/services/bibliaFavoritos';
+import { Verse, Book, BibleVersion, DEFAULT_BIBLE_VERSION } from '@/types/biblia';
+import { getBooks, getVersesByBookChapter, getBook, searchVerses } from '@/services/biblia';
+import { createFavoriteKey, getFavoriteVerses } from '@/services/bibliaFavoritos';
 
 // Hook para obter a lista de todos os livros disponíveis
 export function useBooks() {
@@ -34,7 +26,7 @@ export function useBook(bookId: string | number) {
 export function useVersesByBookChapter(
   bookId: string | number, 
   chapter: string | number, 
-  version: BibleVersion = 'acf'
+  version: BibleVersion = DEFAULT_BIBLE_VERSION
 ) {
   return useQuery({
     queryKey: ['bible-verses', bookId, chapter, version],
@@ -46,7 +38,7 @@ export function useVersesByBookChapter(
 // Hook para pesquisa de versículos
 export function useBibleSearch() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [version, setVersion] = useState<BibleVersion>('acf');
+  const [version, setVersion] = useState<BibleVersion>(DEFAULT_BIBLE_VERSION);
   
   const { data: searchResults, isLoading, error, refetch } = useQuery({
     queryKey: ['bible-search', searchTerm, version],

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Verse, BibleVersion } from '@/types/biblia';
 
 // Função para buscar versículos por palavra-chave
-export async function searchVerses(query: string, version: BibleVersion = 'acf'): Promise<Verse[]> {
+export async function searchVerses(query: string, version: BibleVersion = 'naa'): Promise<Verse[]> {
   const textColumn = `text_${version}` as keyof Verse;
   
   try {

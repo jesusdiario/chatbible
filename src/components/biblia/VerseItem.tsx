@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CopyIcon, BookmarkIcon } from 'lucide-react';
+import { BookmarkIcon } from 'lucide-react';
 import { Verse, BibleVersion } from '@/types/biblia';
 
 interface VerseItemProps {
@@ -9,6 +9,7 @@ interface VerseItemProps {
   onSelect?: (verse: Verse) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (verse: Verse) => void;
+  highlight?: boolean;
 }
 
 const VerseItem: React.FC<VerseItemProps> = ({ 
@@ -16,10 +17,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
   version,
   onSelect,
   isFavorite = false,
-  onToggleFavorite
+  onToggleFavorite,
+  highlight = false
 }) => {
   const textField = `text_${version}` as keyof Verse;
-  const text = verse[textField] as string;
+  const text = verse[textField] as string || verse.text_naa || 'Versículo não disponível nesta versão';
   
   const handleClick = () => {
     if (onSelect) {
@@ -38,13 +40,13 @@ const VerseItem: React.FC<VerseItemProps> = ({
     <div 
       id={`verse-${verse.verse}`}
       onClick={handleClick}
-      className={`py-1 flex ${onSelect ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+      className={`py-1 flex ${onSelect ? 'cursor-pointer hover:bg-gray-50' : ''} ${highlight ? 'bg-yellow-50' : ''}`}
     >
       <div className="pr-2 text-gray-400 font-bold flex-shrink-0 w-8 text-right">
         {verse.verse}
       </div>
       <div className="flex-grow">
-        <p className="text-lg text-gray-800">{text || 'Versículo não disponível nesta versão'}</p>
+        <p className="text-lg text-gray-800">{text}</p>
       </div>
       
       {(onToggleFavorite) && (

@@ -26,3 +26,17 @@ export interface Book {
 }
 
 export type BibleVersion = 'acf' | 'ara' | 'arc' | 'naa' | 'ntlh' | 'nvi' | 'nvt';
+
+// Mapeamento das versões para nomes completos
+export const BIBLE_VERSIONS = {
+  naa: 'Nova Almeida Atualizada',
+  nvi: 'Nova Versão Internacional',
+  acf: 'Almeida Corrigida Fiel',
+  ara: 'Almeida Revista e Atualizada',
+  arc: 'Almeida Revista e Corrigida',
+  ntlh: 'Nova Tradução na Linguagem de Hoje',
+  nvt: 'Nova Versão Transformadora'
+};
+
+// Versão padrão da Bíblia
+export const DEFAULT_BIBLE_VERSION: BibleVersion = 'naa';

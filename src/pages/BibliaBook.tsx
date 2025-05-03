@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
 import BibliaBookContent from '@/components/biblia/BibliaBookContent';
 
 const BibliaBook: React.FC = () => {
@@ -13,14 +12,11 @@ const BibliaBook: React.FC = () => {
   const highlightVerse = highlightVerseStr ? parseInt(highlightVerseStr, 10) : null;
   
   return (
-    <>
-      <BibliaBookContent 
-        bookId={bookId || ''} 
-        chapter={chapter || '1'} 
-        highlightVerse={highlightVerse} 
-      />
-      <BibliaBottomNav />
-    </>
+    <BibliaBookContent 
+      bookId={bookId || ''} 
+      chapter={chapter || '1'} 
+      highlightVerse={highlightVerse} 
+    />
   );
 };
 
