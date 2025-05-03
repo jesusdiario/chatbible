@@ -35,13 +35,11 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 
-// ... resto do código permanece o mesmo (funções de gerenciamento, efeitos, etc.) ...
-
 const BibliaBook: React.FC = () => {
   const { bookId, chapter } = useParams<{ bookId: string; chapter?: string }>();
   const navigate = useNavigate();
-  const { book, isLoading: isLoadingBook, error: bookError } = useBook(Number(bookId));
-  const { verses, isLoading: isLoadingVerses, error: versesError } = useVersesByBook(Number(bookId));
+  const { data: book, isLoading: isLoadingBook, error: bookError } = useBook(Number(bookId));
+  const { data: verses, isLoading: isLoadingVerses, error: versesError } = useVersesByBook(Number(bookId));
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { toast } = useToast();
   
