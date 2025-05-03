@@ -218,35 +218,6 @@ export type Database = {
         }
         Relationships: []
       }
-      books: {
-        Row: {
-          abbrev: string | null
-          id: number
-          name: string | null
-          testament_id: number | null
-        }
-        Insert: {
-          abbrev?: string | null
-          id: number
-          name?: string | null
-          testament_id?: number | null
-        }
-        Update: {
-          abbrev?: string | null
-          id?: number
-          name?: string | null
-          testament_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "books_testament_id_fkey"
-            columns: ["testament_id"]
-            isOneToOne: false
-            referencedRelation: "testaments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       chat_history: {
         Row: {
           book_slug: string | null
@@ -597,21 +568,6 @@ export type Database = {
         }
         Relationships: []
       }
-      testaments: {
-        Row: {
-          id: number
-          name: string | null
-        }
-        Insert: {
-          id: number
-          name?: string | null
-        }
-        Update: {
-          id?: number
-          name?: string | null
-        }
-        Relationships: []
-      }
       usage_stats: {
         Row: {
           created_at: string
@@ -692,38 +648,45 @@ export type Database = {
       }
       verses: {
         Row: {
-          book_id: number | null
-          chapter: number | null
+          book_id: string | null
+          chapter: string | null
           id: number
-          text: string | null
-          verse: number | null
-          version: string | null
+          text_acf: string | null
+          text_ara: string | null
+          text_arc: string | null
+          text_naa: string | null
+          text_ntlh: string | null
+          text_nvi: string | null
+          text_nvt: string | null
+          verse: string | null
         }
         Insert: {
-          book_id?: number | null
-          chapter?: number | null
+          book_id?: string | null
+          chapter?: string | null
           id: number
-          text?: string | null
-          verse?: number | null
-          version?: string | null
+          text_acf?: string | null
+          text_ara?: string | null
+          text_arc?: string | null
+          text_naa?: string | null
+          text_ntlh?: string | null
+          text_nvi?: string | null
+          text_nvt?: string | null
+          verse?: string | null
         }
         Update: {
-          book_id?: number | null
-          chapter?: number | null
+          book_id?: string | null
+          chapter?: string | null
           id?: number
-          text?: string | null
-          verse?: number | null
-          version?: string | null
+          text_acf?: string | null
+          text_ara?: string | null
+          text_arc?: string | null
+          text_naa?: string | null
+          text_ntlh?: string | null
+          text_nvi?: string | null
+          text_nvt?: string | null
+          verse?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "verses_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

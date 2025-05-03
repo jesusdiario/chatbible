@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { useBooksByTestament } from '@/hooks/useBiblia1Data';
-import Biblia1TestamentSection from '@/components/biblia1/Biblia1TestamentSection';
-import Biblia1BottomNav from '@/components/biblia1/Biblia1BottomNav';
+import { useBooksByTestament } from '@/hooks/useBiblia';
+import BibliaTestamentSection from '@/components/biblia/BibliaTestamentSection';
+import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
 import { Loader2 } from 'lucide-react';
 
 const Biblia: React.FC = () => {
@@ -30,11 +30,12 @@ const Biblia: React.FC = () => {
     <div className="pb-20 max-w-4xl mx-auto px-4">
       <header className="py-6 text-center">
         <h1 className="text-2xl font-bold">Bíblia Sagrada</h1>
+        <p className="text-gray-600 mt-1">Selecione um livro para começar a leitura</p>
       </header>
       
       <main>
         {booksByTestament.map(({ testament, books }) => (
-          <Biblia1TestamentSection 
+          <BibliaTestamentSection 
             key={testament.id} 
             testament={testament} 
             books={books} 
@@ -42,7 +43,7 @@ const Biblia: React.FC = () => {
         ))}
       </main>
       
-      <Biblia1BottomNav />
+      <BibliaBottomNav />
     </div>
   );
 };

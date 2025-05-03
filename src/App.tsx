@@ -25,8 +25,13 @@ import Profile from "@/pages/Profile";
 import ChatHistory from "@/pages/ChatHistory";
 import ChatPage from "@/pages/ChatPage"; 
 import LandingPage from "@/pages/LandingPage";
+
+// Novas páginas da Bíblia
 import Biblia from "@/pages/Biblia";
 import BibliaBook from "@/pages/BibliaBook";
+import BibliaPesquisar from "@/pages/BibliaPesquisar";
+import BibliaFavoritos from "@/pages/BibliaFavoritos";
+import BibliaConfiguracoes from "@/pages/BibliaConfiguracoes";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -149,16 +154,34 @@ const App = () => {
                   <Profile />
                 </ProtectedRoute>
               } />
+              
+              {/* Novas rotas da Bíblia */}
               <Route path="/biblia" element={
                 <ProtectedRoute>
                   <Biblia />
                 </ProtectedRoute>
               } />
-              <Route path="/biblia/:bookId" element={
+              <Route path="/biblia/:bookId/:chapter" element={
                 <ProtectedRoute>
                   <BibliaBook />
                 </ProtectedRoute>
               } />
+              <Route path="/biblia/pesquisar" element={
+                <ProtectedRoute>
+                  <BibliaPesquisar />
+                </ProtectedRoute>
+              } />
+              <Route path="/biblia/favoritos" element={
+                <ProtectedRoute>
+                  <BibliaFavoritos />
+                </ProtectedRoute>
+              } />
+              <Route path="/biblia/configuracoes" element={
+                <ProtectedRoute>
+                  <BibliaConfiguracoes />
+                </ProtectedRoute>
+              } />
+              
               <Route path="/lp" element={<LandingPage />} />
             </Routes>
           </TooltipProvider>

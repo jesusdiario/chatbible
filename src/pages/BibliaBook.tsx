@@ -1,18 +1,92 @@
 
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useBook, useVersesByBook } from '@/hooks/useBiblia1Data';
-import Biblia1BottomNav from '@/components/biblia1/Biblia1BottomNav';
-import { Loader2, ChevronLeft } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { useBook, useVersesByBookChapter } from '@/hooks/useBiblia';
+import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
+import { Loader2, ChevronLeft, Book as BookIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ChapterNavigation from '@/components/biblia/ChapterNavigation';
+import ChapterSelector from '@/components/biblia/ChapterSelector';
+import VerseItem from '@/components/biblia/VerseItem';
+import VerseSelectionModal from '@/components/biblia/VerseSelectionModal';
+import { Verse } from '@/services/bibliaService';
 
 const BibliaBook: React.FC = () => {
-  const { bookId } = useParams<{ bookId: string }>();
-  const { book, isLoading: isLoadingBook, error: bookError } = useBook(Number(bookId));
-  const { verses, isLoading: isLoadingVerses, error: versesError } = useVersesByBook(Number(bookId));
+  const { bookId, chapter } = useParams<{ bookId: string; chapter: string }>();
+  const [searchParams] = useSearchParams();
+  const highlightVerse = searchParams.get('highlight');
+  
+  // Estado para controlar a versão da Bíblia
+  const [version, setVersion] = useState<'acf' | 'ara' | 'arc' | 'naa' | 'ntlh' | 'nvi' | 'nvt'>('acf');
+  
+  // Referências para elementos DOM
+  const versesContainerRef = useRef<HTMLDivElement>(null);
+  const highlightedVerseRef = useRef<HTMLDivElement | null>(null);
+  
+  // Estado para seleção de versículos
+  const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  
+  // Consulta de dados
+  const { data: book, isLoading: isLoadingBook, error: bookError } = useBook(bookId || '');
+  const { 
+    data: verses, 
+    isLoading: isLoadingVerses, 
+    error: versesError 
+  } = useVersesByBookChapter(bookId || '', chapter || '1', version);
   
   const isLoading = isLoadingBook || isLoadingVerses;
   const error = bookError || versesError;
+  
+  // Efeito para rolagem suave até o versículo destacado
+  useEffect(() => {
+    if (highlightVerse && verses && verses.length > 0 && versesContainerRef.current) {
+      // Encontrar o versículo a ser destacado
+      const verseToHighlight = verses.find(v => v.verse === highlightVerse);
+      
+      if (verseToHighlight) {
+        // Dar tempo para o DOM renderizar
+        setTimeout(() => {
+          if (highlightedVerseRef.current) {
+            highlightedVerseRef.current.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 500);
+      }
+    }
+  }, [highlightVerse, verses]);
+  
+  // Manipulador para seleção de versículos
+  const handleVerseSelect = (verse: Verse) => {
+    // Verificar se já está selecionado
+    const isSelected = selectedVerses.some(v => v.id === verse.id);
+    
+    if (isSelected) {
+      // Se já está selecionado, remover da seleção
+      setSelectedVerses(prev => prev.filter(v => v.id !== verse.id));
+      
+      // Se era o último versículo selecionado, fechar o modal
+      if (selectedVerses.length === 1) {
+        setShowModal(false);
+      }
+    } else {
+      // Se não está selecionado, adicionar à seleção
+      setSelectedVerses(prev => [...prev, verse]);
+      
+      // Se é o primeiro versículo selecionado, abrir o modal
+      if (selectedVerses.length === 0) {
+        setShowModal(true);
+      }
+    }
+  };
+  
+  // Fechar o modal e limpar seleção
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedVerses([]);
+  };
   
   if (isLoading) {
     return (
@@ -36,53 +110,81 @@ const BibliaBook: React.FC = () => {
     );
   }
   
-  // Agrupar versos por capítulo
-  const versesByChapter: Record<number, Array<{ verse: number, text: string }>> = {};
-  
-  verses?.forEach(verse => {
-    if (verse.chapter) {
-      if (!versesByChapter[verse.chapter]) {
-        versesByChapter[verse.chapter] = [];
-      }
-      versesByChapter[verse.chapter].push({ 
-        verse: verse.verse || 0, 
-        text: verse.text || '' 
-      });
-    }
-  });
-  
   return (
-    <div className="pb-20 max-w-4xl mx-auto px-4">
-      <header className="py-6 flex items-center">
+    <div className="pb-20 max-w-4xl mx-auto">
+      <header className="py-4 px-4 flex items-center border-b sticky top-0 bg-white z-10">
         <Link to="/biblia" className="mr-4">
           <ChevronLeft className="h-6 w-6" />
         </Link>
-        <h1 className="text-2xl font-bold">{book.name}</h1>
+        <h1 className="text-xl font-bold flex items-center">
+          <BookIcon className="h-5 w-5 mr-2" />
+          {book.name} {chapter}
+        </h1>
+        
+        <div className="ml-auto">
+          <select
+            value={version}
+            onChange={(e) => setVersion(e.target.value as typeof version)}
+            className="border border-gray-200 rounded-lg py-1 px-2 text-sm"
+          >
+            <option value="acf">ACF</option>
+            <option value="ara">ARA</option>
+            <option value="arc">ARC</option>
+            <option value="naa">NAA</option>
+            <option value="ntlh">NTLH</option>
+            <option value="nvi">NVI</option>
+            <option value="nvt">NVT</option>
+          </select>
+        </div>
       </header>
       
-      <main>
-        {Object.entries(versesByChapter).map(([chapter, versesInChapter]) => (
-          <div key={chapter} className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Capítulo {chapter}</h2>
-            <div className="space-y-2">
-              {versesInChapter.map(verse => (
-                <p key={verse.verse} className="text-gray-800">
-                  <span className="text-xs align-super font-bold text-gray-500 mr-1">{verse.verse}</span>
-                  {verse.text}
-                </p>
-              ))}
-            </div>
-          </div>
-        ))}
-        
-        {Object.keys(versesByChapter).length === 0 && (
+      <ChapterSelector book={book} currentChapter={chapter || '1'} />
+      
+      <main ref={versesContainerRef} className="px-4 py-2 space-y-1 mb-16">
+        {verses && verses.length > 0 ? (
+          verses.map((verse) => {
+            // Verificar se este é o versículo a ser destacado
+            const isHighlighted = highlightVerse === verse.verse;
+            const isSelected = selectedVerses.some(v => v.id === verse.id);
+            
+            return (
+              <div
+                key={verse.id}
+                ref={isHighlighted ? highlightedVerseRef : null}
+                className={`transition-colors ${
+                  isHighlighted ? 'bg-yellow-50' : ''
+                } ${
+                  isSelected ? 'bg-blue-50' : ''
+                }`}
+              >
+                <VerseItem
+                  verse={verse}
+                  version={version}
+                  onSelect={handleVerseSelect}
+                />
+              </div>
+            );
+          })
+        ) : (
           <div className="py-12 text-center text-gray-500">
-            <p>Não há versículos disponíveis para este livro.</p>
+            <p>Não há versículos disponíveis para este capítulo.</p>
           </div>
         )}
       </main>
       
-      <Biblia1BottomNav />
+      <div className="fixed bottom-16 left-0 right-0 z-10">
+        <ChapterNavigation book={book} chapter={chapter || '1'} />
+      </div>
+      
+      <BibliaBottomNav />
+      
+      {showModal && (
+        <VerseSelectionModal
+          verses={selectedVerses}
+          version={version}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
