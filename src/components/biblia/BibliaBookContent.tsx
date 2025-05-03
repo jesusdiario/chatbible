@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useBook, useVersesByBookChapter, useBibleFavorites } from '@/hooks/useBiblia';
-import { Verse, BibleVersion, Book } from '@/types/biblia';
+import { useBook, useVersesByBookChapter } from '@/hooks/useBiblia';
+import { BibleVersion } from '@/types/biblia';
 import BookHeader from './BookHeader';
 import ChapterSelector from './ChapterSelector';
 import ChapterNavigation from './ChapterNavigation';
@@ -9,6 +9,8 @@ import VersesList from './VersesList';
 import VerseSelectionModal from './VerseSelectionModal';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useVerseSelection } from '@/hooks/useVerseSelection';
+import { useVerseFavorites } from '@/hooks/useVerseFavorites';
 
 interface BibliaBookContentProps {
   bookId: string;
@@ -29,12 +31,19 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
   // Referência para o container de versículos
   const versesContainerRef = useRef<HTMLDivElement>(null);
   
-  // Estado para seleção de versículos
-  const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
-  const [showModal, setShowModal] = useState(false);
-
-  // Favoritos
-  const { isFavorite, addFavorite, removeFavorite } = useBibleFavorites();
+  // Custom hooks
+  const { 
+    selectedVerses, 
+    showModal, 
+    handleVerseSelect, 
+    handleCloseModal 
+  } = useVerseSelection();
+  
+  const { 
+    isFavorite, 
+    handleToggleFavorite, 
+    handleAddToFavorites 
+  } = useVerseFavorites();
   
   // Consulta de dados
   const { data: book, isLoading: isLoadingBook, error: bookError } = useBook(bookId || '');
@@ -62,52 +71,6 @@ const BibliaBookContent: React.FC<BibliaBookContentProps> = ({
       }, 500);
     }
   }, [highlightVerse, verses]);
-  
-  // Manipulador para seleção de versículos
-  const handleVerseSelect = (verse: Verse) => {
-    // Verificar se já está selecionado
-    const isSelected = selectedVerses.some(v => v.id === verse.id);
-    
-    if (isSelected) {
-      // Se já está selecionado, remover da seleção
-      setSelectedVerses(prev => prev.filter(v => v.id !== verse.id));
-      
-      // Se era o último versículo selecionado, fechar o modal
-      if (selectedVerses.length === 1) {
-        setShowModal(false);
-      }
-    } else {
-      // Se não está selecionado, adicionar à seleção
-      setSelectedVerses(prev => [...prev, verse]);
-      
-      // Se é o primeiro versículo selecionado, abrir o modal
-      if (selectedVerses.length === 0) {
-        setShowModal(true);
-      }
-    }
-  };
-
-  // Manipular toggle de favorito
-  const handleToggleFavorite = (verse: Verse) => {
-    if (isFavorite(verse)) {
-      removeFavorite(verse);
-    } else {
-      addFavorite(verse);
-    }
-  };
-  
-  // Fechar o modal e limpar seleção
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedVerses([]);
-  };
-
-  // Adicionar versículos selecionados aos favoritos
-  const handleAddToFavorites = (verses: Verse[]) => {
-    if (verses && verses.length) {
-      verses.forEach(verse => addFavorite(verse));
-    }
-  };
   
   if (isLoading) {
     return (
