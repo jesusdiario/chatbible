@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Book } from 'lucide-react';
 import { Book as BookType } from '@/types/biblia';
 
