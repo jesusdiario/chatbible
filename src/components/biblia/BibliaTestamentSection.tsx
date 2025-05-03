@@ -12,7 +12,7 @@ const BibliaTestamentSection: React.FC<BibliaTestamentSectionProps> = ({ testame
   return (
     <section className="mb-8">
       <h2 className="text-xl font-bold mb-4">{testament.name}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 justify-items-center">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
         {books.map((book) => (
           <BibliaBookItem key={book.id} book={book} />
         ))}

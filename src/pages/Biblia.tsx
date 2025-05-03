@@ -1,28 +1,32 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useBooksByTestament } from '@/hooks/useBiblia';
 import BibliaTestamentSection from '@/components/biblia/BibliaTestamentSection';
 import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
 import { Book, Search, User, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from "@/components/ui/use-toast";
 
 const Biblia: React.FC = () => {
   const { booksByTestament, isLoading, error } = useBooksByTestament();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro ao carregar a Bíblia",
+        description: "Não foi possível obter a lista de livros. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+      console.error("Erro ao carregar livros:", error);
+    }
+  }, [error, toast]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <span className="mt-4">Carregando...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-red-500">
-        <p>Erro ao carregar os livros da Bíblia</p>
-        <p className="text-sm mt-2">{(error as Error).message}</p>
+        <span className="mt-4">Carregando a Bíblia...</span>
       </div>
     );
   }
@@ -36,18 +40,21 @@ const Biblia: React.FC = () => {
             <Link 
               to="/biblia/pesquisar"
               className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Pesquisar"
             >
               <Search className="h-5 w-5" />
             </Link>
             <Link 
               to="/profile"
               className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Perfil"
             >
               <User className="h-5 w-5" />
             </Link>
             <Link 
               to="/biblia/configuracoes"
               className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Configurações"
             >
               <Settings className="h-5 w-5" />
             </Link>
@@ -98,13 +105,25 @@ const Biblia: React.FC = () => {
       </header>
       
       <main>
-        {booksByTestament.map(({ testament, books }) => (
-          <BibliaTestamentSection 
-            key={testament.id} 
-            testament={testament} 
-            books={books} 
-          />
-        ))}
+        {booksByTestament && booksByTestament.length > 0 ? (
+          booksByTestament.map(({ testament, books }) => (
+            <BibliaTestamentSection 
+              key={testament.id} 
+              testament={testament} 
+              books={books} 
+            />
+          ))
+        ) : (
+          <div className="text-center py-10 flex flex-col items-center">
+            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <Book className="h-8 w-8 text-gray-500" />
+            </div>
+            <h2 className="text-xl font-medium mb-2">Nenhum livro encontrado</h2>
+            <p className="text-gray-500">
+              Não foi possível carregar os livros da Bíblia. Tente novamente mais tarde.
+            </p>
+          </div>
+        )}
       </main>
       
       <BibliaBottomNav />

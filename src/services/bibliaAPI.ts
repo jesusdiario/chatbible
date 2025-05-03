@@ -6,11 +6,13 @@ import { parseBookInfo, toNumber } from '@/utils/bibliaUtils';
 // Função para obter a lista de todos os livros disponíveis
 export async function getBooks(): Promise<Book[]> {
   try {
+    console.log("Fetching books...");
     // Consultar os livros disponíveis a partir dos dados de versículos
     const { data, error } = await supabase
       .from('verses')
       .select('book_id, book_name, abbrev')
-      .not('book_id', 'is', null);
+      .not('book_id', 'is', null)
+      .order('book_id', { ascending: true });
       
     if (error) {
       console.error('Erro ao buscar livros:', error);
@@ -36,13 +38,16 @@ export async function getBooks(): Promise<Book[]> {
     });
 
     const booksInfo = Array.from(bookMap.values());
+    console.log(`Found ${booksInfo.length} unique books`);
 
     // Para cada livro, contar quantos capítulos existem
+    const booksWithChapters = [];
     for (const book of booksInfo) {
       const { data: chaptersData, error: chaptersError } = await supabase
         .from('verses')
         .select('chapter')
-        .eq('book_id', Number(book.id));
+        .eq('book_id', Number(book.id))
+        .order('chapter', { ascending: true });
         
       if (chaptersError) {
         console.error(`Erro ao contar capítulos para ${book.name}:`, chaptersError);
@@ -51,10 +56,15 @@ export async function getBooks(): Promise<Book[]> {
       
       const chapterValues = chaptersData.map(v => v.chapter).filter(Boolean);
       const uniqueChapters = [...new Set(chapterValues)];
-      book.chaptersCount = uniqueChapters.length;
+      const bookWithChapters = {
+        ...book,
+        chaptersCount: uniqueChapters.length
+      };
+      booksWithChapters.push(bookWithChapters);
+      console.log(`Book ${book.name} has ${uniqueChapters.length} chapters`);
     }
 
-    return booksInfo;
+    return booksWithChapters;
   } catch (error) {
     console.error('Erro ao buscar livros:', error);
     throw error;

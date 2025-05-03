@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { Verse, Book, BibleVersion } from '@/types/biblia';
@@ -39,7 +38,7 @@ export function useBooksByTestament() {
   const error = booksError || testamentsError;
   
   // Agrupar livros por testamento
-  const booksByTestament: { testament: { id: string, name: string }; books: Book[] }[] = [];
+  const booksByTestament = [];
   
   if (books && testaments) {
     testaments.forEach(testament => {
@@ -54,6 +53,11 @@ export function useBooksByTestament() {
       }
     });
   }
+  
+  // Log para debug
+  console.log("Books loaded:", books?.length || 0);
+  console.log("Testaments loaded:", testaments?.length || 0);
+  console.log("Books by testament:", booksByTestament);
   
   return { booksByTestament, isLoading, error };
 }
