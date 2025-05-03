@@ -9,15 +9,15 @@ import ChapterNavigation from '@/components/biblia/ChapterNavigation';
 import ChapterSelector from '@/components/biblia/ChapterSelector';
 import VerseItem from '@/components/biblia/VerseItem';
 import VerseSelectionModal from '@/components/biblia/VerseSelectionModal';
-import { Verse } from '@/services/bibliaService';
+import { Verse, BibleVersion } from '@/services/bibliaService';
 
 const BibliaBook: React.FC = () => {
   const { bookId, chapter } = useParams<{ bookId: string; chapter: string }>();
   const [searchParams] = useSearchParams();
-  const highlightVerse = searchParams.get('highlight');
+  const highlightVerseStr = searchParams.get('highlight');
   
   // Estado para controlar a versão da Bíblia
-  const [version, setVersion] = useState<'acf' | 'ara' | 'arc' | 'naa' | 'ntlh' | 'nvi' | 'nvt'>('acf');
+  const [version, setVersion] = useState<BibleVersion>('acf');
   
   // Referências para elementos DOM
   const versesContainerRef = useRef<HTMLDivElement>(null);
@@ -37,10 +37,13 @@ const BibliaBook: React.FC = () => {
   
   const isLoading = isLoadingBook || isLoadingVerses;
   const error = bookError || versesError;
+
+  // Converter highlight para número se necessário
+  const highlightVerse = highlightVerseStr ? parseInt(highlightVerseStr, 10) : null;
   
   // Efeito para rolagem suave até o versículo destacado
   useEffect(() => {
-    if (highlightVerse && verses && verses.length > 0 && versesContainerRef.current) {
+    if (highlightVerse !== null && verses && verses.length > 0 && versesContainerRef.current) {
       // Encontrar o versículo a ser destacado
       const verseToHighlight = verses.find(v => v.verse === highlightVerse);
       
@@ -124,7 +127,7 @@ const BibliaBook: React.FC = () => {
         <div className="ml-auto">
           <select
             value={version}
-            onChange={(e) => setVersion(e.target.value as typeof version)}
+            onChange={(e) => setVersion(e.target.value as BibleVersion)}
             className="border border-gray-200 rounded-lg py-1 px-2 text-sm"
           >
             <option value="acf">ACF</option>

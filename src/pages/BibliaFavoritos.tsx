@@ -27,7 +27,11 @@ const BibliaFavoritos: React.FC = () => {
         // Extrair informações dos favoritos
         const favoriteItems = favorites.map(fav => {
           const [bookId, chapter, verse] = fav.split(':');
-          return { bookId, chapter, verse };
+          return { 
+            bookId, 
+            chapter: parseInt(chapter, 10), 
+            verse: parseInt(verse, 10)
+          };
         });
         
         // Criar consultas para cada favorito
@@ -47,7 +51,7 @@ const BibliaFavoritos: React.FC = () => {
         // Filtrar e processar resultados
         const versesData = results
           .filter(result => !result.error && result.data)
-          .map(result => result.data) as Verse[];
+          .map(result => result.data as Verse);
         
         setFavoritesData(versesData);
       } catch (error) {

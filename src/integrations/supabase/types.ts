@@ -648,7 +648,10 @@ export type Database = {
       }
       verses: {
         Row: {
-          book_id: string | null
+          abbrev: string | null
+          book_id: number | null
+          book_name: string | null
+          book_slug: string | null
           chapter: number | null
           id: number
           text_acf: string | null
@@ -661,7 +664,10 @@ export type Database = {
           verse: number | null
         }
         Insert: {
-          book_id?: string | null
+          abbrev?: string | null
+          book_id?: number | null
+          book_name?: string | null
+          book_slug?: string | null
           chapter?: number | null
           id: number
           text_acf?: string | null
@@ -674,7 +680,10 @@ export type Database = {
           verse?: number | null
         }
         Update: {
-          book_id?: string | null
+          abbrev?: string | null
+          book_id?: number | null
+          book_name?: string | null
+          book_slug?: string | null
           chapter?: number | null
           id?: number
           text_acf?: string | null

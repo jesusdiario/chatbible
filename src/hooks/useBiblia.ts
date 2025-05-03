@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getBooks, getTestaments, getVersesByBookChapter, getBook, searchVerses, BibleVersion, Book, Verse } from '@/services/bibliaService';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function useBooks() {
   return useQuery({
@@ -90,12 +90,25 @@ export function useBibleSearch() {
 
 // Hook para gerenciar versículos favoritos
 export function useBibleFavorites() {
-  const [favorites, setFavorites] = useState<string[]>(() => {
+  const [favorites, setFavorites] = useState<string[]>([]);
+  
+  // Carregar favoritos do localStorage quando o componente montar
+  useEffect(() => {
     const saved = localStorage.getItem('bible-favorites');
-    return saved ? JSON.parse(saved) : [];
-  });
+    if (saved) {
+      try {
+        const parsedFavorites = JSON.parse(saved);
+        setFavorites(parsedFavorites);
+      } catch (error) {
+        console.error('Erro ao carregar favoritos:', error);
+        localStorage.removeItem('bible-favorites');
+      }
+    }
+  }, []);
   
   const addFavorite = (verse: Verse) => {
+    if (!verse.book_id || verse.chapter === null || verse.verse === null) return;
+    
     const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
     if (!favorites.includes(favoriteKey)) {
       const newFavorites = [...favorites, favoriteKey];
@@ -105,6 +118,8 @@ export function useBibleFavorites() {
   };
   
   const removeFavorite = (verse: Verse) => {
+    if (!verse.book_id || verse.chapter === null || verse.verse === null) return;
+    
     const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
     const newFavorites = favorites.filter(f => f !== favoriteKey);
     setFavorites(newFavorites);
@@ -112,6 +127,8 @@ export function useBibleFavorites() {
   };
   
   const isFavorite = (verse: Verse) => {
+    if (!verse.book_id || verse.chapter === null || verse.verse === null) return false;
+    
     const favoriteKey = `${verse.book_id}:${verse.chapter}:${verse.verse}`;
     return favorites.includes(favoriteKey);
   };

@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Verse {
   id: number;
   book_id: string | null;
-  chapter: string | null;
-  verse: string | null;
+  chapter: number | null;
+  verse: number | null;
   text_acf: string | null;
   text_ara: string | null;
   text_arc: string | null;
@@ -27,64 +27,69 @@ export type BibleVersion = 'acf' | 'ara' | 'arc' | 'naa' | 'ntlh' | 'nvi' | 'nvt
 
 // Função para obter a lista de todos os livros disponíveis
 export async function getBooks(): Promise<Book[]> {
-  // Consultar os livros disponíveis a partir dos dados de versículos
-  const { data, error } = await supabase
-    .from('verses')
-    .select('book_id')
-    .is('book_id', 'not.null');
-    
-  if (error) {
+  try {
+    // Consultar os livros disponíveis a partir dos dados de versículos
+    const { data, error } = await supabase
+      .from('verses')
+      .select('book_id')
+      .not('book_id', 'is', null);
+      
+    if (error) {
+      console.error('Erro ao buscar livros:', error);
+      throw error;
+    }
+
+    // Extrair livros únicos
+    const bookIds = data.map(v => v.book_id).filter(Boolean);
+    const uniqueBookIds = [...new Set(bookIds)];
+
+    // Informações dos livros (mapear IDs para nomes completos)
+    const booksInfo = uniqueBookIds.map(bookId => {
+      const [testament, abbrev] = String(bookId).split('.');
+      let name = getBookNameByAbbrev(abbrev || '');
+      
+      return {
+        id: String(bookId),
+        name,
+        abbrev: abbrev || '',
+        chaptersCount: 0, // Será preenchido na próxima consulta
+        testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
+      };
+    });
+
+    // Para cada livro, contar quantos capítulos existem
+    for (const book of booksInfo) {
+      const { data: chaptersData, error: chaptersError } = await supabase
+        .from('verses')
+        .select('chapter')
+        .eq('book_id', book.id);
+        
+      if (chaptersError) {
+        console.error(`Erro ao contar capítulos para ${book.name}:`, chaptersError);
+        continue;
+      }
+      
+      const chapterValues = chaptersData.map(v => v.chapter).filter(Boolean);
+      const uniqueChapters = [...new Set(chapterValues)];
+      book.chaptersCount = uniqueChapters.length;
+    }
+
+    return booksInfo;
+  } catch (error) {
     console.error('Erro ao buscar livros:', error);
     throw error;
   }
-
-  // Extrair livros únicos
-  const bookIds = data.map(v => v.book_id).filter(Boolean);
-  const uniqueBookIds = [...new Set(bookIds)];
-
-  // Informações dos livros (mapear IDs para nomes completos)
-  const booksInfo = uniqueBookIds.map(bookId => {
-    const [testament, abbrev] = String(bookId).split('.');
-    let name = getBookNameByAbbrev(abbrev || '');
-    
-    return {
-      id: String(bookId),
-      name,
-      abbrev: abbrev || '',
-      chaptersCount: 0, // Será preenchido na próxima consulta
-      testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
-    };
-  });
-
-  // Para cada livro, contar quantos capítulos existem
-  for (const book of booksInfo) {
-    const { data: chaptersData, error: chaptersError } = await supabase
-      .from('verses')
-      .select('chapter')
-      .eq('book_id', book.id);
-      
-    if (chaptersError) {
-      console.error(`Erro ao contar capítulos para ${book.name}:`, chaptersError);
-      continue;
-    }
-    
-    const chapterValues = chaptersData.map(v => v.chapter).filter(Boolean);
-    const uniqueChapters = [...new Set(chapterValues)];
-    book.chaptersCount = uniqueChapters.length;
-  }
-
-  return booksInfo;
 }
 
 // Função para obter os versículos de um livro e capítulo específicos
 export async function getVersesByBookChapter(bookId: string, chapter: string, version: BibleVersion = 'acf'): Promise<Verse[]> {
-  const textColumn = `text_${version}`;
+  const chapterNum = parseInt(chapter, 10);
   
   const { data, error } = await supabase
     .from('verses')
-    .select(`id, book_id, chapter, verse, ${textColumn}, text_acf, text_ara, text_arc, text_naa, text_ntlh, text_nvi, text_nvt`)
+    .select('*')
     .eq('book_id', bookId)
-    .eq('chapter', chapter);
+    .eq('chapter', chapterNum);
     
   if (error) {
     console.error(`Erro ao buscar versículos para ${bookId} capítulo ${chapter}:`, error);
@@ -96,42 +101,45 @@ export async function getVersesByBookChapter(bookId: string, chapter: string, ve
 
 // Função para obter os testamentos
 export async function getTestaments(): Promise<{id: string, name: string}[]> {
-  // Consultar os testamentos disponíveis a partir dos dados de versículos
-  const { data, error } = await supabase
-    .from('verses')
-    .select('book_id')
-    .is('book_id', 'not.null');
+  try {
+    // Consultar os testamentos disponíveis a partir dos dados de versículos
+    const { data, error } = await supabase
+      .from('verses')
+      .select('book_id')
+      .not('book_id', 'is', null);
+      
+    if (error) {
+      console.error('Erro ao buscar testamentos:', error);
+      throw error;
+    }
+
+    // Extrair o prefixo do testamento (vt ou nt)
+    const testamentPrefixes = data
+      .map(verse => verse.book_id ? String(verse.book_id).split('.')[0] : null)
+      .filter(Boolean);
     
-  if (error) {
+    const uniqueTestaments = [...new Set(testamentPrefixes)];
+
+    return uniqueTestaments.map(t => ({
+      id: String(t),
+      name: t === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
+    }));
+  } catch (error) {
     console.error('Erro ao buscar testamentos:', error);
     throw error;
   }
-
-  // Extrair o prefixo do testamento (vt ou nt)
-  const testamentPrefixes = data
-    .map(verse => verse.book_id ? String(verse.book_id).split('.')[0] : null)
-    .filter(Boolean);
-  
-  const uniqueTestaments = [...new Set(testamentPrefixes)];
-
-  return uniqueTestaments.map(t => ({
-    id: t,
-    name: t === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
-  }));
 }
 
 // Função para buscar versículos por palavra-chave
 export async function searchVerses(query: string, version: BibleVersion = 'acf'): Promise<Verse[]> {
-  const textColumn = `text_${version}`;
+  const textColumn = `text_${version}` as keyof Verse;
   
   try {
+    // Usando busca de texto simples para maior compatibilidade
     const { data, error } = await supabase
       .from('verses')
-      .select(`id, book_id, chapter, verse, ${textColumn}, text_acf, text_ara, text_arc, text_naa, text_ntlh, text_nvi, text_nvt`)
-      .textSearch(textColumn, query, { 
-        config: 'portuguese',
-        type: 'websearch'
-      })
+      .select('*')
+      .ilike(textColumn as string, `%${query}%`)
       .limit(50);
       
     if (error) {
@@ -222,34 +230,39 @@ function getBookNameByAbbrev(abbrev: string): string {
 
 // Função para obter detalhes de um livro específico
 export async function getBook(bookId: string): Promise<Book | null> {
-  // Verificar se o livro existe obtendo seus dados
-  const { data, error } = await supabase
-    .from('verses')
-    .select('book_id, chapter')
-    .eq('book_id', bookId)
-    .is('chapter', 'not.null');
+  try {
+    // Verificar se o livro existe obtendo seus dados
+    const { data, error } = await supabase
+      .from('verses')
+      .select('book_id, chapter')
+      .eq('book_id', bookId)
+      .not('chapter', 'is', null);
+      
+    if (error) {
+      console.error(`Erro ao buscar informações do livro ${bookId}:`, error);
+      throw error;
+    }
+
+    if (data.length === 0) {
+      return null;
+    }
     
-  if (error) {
-    console.error(`Erro ao buscar informações do livro ${bookId}:`, error);
+    const [testament, abbrev] = String(bookId).split('.');
+    const name = getBookNameByAbbrev(abbrev || '');
+    
+    // Contar capítulos únicos
+    const chapterValues = data.map(v => v.chapter).filter(Boolean);
+    const uniqueChapters = [...new Set(chapterValues)];
+    
+    return {
+      id: bookId,
+      name,
+      abbrev,
+      chaptersCount: uniqueChapters.length,
+      testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
+    };
+  } catch (error) {
+    console.error(`Erro ao buscar livro ${bookId}:`, error);
     throw error;
   }
-
-  if (data.length === 0) {
-    return null;
-  }
-  
-  const [testament, abbrev] = String(bookId).split('.');
-  const name = getBookNameByAbbrev(abbrev || '');
-  
-  // Contar capítulos únicos
-  const chapterValues = data.map(v => v.chapter).filter(Boolean);
-  const uniqueChapters = [...new Set(chapterValues)];
-  
-  return {
-    id: bookId,
-    name,
-    abbrev,
-    chaptersCount: uniqueChapters.length,
-    testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
-  };
 }
