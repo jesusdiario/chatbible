@@ -16,6 +16,7 @@ export interface Verse {
   book_id: number;
   chapter: number;
   verse: number;
+  text: string | null; // Adicionando o campo text para compatibilidade
   text_nvi?: string;
   text_acf?: string;
   text_ara?: string;

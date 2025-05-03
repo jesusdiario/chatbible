@@ -9,6 +9,7 @@ import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from './BibleVerse';
+import { Verse } from '@/types/biblia'; 
 
 export const BibleReader: React.FC = () => {
   const {
@@ -76,14 +77,22 @@ export const BibleReader: React.FC = () => {
             </div>
             
             <div className="mt-8 mb-32">
-              {chapterData.verses.map(verse => (
-                <BibleVerseConnected 
-                  key={verse.id} 
-                  verse={verse} 
-                  translation={currentTranslation} 
-                  showActions={true} 
-                />
-              ))}
+              {chapterData.verses.map(verse => {
+                // Converter para compatibilidade com o tipo Verse esperado
+                const verseWithText: Verse = {
+                  ...verse,
+                  text: verse[currentTranslation] || verse.text_naa || ""
+                };
+                
+                return (
+                  <BibleVerseConnected 
+                    key={verse.id} 
+                    verse={verseWithText}
+                    translation={currentTranslation} 
+                    showActions={true} 
+                  />
+                );
+              })}
             </div>
           </div>
         ) : (
