@@ -36,6 +36,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
   
   return (
     <div 
+      id={`verse-${verse.verse}`}
       onClick={handleClick}
       className={`py-1 flex ${onSelect ? 'cursor-pointer hover:bg-gray-50' : ''}`}
     >
