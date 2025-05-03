@@ -44,23 +44,19 @@ export function useBooksByTestament() {
 }
 
 export function useBook(bookId: string) {
-  const { data, isLoading, error } = useQuery({
+  return useQuery({
     queryKey: ['bible-book', bookId],
     queryFn: () => getBook(bookId),
     enabled: !!bookId,
   });
-  
-  return { data, isLoading, error };
 }
 
 export function useVersesByBookChapter(bookId: string, chapter: string, version: BibleVersion = 'acf') {
-  const { data, isLoading, error } = useQuery({
+  return useQuery({
     queryKey: ['bible-verses', bookId, chapter, version],
     queryFn: () => getVersesByBookChapter(bookId, chapter, version),
     enabled: !!bookId && !!chapter,
   });
-  
-  return { data, isLoading, error };
 }
 
 // Hook para pesquisa de versículos

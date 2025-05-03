@@ -18,7 +18,7 @@ export interface Verse {
 export interface Book {
   id: string;
   name: string;
-  abbrev?: string;
+  abbrev: string;
   chaptersCount: number;
   testament: string;
 }
@@ -31,7 +31,6 @@ export async function getBooks(): Promise<Book[]> {
   const { data, error } = await supabase
     .from('verses')
     .select('book_id')
-    .order('book_id')
     .is('book_id', 'not.null');
     
   if (error) {
@@ -40,10 +39,11 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   // Extrair livros únicos
-  const uniqueBooks = [...new Set(data.map(v => v.book_id))];
+  const bookIds = data.map(v => v.book_id).filter(Boolean);
+  const uniqueBookIds = [...new Set(bookIds)];
 
   // Informações dos livros (mapear IDs para nomes completos)
-  const booksInfo = uniqueBooks.map(bookId => {
+  const booksInfo = uniqueBookIds.map(bookId => {
     const [testament, abbrev] = String(bookId).split('.');
     let name = getBookNameByAbbrev(abbrev || '');
     
@@ -69,7 +69,8 @@ export async function getBooks(): Promise<Book[]> {
       continue;
     }
     
-    const uniqueChapters = [...new Set(chaptersData.map(v => v.chapter))];
+    const chapterValues = chaptersData.map(v => v.chapter).filter(Boolean);
+    const uniqueChapters = [...new Set(chapterValues)];
     book.chaptersCount = uniqueChapters.length;
   }
 
@@ -82,10 +83,9 @@ export async function getVersesByBookChapter(bookId: string, chapter: string, ve
   
   const { data, error } = await supabase
     .from('verses')
-    .select(`id, book_id, chapter, verse, ${textColumn}`)
+    .select(`id, book_id, chapter, verse, ${textColumn}, text_acf, text_ara, text_arc, text_naa, text_ntlh, text_nvi, text_nvt`)
     .eq('book_id', bookId)
-    .eq('chapter', chapter)
-    .order('verse');
+    .eq('chapter', chapter);
     
   if (error) {
     console.error(`Erro ao buscar versículos para ${bookId} capítulo ${chapter}:`, error);
@@ -109,15 +109,13 @@ export async function getTestaments(): Promise<{id: string, name: string}[]> {
   }
 
   // Extrair o prefixo do testamento (vt ou nt)
-  const testaments = new Set<string>();
-  data.forEach(verse => {
-    if (verse.book_id) {
-      const testament = String(verse.book_id).split('.')[0];
-      testaments.add(testament);
-    }
-  });
+  const testamentPrefixes = data
+    .map(verse => verse.book_id ? String(verse.book_id).split('.')[0] : null)
+    .filter(Boolean);
+  
+  const uniqueTestaments = [...new Set(testamentPrefixes)];
 
-  return Array.from(testaments).map(t => ({
+  return uniqueTestaments.map(t => ({
     id: t,
     name: t === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
   }));
@@ -127,21 +125,26 @@ export async function getTestaments(): Promise<{id: string, name: string}[]> {
 export async function searchVerses(query: string, version: BibleVersion = 'acf'): Promise<Verse[]> {
   const textColumn = `text_${version}`;
   
-  const { data, error } = await supabase
-    .from('verses')
-    .select(`id, book_id, chapter, verse, ${textColumn}`)
-    .textSearch(textColumn, query, { 
-      config: 'portuguese',
-      type: 'websearch'
-    })
-    .limit(50);
-    
-  if (error) {
-    console.error(`Erro ao buscar versículos com a palavra-chave "${query}":`, error);
-    throw error;
-  }
+  try {
+    const { data, error } = await supabase
+      .from('verses')
+      .select(`id, book_id, chapter, verse, ${textColumn}, text_acf, text_ara, text_arc, text_naa, text_ntlh, text_nvi, text_nvt`)
+      .textSearch(textColumn, query, { 
+        config: 'portuguese',
+        type: 'websearch'
+      })
+      .limit(50);
+      
+    if (error) {
+      console.error(`Erro ao buscar versículos com a palavra-chave "${query}":`, error);
+      throw error;
+    }
 
-  return data;
+    return data || [];
+  } catch (error) {
+    console.error(`Erro na busca de texto: ${error}`);
+    return [];
+  }
 }
 
 // Função auxiliar para obter o nome do livro pelo seu código
@@ -225,7 +228,6 @@ export async function getBook(bookId: string): Promise<Book | null> {
     .from('verses')
     .select('book_id, chapter')
     .eq('book_id', bookId)
-    .is('book_id', 'not.null')
     .is('chapter', 'not.null');
     
   if (error) {
@@ -241,13 +243,14 @@ export async function getBook(bookId: string): Promise<Book | null> {
   const name = getBookNameByAbbrev(abbrev || '');
   
   // Contar capítulos únicos
-  const chapters = [...new Set(data.map(v => v.chapter))];
+  const chapterValues = data.map(v => v.chapter).filter(Boolean);
+  const uniqueChapters = [...new Set(chapterValues)];
   
   return {
     id: bookId,
     name,
     abbrev,
-    chaptersCount: chapters.length,
+    chaptersCount: uniqueChapters.length,
     testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento'
   };
 }
