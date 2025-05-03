@@ -47,7 +47,7 @@ export async function getFavoriteVerses() {
   return data || [];
 }
 
-export async function removeFavoriteVerse(verseId: number) {
+export async function removeFavoriteVerse(verseId: string) {
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) return false;

@@ -19,9 +19,15 @@ export interface Verse {
   chapter: number | null;
   verse: number | null;
   text: string | null;
-  version: string | null;
+  version?: string | null;
   abbrev?: string;
   book_name?: string;
   book_slug?: string;
+  text_nvi?: string | null;
+  text_acf?: string | null;
+  text_ara?: string | null;
+  text_arc?: string | null;
+  text_naa?: string | null;
+  text_ntlh?: string | null;
+  text_nvt?: string | null;
 }
-

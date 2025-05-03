@@ -77,7 +77,27 @@ export function useBibleData() {
         setLoading(true);
         const result = await getChapterVerses(currentBook.id, currentChapter);
         if (result) {
-          setVerses(result.verses);
+          // Mapear para o tipo Verse correto
+          const mappedVerses: Verse[] = result.verses.map(v => ({
+            id: v.id,
+            book_id: v.book_id || currentBook.id,
+            chapter: v.chapter,
+            verse: v.verse,
+            text: v.text,
+            version: currentBook.name,
+            abbrev: v.abbrev,
+            book_name: v.book_name,
+            book_slug: v.book_slug,
+            text_nvi: v.text_nvi,
+            text_acf: v.text_acf,
+            text_ara: v.text_ara,
+            text_arc: v.text_arc,
+            text_naa: v.text_naa,
+            text_ntlh: v.text_ntlh,
+            text_nvt: v.text_nvt
+          }));
+          
+          setVerses(mappedVerses);
           setError(null);
         } else {
           setVerses([]);
@@ -178,7 +198,7 @@ export function useBibleFavorites() {
   const removeFavorite = async (verse: Verse) => {
     try {
       if (!verse.id) throw new Error('ID do versículo é necessário');
-      await removeFavoriteVerse(verse.id);
+      await removeFavoriteVerse(verse.id.toString());
       toast({
         title: 'Versículo removido',
         description: 'Versículo removido dos seus favoritos'

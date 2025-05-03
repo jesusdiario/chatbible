@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,8 +15,7 @@ interface SidebarProps {
 
 const Sidebar = ({
   isOpen,
-  onToggle,
-  currentPath
+  onToggle
 }: SidebarProps) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [userProfile, setUserProfile] = useState<{
@@ -88,7 +86,7 @@ const Sidebar = ({
               <UserProfileSection userProfile={userProfile} onToggle={onToggle} />
               
               {/* Navigation Menu Section */}
-              <NavigationSection currentPath={currentPath} onToggle={onToggle} />
+              <NavigationSection />
               
               <div className="flex-1"></div>
               

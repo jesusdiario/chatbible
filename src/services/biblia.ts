@@ -18,6 +18,7 @@ export async function getBibleBooks(): Promise<BibleBook[]> {
     name: book.name,
     abbrev: book.abbrev,
     slug: book.slug,
+    title: book.name, // Adicionando title igual ao name
     category_slug: '',
     display_order: book.id,
     image_url: null
