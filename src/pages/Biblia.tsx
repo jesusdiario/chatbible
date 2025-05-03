@@ -1,11 +1,11 @@
 
 import React, { useEffect } from 'react';
 import { useBooks } from '@/hooks/useBiblia';
-import BibliaBookItem from '@/components/biblia/BibliaBookItem';
 import BibliaBottomNav from '@/components/biblia/BibliaBottomNav';
 import { Book, Search, User, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
+import BibliaBooksList from '@/components/biblia/BibliaBooksList';
 
 const Biblia: React.FC = () => {
   const { data: books, isLoading, error } = useBooks();
@@ -21,15 +21,6 @@ const Biblia: React.FC = () => {
       console.error("Erro ao carregar livros:", error);
     }
   }, [error, toast]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <span className="mt-4">Carregando a Bíblia...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="pb-20 max-w-4xl mx-auto px-4">
@@ -105,25 +96,10 @@ const Biblia: React.FC = () => {
       </header>
       
       <main>
-        {books && books.length > 0 ? (
-          <section className="mb-10">
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {books.map((book) => (
-                <BibliaBookItem key={book.id} book={book} />
-              ))}
-            </div>
-          </section>
-        ) : (
-          <div className="text-center py-10 flex flex-col items-center">
-            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-              <Book className="h-8 w-8 text-gray-500" />
-            </div>
-            <h2 className="text-xl font-medium mb-2">Nenhum livro encontrado</h2>
-            <p className="text-gray-500">
-              Não foi possível carregar os livros da Bíblia. Tente novamente mais tarde.
-            </p>
-          </div>
-        )}
+        <section className="mb-10">
+          <h2 className="text-xl font-medium mb-4">Livros da Bíblia</h2>
+          <BibliaBooksList books={books} isLoading={isLoading} />
+        </section>
       </main>
       
       <BibliaBottomNav />
