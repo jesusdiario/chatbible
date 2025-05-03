@@ -1,8 +1,6 @@
 
-import { BibleReader } from '@/components/BibleReader';
-
 const Index = () => {
-  return <BibleReader />;
+  return <div>Bible Online Index</div>;
 };
 
 export default Index;

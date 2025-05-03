@@ -1,10 +1,5 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Biblia from '@/pages/Biblia';
-import BibliaBook from '@/pages/BibliaBook';
-import BibliaPesquisar from '@/pages/BibliaPesquisar';
-import BibliaFavoritos from '@/pages/BibliaFavoritos';
-import BibliaConfiguracoes from '@/pages/BibliaConfiguracoes';
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import Admin from "@/pages/Admin";
@@ -23,13 +18,6 @@ import LandingPage from "@/pages/LandingPage";
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Rotas da Bíblia */}
-      <Route path="/biblia" element={<Biblia />} />
-      <Route path="/biblia/:bookId/:chapter" element={<BibliaBook />} />
-      <Route path="/biblia/pesquisar" element={<BibliaPesquisar />} />
-      <Route path="/biblia/favoritos" element={<BibliaFavoritos />} />
-      <Route path="/biblia/configuracoes" element={<BibliaConfiguracoes />} />
-      
       {/* Outras rotas existentes */}
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<Index />} />
