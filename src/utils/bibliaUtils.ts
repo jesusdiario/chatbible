@@ -1,6 +1,5 @@
 
 // Funções utilitárias para manipulação de dados da Bíblia
-import { Book } from '@/types/biblia';
 
 // Função auxiliar para obter o nome do livro pelo seu código
 export function getBookNameByAbbrev(abbrev: string): string {
@@ -77,12 +76,12 @@ export function getBookNameByAbbrev(abbrev: string): string {
 }
 
 // Função para obter informações de livro a partir de um book_id
-export function parseBookInfo(bookId: string): { testament: string; abbrev: string; name: string } {
-  const [testament, abbrev] = String(bookId).split('.');
+export function parseBookInfo(bookId: string): { abbrev: string; name: string } {
+  // Remover lógica de testamento
+  const abbrev = String(bookId);
   const name = getBookNameByAbbrev(abbrev || '');
   
   return {
-    testament: testament === 'vt' ? 'Antigo Testamento' : 'Novo Testamento',
     abbrev: abbrev || '',
     name
   };
@@ -90,11 +89,7 @@ export function parseBookInfo(bookId: string): { testament: string; abbrev: stri
 
 // Função para extrair o nome do livro do book_id
 export function getBookNameFromId(bookId: string): string {
-  const parts = bookId.split('.');
-  if (parts.length < 2) return bookId;
-  
-  const abbrev = parts[1];
-  return getBookNameByAbbrev(abbrev);
+  return getBookNameByAbbrev(bookId);
 }
 
 // Função para converter string para número ou undefined

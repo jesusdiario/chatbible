@@ -23,13 +23,6 @@ export interface Book {
   abbrev: string;
   slug?: string;
   chaptersCount: number;
-  testament: string;
 }
 
 export type BibleVersion = 'acf' | 'ara' | 'arc' | 'naa' | 'ntlh' | 'nvi' | 'nvt';
-
-// @deprecated - Será removido em versões futuras, não use em novos componentes
-export interface Testament {
-  id: string;
-  name: string;
-}

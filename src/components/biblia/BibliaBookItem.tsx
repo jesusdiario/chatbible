@@ -8,9 +8,12 @@ interface BibliaBookItemProps {
 }
 
 const BibliaBookItem: React.FC<BibliaBookItemProps> = ({ book }) => {
+  // Use slug for navigation if available, otherwise fallback to id
+  const bookPath = book.slug ? `/biblia/${book.slug}/1` : `/biblia/${book.id}/1`;
+  
   return (
     <Link 
-      to={`/biblia/${book.id}/1`} 
+      to={bookPath}
       className="flex flex-col items-center p-3"
     >
       <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3">

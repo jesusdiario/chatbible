@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Verse, Book, BibleVersion } from '@/types/biblia';
-import { parseBookInfo, toNumber } from '@/utils/bibliaUtils';
+import { toNumber } from '@/utils/bibliaUtils';
 
 // Função para obter a lista de todos os livros disponíveis
 export async function getBooks(): Promise<Book[]> {
@@ -33,8 +33,7 @@ export async function getBooks(): Promise<Book[]> {
           name: bookName,
           abbrev: bookAbbrev,
           slug: bookSlug,
-          chaptersCount: 0, // Será preenchido na próxima consulta
-          testament: verse.book_id < 40 ? 'Antigo Testamento' : 'Novo Testamento'
+          chaptersCount: 0 // Será preenchido na próxima consulta
         });
       }
     });
@@ -136,7 +135,7 @@ export async function getBook(bookId: string | number): Promise<Book | null> {
     // Verificar se o livro existe obtendo seus dados
     const { data, error } = await supabase
       .from('verses')
-      .select('book_id, chapter, book_name, abbrev')
+      .select('book_id, chapter, book_name, abbrev, book_slug')
       .eq('book_id', bookIdNum)
       .not('chapter', 'is', null);
       
@@ -151,6 +150,7 @@ export async function getBook(bookId: string | number): Promise<Book | null> {
     
     const bookName = data[0].book_name || '';
     const abbrev = data[0].abbrev || '';
+    const bookSlug = data[0].book_slug || '';
     
     // Contar capítulos únicos
     const chapterValues = data.map(v => v.chapter).filter(Boolean);
@@ -160,8 +160,8 @@ export async function getBook(bookId: string | number): Promise<Book | null> {
       id: String(bookIdNum),
       name: bookName,
       abbrev,
-      chaptersCount: uniqueChapters.length,
-      testament: bookIdNum < 40 ? 'Antigo Testamento' : 'Novo Testamento'
+      slug: bookSlug,
+      chaptersCount: uniqueChapters.length
     };
   } catch (error) {
     console.error(`Erro ao buscar livro ${bookId}:`, error);

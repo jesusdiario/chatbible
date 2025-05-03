@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useBook, useVersesByBookChapter, useBibleFavorites } from '@/hooks/useBiblia';
