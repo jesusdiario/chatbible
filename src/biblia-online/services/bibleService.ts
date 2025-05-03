@@ -1,0 +1,181 @@
+
+import { supabase } from '@/integrations/supabase/client';
+
+// Interface para os livros da Bíblia
+export interface Book {
+  id: number;
+  book_name: string;
+  name?: string;
+  abbrev: string;
+  slug: string;
+  chapter_count: number;
+}
+
+// Interface para versículos
+export interface Verse {
+  id: number;
+  book_id: number;
+  chapter: number;
+  verse: number;
+  text?: string;  // Tornando isso opcional já que usaremos campos específicos de tradução
+  text_nvi?: string;
+  text_acf?: string;
+  text_ara?: string;
+  text_arc?: string;
+  text_naa?: string;
+  text_ntlh?: string;
+  text_nvt?: string;
+  abbrev?: string;
+  book_name?: string;
+  book_slug?: string;
+}
+
+// Interface para capítulo
+export interface Chapter {
+  book_id: number;
+  book_name: string;
+  book_slug: string;
+  chapter: number;
+  verses: Verse[];
+}
+
+// Enum para traduções
+export enum BibleTranslation {
+  NVI = 'text_nvi',
+  ACF = 'text_acf',
+  ARA = 'text_ara',
+  ARC = 'text_arc',
+  NAA = 'text_naa',
+  NTLH = 'text_ntlh',
+  NVT = 'text_nvt',
+  Default = 'text_naa' // Usando NAA como padrão
+}
+
+// Serviço da Bíblia
+export const BibleService = {
+  // Buscar todos os livros
+  getBooks: async (): Promise<Book[]> => {
+    try {
+      // Usar a view materializada books_mv
+      const { data, error } = await supabase
+        .from('books_mv')
+        .select('*')
+        .order('id');
+
+      if (error) throw error;
+      
+      if (!data || data.length === 0) return [];
+      
+      // Mapear os dados para nossa interface Book
+      const books: Book[] = data.map(book => ({
+        id: book.id,
+        book_name: book.name, // Usamos o campo 'name' da view
+        name: book.name,
+        abbrev: book.abbrev,
+        slug: book.slug,
+        chapter_count: book.chapter_count
+      }));
+      
+      return books;
+    } catch (error) {
+      console.error('Erro ao buscar livros:', error);
+      throw new Error('Falha ao carregar a lista de livros');
+    }
+  },
+
+  // Buscar livro por slug
+  getBookBySlug: async (slug: string): Promise<Book | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('books_mv')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null; // No rows found
+        throw error;
+      }
+      
+      if (!data) return null;
+      
+      return {
+        id: data.id,
+        book_name: data.name,
+        name: data.name,
+        abbrev: data.abbrev,
+        slug: data.slug,
+        chapter_count: data.chapter_count
+      };
+    } catch (error) {
+      console.error(`Erro ao buscar livro pelo slug ${slug}:`, error);
+      throw new Error(`Falha ao carregar o livro com slug ${slug}`);
+    }
+  },
+
+  // Buscar capítulo específico
+  getChapter: async (bookId: number, chapter: number): Promise<Chapter | null> => {
+    try {
+      // Obter versículos para o capítulo
+      const { data: verses, error: versesError } = await supabase
+        .from('verses')
+        .select('*')
+        .eq('book_id', bookId)
+        .eq('chapter', chapter)
+        .order('verse');
+
+      if (versesError) throw versesError;
+
+      if (!verses || verses.length === 0) {
+        return null;
+      }
+
+      // Obter nome do livro do primeiro versículo
+      const bookName = verses[0].book_name || '';
+      const bookSlug = verses[0].book_slug || '';
+
+      return {
+        book_id: bookId,
+        book_name: bookName,
+        book_slug: bookSlug,
+        chapter: chapter,
+        verses: verses
+      };
+    } catch (error) {
+      console.error(`Erro ao buscar capítulo ${chapter} para o livro ${bookId}:`, error);
+      throw new Error(`Falha ao carregar o capítulo ${chapter}`);
+    }
+  },
+  
+  // Obter capítulo por slug
+  getChapterBySlug: async (slug: string, chapter: number): Promise<Chapter | null> => {
+    try {
+      // Primeiro, obter o livro pelo slug
+      const book = await BibleService.getBookBySlug(slug);
+      if (!book) return null;
+      
+      // Usar o ID do livro para obter o capítulo
+      return await BibleService.getChapter(book.id, chapter);
+    } catch (error) {
+      console.error(`Erro ao buscar capítulo ${chapter} para o livro com slug ${slug}:`, error);
+      throw new Error(`Falha ao carregar o capítulo ${chapter} do livro ${slug}`);
+    }
+  },
+  
+  // Obter contagem de capítulos para um livro
+  getChapterCount: async (bookId: number): Promise<number> => {
+    try {
+      const { data, error } = await supabase
+        .from('books_mv')
+        .select('chapter_count')
+        .eq('id', bookId)
+        .single();
+
+      if (error) throw error;
+      return data ? data.chapter_count : 0;
+    } catch (error) {
+      console.error(`Erro ao buscar contagem de capítulos para o livro ${bookId}:`, error);
+      throw new Error('Falha ao determinar o número de capítulos');
+    }
+  }
+};
