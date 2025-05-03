@@ -78,10 +78,11 @@ export const BibleReader: React.FC = () => {
             
             <div className="mt-8 mb-32">
               {chapterData.verses.map(verse => {
-                // Converter para compatibilidade com o tipo Verse esperado
+                // Ensure the verse has the 'text' property set
                 const verseWithText: Verse = {
                   ...verse,
-                  text: verse[currentTranslation] || verse.text_naa || ""
+                  // Use the specified translation or fall back to a default
+                  text: verse[currentTranslation] || verse.text_naa || verse.text_nvi || verse.text_acf || null
                 };
                 
                 return (

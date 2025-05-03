@@ -14,16 +14,16 @@ export interface Book {
 export interface Verse {
   id: number;
   book_id: number;
-  chapter: number;
-  verse: number;
-  text: string | null; // Adicionando o campo text para compatibilidade
-  text_nvi?: string;
-  text_acf?: string;
-  text_ara?: string;
-  text_arc?: string;
-  text_naa?: string;
-  text_ntlh?: string;
-  text_nvt?: string;
+  chapter: number | null;
+  verse: number | null;
+  text: string | null;
+  text_nvi?: string | null;
+  text_acf?: string | null;
+  text_ara?: string | null;
+  text_arc?: string | null;
+  text_naa?: string | null;
+  text_ntlh?: string | null;
+  text_nvt?: string | null;
   abbrev?: string;
   book_name?: string;
   book_slug?: string;
@@ -127,12 +127,19 @@ export const BibleService = {
       const bookName = verses[0].book_name || '';
       const bookSlug = verses[0].book_slug || '';
 
+      // Map verses and ensure 'text' property is set
+      const versesWithText = verses.map(verse => ({
+        ...verse,
+        // Set 'text' to the default translation or first available text
+        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || null
+      }));
+
       return {
         book_id: bookId,
         book_name: bookName,
         book_slug: bookSlug,
         chapter: chapter,
-        verses: verses
+        verses: versesWithText
       };
     } catch (error) {
       console.error(`Erro ao buscar capítulo ${chapter} para o livro ${bookId}:`, error);
