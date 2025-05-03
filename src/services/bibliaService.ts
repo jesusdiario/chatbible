@@ -61,8 +61,7 @@ export async function getBooks(): Promise<Book[]> {
     const { data: chaptersData, error: chaptersError } = await supabase
       .from('verses')
       .select('chapter')
-      .eq('book_id', book.id)
-      .is('chapter', 'not.null');
+      .eq('book_id', book.id);
       
     if (chaptersError) {
       console.error(`Erro ao contar capítulos para ${book.name}:`, chaptersError);
@@ -92,7 +91,7 @@ export async function getVersesByBookChapter(bookId: string, chapter: string, ve
     throw error;
   }
 
-  return data;
+  return data as Verse[];
 }
 
 // Função para obter os testamentos
@@ -140,7 +139,7 @@ export async function searchVerses(query: string, version: BibleVersion = 'acf')
       throw error;
     }
 
-    return data || [];
+    return data as Verse[] || [];
   } catch (error) {
     console.error(`Erro na busca de texto: ${error}`);
     return [];
