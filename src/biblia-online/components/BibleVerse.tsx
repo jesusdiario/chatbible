@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { Verse, BibleTranslation } from '../services/bibleService';
-import { Button } from '../components/ui/button';
+import { Verse, BibleTranslation } from '@/services/bibleService';
+import { Button } from '@/components/ui/button';
 
 interface BibleVerseProps {
   verse: Verse;
@@ -16,30 +15,11 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
 }) => {
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
-    // Primeiro verificamos se a tradução selecionada existe
-    if (verse[translation]) {
-      return verse[translation];
+    if (translation === BibleTranslation.Default || !verse[translation]) {
+      return verse.text_naa || verse.text; // Default to NAA or any available text
     }
-    
-    // Se não existir, usamos o fallback para text_naa (que é o padrão)
-    if (verse.text_naa) {
-      return verse.text_naa;
-    }
-    
-    // Verificamos outras traduções comuns como fallback
-    if (verse.text_nvi) {
-      return verse.text_nvi;
-    }
-    
-    if (verse.text_acf) {
-      return verse.text_acf;
-    }
-    
-    // Último fallback para qualquer tradução disponível
-    return verse.text || "Texto não disponível";
+    return verse[translation] || verse.text_naa || verse.text; // Fallback if translation not available
   };
-
-  const verseText = getVerseText();
 
   return (
     <div className="group flex mb-4">
@@ -47,7 +27,7 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
         {verse.verse}
       </div>
       <div className="flex-1">
-        <p className="leading-relaxed">{verseText}</p>
+        <p className="leading-relaxed">{getVerseText()}</p>
         {showActions && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
             <Button variant="outline" size="sm">
