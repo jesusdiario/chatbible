@@ -16,11 +16,15 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
 }) => {
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
-    if (translation === BibleTranslation.Default || !verse[translation]) {
-      return verse.text_naa || verse.text_nvi || verse.text_acf; // Default to NAA or any available text
+    if (!translation || !verse[translation]) {
+      // Default fallback chain if translation is not valid
+      return verse.text_naa || verse.text_nvi || verse.text_acf || "No text available";
     }
-    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf; // Fallback if translation not available
+    // Use the selected translation or fall back to available ones
+    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf || "No text available";
   };
+
+  const verseText = getVerseText();
 
   return (
     <div className="group flex mb-4">
@@ -28,7 +32,7 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
         {verse.verse}
       </div>
       <div className="flex-1">
-        <p className="leading-relaxed">{getVerseText()}</p>
+        <p className="leading-relaxed">{verseText}</p>
         {showActions && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
             <Button variant="outline" size="sm">

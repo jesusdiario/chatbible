@@ -53,12 +53,15 @@ export const BibleReader: React.FC = () => {
     handleOpenBooksNav();
   };
 
+  const hasVerses = chapterData && chapterData.verses && chapterData.verses.length > 0;
+
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
       <BibleHeader 
         bookName={getCurrentBookName()} 
         chapter={currentChapter} 
-        onOpenBooksNav={handleOpenBooksNav} 
+        onOpenBooksNav={handleOpenBooksNav}
+        onOpenChapterNav={handleOpenChapterNav}
         currentTranslation={currentTranslation} 
         onChangeTranslation={changeTranslation} 
       />
@@ -68,7 +71,7 @@ export const BibleReader: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : chapterData ? (
+        ) : hasVerses ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
@@ -88,7 +91,13 @@ export const BibleReader: React.FC = () => {
           </div>
         ) : (
           <div className="flex justify-center items-center h-64 text-gray-500">
-            Nenhum conteúdo disponível
+            Nenhum conteúdo disponível para este capítulo. 
+            <button 
+              onClick={handleOpenBooksNav} 
+              className="ml-2 text-blue-500 hover:underline"
+            >
+              Selecione outro livro
+            </button>
           </div>
         )}
       </ScrollArea>
