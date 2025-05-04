@@ -54,13 +54,18 @@ export const BibleService = {
   // Buscar todos os livros
   getBooks: async (): Promise<Book[]> => {
     try {
+      console.log('Buscando livros...');
       const { data, error } = await supabase
         .from('books_mv')
         .select('*')
         .order('id');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na busca de livros:', error);
+        throw error;
+      }
       
+      console.log(`Encontrados ${data?.length || 0} livros`);
       if (!data || data.length === 0) return [];
       
       return data.map(book => ({
@@ -79,6 +84,7 @@ export const BibleService = {
   // Buscar livro por slug
   getBookBySlug: async (slug: string): Promise<Book | null> => {
     try {
+      console.log(`Buscando livro pelo slug: ${slug}`);
       const { data, error } = await supabase
         .from('books_mv')
         .select('*')
@@ -86,12 +92,17 @@ export const BibleService = {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') return null; // No rows found
+        if (error.code === 'PGRST116') {
+          console.log(`Nenhum livro encontrado com o slug: ${slug}`);
+          return null; // No rows found
+        }
+        console.error(`Erro na busca do livro pelo slug ${slug}:`, error);
         throw error;
       }
       
       if (!data) return null;
       
+      console.log(`Livro encontrado: ${data.name}`);
       return {
         id: data.id,
         name: data.name,
@@ -108,6 +119,7 @@ export const BibleService = {
   // Buscar capítulo específico
   getChapter: async (bookId: number, chapter: number): Promise<Chapter | null> => {
     try {
+      console.log(`Buscando capítulo ${chapter} do livro ID ${bookId}...`);
       // Obter versículos para o capítulo
       const { data: verses, error: versesError } = await supabase
         .from('verses')
@@ -116,9 +128,14 @@ export const BibleService = {
         .eq('chapter', chapter)
         .order('verse');
 
-      if (versesError) throw versesError;
+      if (versesError) {
+        console.error(`Erro na busca de versículos para livro ID ${bookId}, capítulo ${chapter}:`, versesError);
+        throw versesError;
+      }
 
+      console.log(`Versículos encontrados: ${verses?.length || 0}`);
       if (!verses || verses.length === 0) {
+        console.log(`Nenhum versículo encontrado para o livro ID ${bookId}, capítulo ${chapter}`);
         return null;
       }
 
@@ -126,6 +143,7 @@ export const BibleService = {
       const bookName = verses[0].book_name || '';
       const bookSlug = verses[0].book_slug || '';
 
+      console.log(`Capítulo montado: ${bookName} ${chapter} com ${verses.length} versículos`);
       return {
         book_id: bookId,
         book_name: bookName,
@@ -142,11 +160,16 @@ export const BibleService = {
   // Obter capítulo por slug
   getChapterBySlug: async (slug: string, chapter: number): Promise<Chapter | null> => {
     try {
+      console.log(`Buscando capítulo ${chapter} do livro com slug ${slug}...`);
       // Primeiro, obter o livro pelo slug
       const book = await BibleService.getBookBySlug(slug);
-      if (!book) return null;
+      if (!book) {
+        console.log(`Livro não encontrado com o slug: ${slug}`);
+        return null;
+      }
       
       // Usar o ID do livro para obter o capítulo
+      console.log(`Obtendo o capítulo usando o ID do livro: ${book.id}`);
       return await BibleService.getChapter(book.id, chapter);
     } catch (error) {
       console.error(`Erro ao buscar capítulo ${chapter} para o livro com slug ${slug}:`, error);
@@ -157,13 +180,19 @@ export const BibleService = {
   // Obter contagem de capítulos para um livro
   getChapterCount: async (bookId: number): Promise<number> => {
     try {
+      console.log(`Buscando contagem de capítulos para o livro ID ${bookId}...`);
       const { data, error } = await supabase
         .from('books_mv')
         .select('chapter_count')
         .eq('id', bookId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error(`Erro na busca de contagem de capítulos para o livro ID ${bookId}:`, error);
+        throw error;
+      }
+      
+      console.log(`Contagem de capítulos para o livro ID ${bookId}: ${data?.chapter_count || 0}`);
       return data ? data.chapter_count : 0;
     } catch (error) {
       console.error(`Erro ao buscar contagem de capítulos para o livro ${bookId}:`, error);

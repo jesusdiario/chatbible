@@ -16,11 +16,18 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
 }) => {
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
-    if (translation === BibleTranslation.Default || !verse[translation]) {
-      return verse.text_naa || verse.text_nvi || verse.text_acf; // Default to NAA or any available text
+    // Primeiro, verificar a tradução selecionada
+    if (translation === BibleTranslation.Default) {
+      // Se for a tradução padrão (NAA), procurar nessa ordem:
+      return verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || '';
     }
-    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf; // Fallback if translation not available
+    
+    // Se uma tradução específica foi selecionada, tentar usá-la primeiro
+    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || '';
   };
+
+  // Logging para debugging
+  console.log(`Renderizando versículo ${verse.verse} com tradução ${translation}`, verse);
 
   return (
     <div className="group flex mb-4">

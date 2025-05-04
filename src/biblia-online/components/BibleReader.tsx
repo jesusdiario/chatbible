@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
@@ -9,6 +9,7 @@ import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
+import { Loader2 } from 'lucide-react';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -20,6 +21,7 @@ export const BibleReader: React.FC = () => {
     chapterData,
     isLoading,
     chapterCount,
+    error,
     navigateToBook,
     goToPreviousChapter,
     goToNextChapter,
@@ -29,6 +31,19 @@ export const BibleReader: React.FC = () => {
   } = useBible();
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
+
+  // Logging para debugging
+  useEffect(() => {
+    console.log("Estado atual do BibleReader:", { 
+      currentBookId, 
+      currentBookSlug, 
+      currentChapter, 
+      isLoading, 
+      chapterCount,
+      hasChapterData: !!chapterData,
+      versesCount: chapterData?.verses?.length || 0
+    });
+  }, [currentBookId, currentBookSlug, currentChapter, isLoading, chapterData, chapterCount]);
 
   // Manipular a navegação de livros
   const handleOpenBooksNav = () => {
@@ -53,6 +68,23 @@ export const BibleReader: React.FC = () => {
     handleOpenBooksNav();
   };
 
+  // Renderizar mensagem de erro ou conteúdo vazio
+  const renderEmptyOrError = () => {
+    if (error) {
+      return (
+        <div className="flex flex-col justify-center items-center h-64 text-gray-500">
+          <p className="mb-2 text-red-500">{error}</p>
+          <p>Tente selecionar outro livro ou capítulo</p>
+        </div>
+      );
+    }
+    return (
+      <div className="flex justify-center items-center h-64 text-gray-500">
+        Nenhum conteúdo disponível
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
       <BibleHeader 
@@ -65,10 +97,11 @@ export const BibleReader: React.FC = () => {
       
       <ScrollArea className="flex-1 pb-32">
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex flex-col justify-center items-center h-64">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-gray-500">Carregando conteúdo...</p>
           </div>
-        ) : chapterData ? (
+        ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
@@ -87,9 +120,7 @@ export const BibleReader: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex justify-center items-center h-64 text-gray-500">
-            Nenhum conteúdo disponível
-          </div>
+          renderEmptyOrError()
         )}
       </ScrollArea>
       
