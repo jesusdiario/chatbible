@@ -3,7 +3,6 @@ import React from 'react';
 import { Verse } from '@/types/biblia';
 import { Button } from '@/components/ui/button';
 import { BookmarkIcon, Share2Icon, CopyIcon } from 'lucide-react';
-import { useVerseFavorites } from '@/hooks/useVerseFavorites';
 
 export enum BibleTranslation {
   NVI = 'text_nvi',
@@ -33,10 +32,10 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
 }) => {
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
-    if (translation === BibleTranslation.Default || !verse[translation]) {
-      return verse.text_naa || verse.text_nvi || verse.text_acf; // Default to NAA or any available text
+    if (translation === BibleTranslation.Default) {
+      return verse.text || verse.text_naa || verse.text_nvi || verse.text_acf || '';
     }
-    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf; // Fallback if translation not available
+    return verse[translation] || verse.text || verse.text_naa || verse.text_nvi || verse.text_acf || '';
   };
 
   const handleCopyVerse = () => {

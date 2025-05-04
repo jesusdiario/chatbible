@@ -30,4 +30,5 @@ export interface Verse {
   text_naa?: string | null;
   text_ntlh?: string | null;
   text_nvt?: string | null;
+  [key: string]: any; // Para permitir acesso dinâmico à tradução pelo nome
 }

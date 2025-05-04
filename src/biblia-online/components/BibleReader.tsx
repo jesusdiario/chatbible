@@ -74,6 +74,7 @@ export const BibleReader: React.FC = () => {
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
               <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
+              <h3 className="italic text-zinc-950 text-sm">jesusdiario.com.br</h3>
             </div>
             
             <div className="mt-8 mb-32">
