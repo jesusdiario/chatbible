@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,10 +80,14 @@ const Sidebar = ({
   }, [isOpen]);
 
   return <>
-      <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
-        <nav className="flex h-full w-full flex-col p-4" aria-label="Menu Principal">
+      <div className={cn(
+        "fixed top-0 left-0 z-40 h-screen transition-all duration-300",
+        "bg-white border-r", 
+        isOpen ? "w-full sm:w-4/5 md:w-64" : "w-0"
+      )}>
+        <nav className="flex h-full w-full flex-col p-4 relative" aria-label="Menu Principal">
           {isOpen && <>
-              {/* User Profile Section - Now at the top */}
+              {/* User Profile Section - at the top */}
               <UserProfileSection userProfile={userProfile} onToggle={onToggle} />
               
               {/* Navigation Menu Section */}
@@ -90,13 +95,20 @@ const Sidebar = ({
               
               <div className="flex-1"></div>
               
-              {/* Subscription section - Kept at the bottom */}
-              <SubscriptionSection onOpenSubscriptionModal={() => setShowSubscriptionModal(true)} />
+              {/* Subscription section - Fixed at the bottom */}
+              <div className="sticky bottom-0 left-0 right-0 mt-auto bg-white pt-2 border-t">
+                <SubscriptionSection onOpenSubscriptionModal={() => setShowSubscriptionModal(true)} />
+              </div>
             </>}
         </nav>
       </div>
       
-      {isOpen && <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30" onClick={onToggle} aria-hidden="true" />}
+      {/* Dark overlay that covers the remaining 20% of screen */}
+      {isOpen && <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-30" 
+        onClick={onToggle} 
+        aria-hidden="true" 
+      />}
       
       <SubscriptionModal isOpen={showSubscriptionModal} onClose={() => setShowSubscriptionModal(false)} />
     </>;
