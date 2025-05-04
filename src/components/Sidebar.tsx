@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,20 +80,28 @@ const Sidebar = ({
   }, [isOpen]);
 
   return <>
-      <div className={cn("fixed top-0 left-0 z-40 h-screen transition-all duration-300", "bg-white border-r", isOpen ? "w-full md:w-64" : "w-0")}>
-        <nav className="flex h-full w-full flex-col p-4" aria-label="Menu Principal">
-          {isOpen && <>
-              {/* User Profile Section - Now at the top */}
+      <div className={cn(
+        "fixed top-0 left-0 z-40 h-screen transition-all duration-300", 
+        "bg-white border-r flex flex-col", 
+        isOpen ? "w-4/5 md:w-64" : "w-0"
+      )}>
+        <nav className="flex flex-col h-full overflow-y-auto">
+          <div className="p-4 flex-grow">
+            {isOpen && <>
+              {/* User Profile Section */}
               <UserProfileSection userProfile={userProfile} onToggle={onToggle} />
               
               {/* Navigation Menu Section */}
               <NavigationSection />
-              
-              <div className="flex-1"></div>
-              
-              {/* Subscription section - Kept at the bottom */}
-              <SubscriptionSection onOpenSubscriptionModal={() => setShowSubscriptionModal(true)} />
             </>}
+          </div>
+          
+          {/* Subscription section - Fixed at the bottom */}
+          {isOpen && 
+            <div className="p-4 border-t">
+              <SubscriptionSection onOpenSubscriptionModal={() => setShowSubscriptionModal(true)} />
+            </div>
+          }
         </nav>
       </div>
       

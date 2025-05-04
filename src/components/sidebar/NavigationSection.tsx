@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Book, BookOpen, MessageSquare, History, FileText, Home } from 'lucide-react';
+import { Book, BookOpen, MessageSquare, FileText, Home } from 'lucide-react';
 
 type NavigationItem = {
   href: string;
@@ -17,6 +17,11 @@ export default function NavigationSection() {
       label: 'Início'
     },
     {
+      href: '/biblia-online',
+      icon: <BookOpen className="h-5 w-5" />,
+      label: 'Bíblia Online'
+    },
+    {
       href: '/livros-da-biblia',
       icon: <Book className="h-5 w-5" />,
       label: 'Livros da Bíblia'
@@ -30,16 +35,6 @@ export default function NavigationSection() {
       href: '/teologia-crista',
       icon: <MessageSquare className="h-5 w-5" />,
       label: 'Teologia Cristã'
-    },
-    {
-      href: '/history',
-      icon: <History className="h-5 w-5" />,
-      label: 'Histórico'
-    },
-    {
-      href: '/biblia-online',
-      icon: <BookOpen className="h-5 w-5" />,
-      label: 'Bíblia Online'
     }
   ];
 
