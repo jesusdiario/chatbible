@@ -1,116 +1,84 @@
 
-import { useState, useEffect } from 'react';
-import { useBibleBooks } from './bible/useBibleBooks';
-import { useBibleChapter } from './bible/useBibleChapter';
-import { useBibleNavigation } from './bible/useBibleNavigation';
-import { useBibleFavorites } from './bible/useBibleFavorites';
-import { BibleBook } from '@/types/biblia';
+import { useQuery } from '@tanstack/react-query';
+import { getBibleCategories, getBibleBooks, BibleCategory, BibleBook } from '@/services/bibleService';
 
-// Interface para categorias 
-interface Category {
-  slug: string;
-  title: string;
-  description?: string;
-}
+// Mapa para corrigir slugs que não correspondem exatamente
+const categorySlugMap: Record<string, string> = {
+  'historico': 'historicos',
+  'novo_testamento': 'novo-testamento',
+  'cartas_paulinas': 'cartas-paulinas',
+  'cartas_gerais': 'cartas-gerais',
+  'apocalipse': 'apocalipse',
+  'poetico': 'poeticos',
+  'profetico': 'profeticos'
+};
 
-export function useBibleData() {
-  // Composição de hooks
-  const { books, loading: loadingBooks, error: booksError } = useBibleBooks();
-  const { currentBook, currentChapter, selectBook, navigateToChapter, nextChapter, previousChapter, initializeBook } = 
-    useBibleNavigation(books, 0);
-  const { chapterCount, verses, loading: loadingVerses, error: versesError } = 
-    useBibleChapter(currentBook, currentChapter);
-  
-  // Estados adicionais para categorias e organização de livros por categoria
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [booksByCategory, setBooksByCategory] = useState<Record<string, BibleBook[]>>({});
-  
-  // Inicializar o livro atual quando os livros são carregados
-  useEffect(() => {
-    initializeBook(books);
-  }, [books]);
+// Normaliza slugs para comparação
+const normalizeSlug = (slug: string) => 
+  slug?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-  // Organizar livros por categoria
-  useEffect(() => {
-    if (books.length > 0) {
-      // Criar conjunto único de categorias
-      const uniqueCategories = Array.from(new Set(books.map(book => book.category_slug)));
-      
-      // Criar objetos de categoria
-      const cats = uniqueCategories.map(slug => ({
-        slug,
-        title: getCategoryTitle(slug),
-        description: ''
-      }));
-      
-      // Organizar livros por categoria
-      const booksByCat: Record<string, BibleBook[]> = {};
-      uniqueCategories.forEach(cat => {
-        booksByCat[cat] = books.filter(book => book.category_slug === cat);
-      });
-      
-      setCategories(cats);
-      setBooksByCategory(booksByCat);
-    }
-  }, [books]);
+export const useBibleData = () => {
+  const { 
+    data: categories = [], 
+    isLoading: catLoading, 
+    isError: catError, 
+    error: catErr 
+  } = useQuery({
+    queryKey: ['bible_categories'],
+    queryFn: getBibleCategories
+  });
+
+  const { 
+    data: books = [], 
+    isLoading: booksLoading, 
+    isError: booksError, 
+    error: booksErr 
+  } = useQuery({
+    queryKey: ['bible_books'],
+    queryFn: getBibleBooks
+  });
+
+  // Agrupa livros por categoria
+  const booksByCategory: Record<string, BibleBook[]> = {};
   
-  // Função auxiliar para obter título da categoria a partir do slug
-  const getCategoryTitle = (slug: string): string => {
-    const titles: Record<string, string> = {
-      'pentateuco': 'Pentateuco',
-      'historico': 'Históricos',
-      'poetico': 'Poéticos',
-      'profetico': 'Proféticos',
-      'novo_testamento': 'Novo Testamento',
-      'cartas_paulinas': 'Cartas Paulinas',
-      'cartas_gerais': 'Cartas Gerais',
-      'apocalipse': 'Apocalipse',
-      'temas': 'Temas Bíblicos',
-      'teologia': 'Teologia'
-    };
+  // Inicializa arrays vazios para todas as categorias
+  categories.forEach(category => {
+    const normalizedCategorySlug = normalizeSlug(category.slug);
+    booksByCategory[normalizedCategorySlug] = [];
+  });
+  
+  // Adiciona todos os livros às suas respectivas categorias
+  books.forEach(book => {
+    let normalizedCategorySlug = normalizeSlug(book.category_slug);
     
-    return titles[slug] || slug;
-  };
+    // Aplica mapeamento se existir no dicionário de correção
+    if (categorySlugMap[book.category_slug]) {
+      normalizedCategorySlug = normalizeSlug(categorySlugMap[book.category_slug]);
+    }
+    
+    if (!booksByCategory[normalizedCategorySlug]) {
+      // Se a categoria ainda não existir no objeto, inicializa
+      booksByCategory[normalizedCategorySlug] = [];
+    }
+    booksByCategory[normalizedCategorySlug].push(book);
+  });
 
-  // Exportamos o objeto de favoritos diretamente
-  const bibleFavorites = useBibleFavorites();
+  // Adiciona logs para debug
+  console.log("Categorias disponíveis:", categories.map(c => c.slug));
+  console.log("Livros por categoria:", booksByCategory);
+  console.log("Mapeamento de categoria:", categorySlugMap);
 
-  // Estado consolidado
-  const loading = loadingBooks || loadingVerses;
-  const error = booksError || versesError;
-  
-  // Flag para indicar se houve erro
-  const isError = !!error;
-  const isLoading = loading;
+  // Ordena livros dentro de cada categoria por display_order
+  Object.keys(booksByCategory).forEach(categorySlug => {
+    booksByCategory[categorySlug].sort((a, b) => a.display_order - b.display_order);
+  });
 
   return {
-    // Dados
-    books,
-    currentBook,
-    currentChapter,
-    chapterCount,
-    verses,
-    
-    // Categorias e organizações
     categories,
+    books,
     booksByCategory,
-    
-    // Estado
-    loading,
-    isLoading,
-    error,
-    isError,
-    
-    // Ações
-    selectBook,
-    navigateToChapter,
-    nextChapter,
-    previousChapter,
-    
-    // Favoritos
-    ...bibleFavorites
+    isLoading: catLoading || booksLoading,
+    isError: catError || booksError,
+    error: catErr || booksErr
   };
-}
-
-// Re-exportamos o hook de favoritos para manter compatibilidade com o código existente
-export { useBibleFavorites } from './bible/useBibleFavorites';
+};

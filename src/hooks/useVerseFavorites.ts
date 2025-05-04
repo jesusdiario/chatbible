@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Verse } from '@/types/biblia';
-import { useBibleFavorites } from './bible/useBibleFavorites';
+import { useBibleFavorites } from './useBiblia';
 
 export function useVerseFavorites() {
   const { isFavorite, addFavorite, removeFavorite } = useBibleFavorites();

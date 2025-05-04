@@ -1,15 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
 import { ChapterNavigation } from './ChapterNavigation';
-import { BibleVerseConnected } from './BibleVerseConnected';
+import { BibleVerse } from './BibleVerse';
 import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BibleTranslation } from './BibleVerse';
-import { Verse } from '@/types/biblia'; 
+import { BibleTranslation } from '../services/bibleService';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -53,21 +52,6 @@ export const BibleReader: React.FC = () => {
   const handleFooterClick = () => {
     handleOpenBooksNav();
   };
-  
-  // Debugging
-  useEffect(() => {
-    if (chapterData) {
-      console.log("BibleReader - chapterData:", {
-        book_id: chapterData.book_id,
-        book_name: chapterData.book_name,
-        chapter: chapterData.chapter,
-        verses_count: chapterData.verses.length,
-        first_verse: chapterData.verses.length > 0 ? chapterData.verses[0] : null
-      });
-    } else {
-      console.log("BibleReader - chapterData is null");
-    }
-  }, [chapterData]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
@@ -84,32 +68,22 @@ export const BibleReader: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
+        ) : chapterData ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
               <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
-              <h3 className="italic text-zinc-950 text-sm">jesusdiario.com.br</h3>
             </div>
             
             <div className="mt-8 mb-32">
-              {chapterData.verses.map(verse => {
-                // Ensure the verse has the 'text' property set
-                const verseWithText: Verse = {
-                  ...verse,
-                  // Use the specified translation or fall back to a default
-                  text: verse[currentTranslation] || verse.text || verse.text_naa || verse.text_nvi || verse.text_acf || "Texto não disponível"
-                };
-                
-                return (
-                  <BibleVerseConnected 
-                    key={verse.id} 
-                    verse={verseWithText}
-                    translation={currentTranslation} 
-                    showActions={true} 
-                  />
-                );
-              })}
+              {chapterData.verses.map(verse => (
+                <BibleVerse 
+                  key={verse.id} 
+                  verse={verse} 
+                  translation={currentTranslation} 
+                  showActions={true} 
+                />
+              ))}
             </div>
           </div>
         ) : (

@@ -71,8 +71,6 @@ export function useBible() {
           chapter = await BibleService.getChapter(currentBookId, adjustedChapter);
         }
         
-        console.log("Chapter loaded:", chapter?.book_name, chapter?.chapter, chapter?.verses?.length);
-        
         setChapterData(chapter);
       } catch (error) {
         console.error('Erro ao carregar capítulo:', error);
