@@ -10,6 +10,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Menu, Search, MoreHorizontal } from 'lucide-react';
+import { useSidebarControl } from '@/hooks/useSidebarControl';
 
 interface BibleHeaderProps {
   bookName: string;
@@ -26,6 +27,8 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   currentTranslation,
   onChangeTranslation,
 }) => {
+  const { toggleSidebar } = useSidebarControl();
+  
   const getTranslationLabel = () => {
     switch (currentTranslation) {
       case BibleTranslation.NVI:
@@ -54,7 +57,12 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   return (
     <div className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 border-b">
       <div className="flex space-x-4">
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="rounded-full"
+          onClick={toggleSidebar}
+        >
           <Menu className="h-5 w-5" />
         </Button>
         
