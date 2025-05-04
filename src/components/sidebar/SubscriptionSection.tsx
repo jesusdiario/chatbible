@@ -7,7 +7,7 @@ interface SubscriptionSectionProps {
 
 const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onOpenSubscriptionModal }) => {
   return (
-    <div className="py-2">
+    <div className="mt-auto border-t pt-3">
       <button 
         className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-100" 
         onClick={onOpenSubscriptionModal}
