@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Verse, BibleTranslation } from '@/biblia-online/services/bibleService';
+import { Verse, BibleTranslation } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
 
 interface BibleVerseProps {
@@ -17,9 +17,9 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
     if (translation === BibleTranslation.Default || !verse[translation]) {
-      return verse.text_naa || verse.text || ''; // Default to NAA or any available text
+      return verse.text_naa || verse.text_nvi || verse.text_acf; // Default to NAA or any available text
     }
-    return verse[translation] || verse.text_naa || verse.text || ''; // Fallback if translation not available
+    return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf; // Fallback if translation not available
   };
 
   return (

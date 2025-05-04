@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { Button } from './ui/button';
-import { ChevronDown, Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { BibleTranslation } from '../services/bibleService';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Menu, Search, MoreHorizontal } from 'lucide-react';
 
 interface BibleHeaderProps {
   bookName: string;
   chapter: number;
   onOpenBooksNav: () => void;
-  onOpenChapterNav?: () => void;
   currentTranslation: BibleTranslation;
   onChangeTranslation: (translation: BibleTranslation) => void;
 }
@@ -23,13 +23,11 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   bookName,
   chapter,
   onOpenBooksNav,
-  onOpenChapterNav,
   currentTranslation,
   onChangeTranslation,
 }) => {
-  // Helper to convert translation enum to display name
-  const getTranslationName = (translation: BibleTranslation): string => {
-    switch (translation) {
+  const getTranslationLabel = () => {
+    switch (currentTranslation) {
       case BibleTranslation.NVI:
         return 'NVI';
       case BibleTranslation.ACF:
@@ -49,50 +47,49 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
     }
   };
 
+  const handleTranslationChange = (value: string) => {
+    onChangeTranslation(value as BibleTranslation);
+  };
+
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="flex items-center justify-between p-4">
-        <Button variant="ghost" size="icon" onClick={onOpenBooksNav}>
-          <Menu className="h-6 w-6" />
+    <div className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 border-b">
+      <div className="flex space-x-4">
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <Menu className="h-5 w-5" />
         </Button>
-
-        <div className="flex items-center space-x-2" onClick={onOpenChapterNav || onOpenBooksNav}>
-          <span className="font-medium text-lg">{bookName}</span>
-          <span className="font-medium text-lg">{chapter}</span>
-          <ChevronDown className="h-4 w-4" />
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {getTranslationName(currentTranslation)}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.NVI)}>
-              Nova Versão Internacional (NVI)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.ACF)}>
-              Almeida Corrigida Fiel (ACF)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.ARA)}>
-              Almeida Revista e Atualizada (ARA)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.ARC)}>
-              Almeida Revista e Corrigida (ARC)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.NAA)}>
-              Nova Almeida Atualizada (NAA)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.NTLH)}>
-              Nova Tradução na Linguagem de Hoje (NTLH)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onChangeTranslation(BibleTranslation.NVT)}>
-              Nova Versão Transformadora (NVT)
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <Search className="h-5 w-5" />
+        </Button>
       </div>
-    </header>
+      
+      <div className="flex items-center">
+        <Select 
+          value={currentTranslation}
+          onValueChange={handleTranslationChange}
+        >
+          <SelectTrigger className="px-4 py-2 rounded-full bg-gray-100 font-medium w-24">
+            <SelectValue placeholder={getTranslationLabel()} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={BibleTranslation.NAA}>NAA</SelectItem>
+            <SelectItem value={BibleTranslation.NVI}>NVI</SelectItem>
+            <SelectItem value={BibleTranslation.ACF}>ACF</SelectItem>
+            <SelectItem value={BibleTranslation.ARA}>ARA</SelectItem>
+            <SelectItem value={BibleTranslation.ARC}>ARC</SelectItem>
+            <SelectItem value={BibleTranslation.NTLH}>NTLH</SelectItem>
+            <SelectItem value={BibleTranslation.NVT}>NVT</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button 
+          variant="ghost" 
+          className="ml-2 font-medium"
+          onClick={onOpenBooksNav}
+        >
+          {bookName} {chapter}
+        </Button>
+      </div>
+    </div>
   );
 };

@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import { useBible } from '../hooks/useBible';
-import { Sheet, SheetContent } from '../components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
 import { ChapterNavigation } from './ChapterNavigation';
 import { BibleVerse } from './BibleVerse';
 import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
-import { ScrollArea } from '../components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
 
 export const BibleReader: React.FC = () => {
@@ -53,15 +53,12 @@ export const BibleReader: React.FC = () => {
     handleOpenBooksNav();
   };
 
-  const hasVerses = chapterData && chapterData.verses && chapterData.verses.length > 0;
-
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
       <BibleHeader 
         bookName={getCurrentBookName()} 
         chapter={currentChapter} 
-        onOpenBooksNav={handleOpenBooksNav}
-        onOpenChapterNav={handleOpenChapterNav}
+        onOpenBooksNav={handleOpenBooksNav} 
         currentTranslation={currentTranslation} 
         onChangeTranslation={changeTranslation} 
       />
@@ -76,38 +73,22 @@ export const BibleReader: React.FC = () => {
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
               <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
-              <h3 className="italic text-zinc-950 text-sm">jesusdiario.com.br</h3>
             </div>
             
             <div className="mt-8 mb-32">
-              {hasVerses ? (
-                chapterData.verses.map(verse => (
-                  <BibleVerse 
-                    key={verse.id} 
-                    verse={verse} 
-                    translation={currentTranslation} 
-                    showActions={true} 
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-10">
-                  <p className="text-xl mb-4">Nenhum versículo encontrado para este capítulo.</p>
-                  <p>Este capítulo pode estar em processo de atualização.</p>
-                </div>
-              )}
+              {chapterData.verses.map(verse => (
+                <BibleVerse 
+                  key={verse.id} 
+                  verse={verse} 
+                  translation={currentTranslation} 
+                  showActions={true} 
+                />
+              ))}
             </div>
           </div>
         ) : (
           <div className="flex justify-center items-center h-64 text-gray-500">
-            <p className="text-center">
-              Nenhum conteúdo disponível para este capítulo. 
-              <button 
-                onClick={handleOpenBooksNav} 
-                className="ml-2 text-blue-500 hover:underline"
-              >
-                Selecione outro livro
-              </button>
-            </p>
+            Nenhum conteúdo disponível
           </div>
         )}
       </ScrollArea>
