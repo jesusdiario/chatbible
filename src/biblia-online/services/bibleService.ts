@@ -131,8 +131,10 @@ export const BibleService = {
       const versesWithText = verses.map(verse => ({
         ...verse,
         // Set 'text' to the default translation or first available text
-        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || null
+        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || ''
       }));
+
+      console.log("Verses from getChapter:", versesWithText.length, versesWithText[0]);
 
       return {
         book_id: bookId,

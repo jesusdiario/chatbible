@@ -53,6 +53,21 @@ export const BibleReader: React.FC = () => {
   const handleFooterClick = () => {
     handleOpenBooksNav();
   };
+  
+  // Debugging
+  useEffect(() => {
+    if (chapterData) {
+      console.log("BibleReader - chapterData:", {
+        book_id: chapterData.book_id,
+        book_name: chapterData.book_name,
+        chapter: chapterData.chapter,
+        verses_count: chapterData.verses.length,
+        first_verse: chapterData.verses.length > 0 ? chapterData.verses[0] : null
+      });
+    } else {
+      console.log("BibleReader - chapterData is null");
+    }
+  }, [chapterData]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
@@ -69,7 +84,7 @@ export const BibleReader: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : chapterData ? (
+        ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
@@ -83,7 +98,7 @@ export const BibleReader: React.FC = () => {
                 const verseWithText: Verse = {
                   ...verse,
                   // Use the specified translation or fall back to a default
-                  text: verse[currentTranslation] || verse.text_naa || verse.text_nvi || verse.text_acf || null
+                  text: verse[currentTranslation] || verse.text || verse.text_naa || verse.text_nvi || verse.text_acf || "Texto não disponível"
                 };
                 
                 return (
