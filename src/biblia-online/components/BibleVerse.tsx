@@ -16,10 +16,27 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
 }) => {
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
-    if (translation === BibleTranslation.Default || !verse[translation]) {
-      return verse.text_naa || verse.text; // Default para NAA ou qualquer texto disponível
+    // Primeiro verificamos se a tradução selecionada existe
+    if (verse[translation]) {
+      return verse[translation];
     }
-    return verse[translation] || verse.text_naa || verse.text; // Fallback se tradução não disponível
+    
+    // Se não existir, usamos o fallback para text_naa (que é o padrão)
+    if (verse.text_naa) {
+      return verse.text_naa;
+    }
+    
+    // Verificamos outras traduções comuns como fallback
+    if (verse.text_nvi) {
+      return verse.text_nvi;
+    }
+    
+    if (verse.text_acf) {
+      return verse.text_acf;
+    }
+    
+    // Por último, tentamos o campo genérico text ou mostramos mensagem de indisponível
+    return verse.text || "Texto não disponível";
   };
 
   const verseText = getVerseText();

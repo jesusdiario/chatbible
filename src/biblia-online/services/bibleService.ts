@@ -28,6 +28,7 @@ export interface Verse {
   book_name?: string;
   book_slug?: string;
   [key: string]: any; // Allow dynamic access to translation fields
+  text?: string; // Adicionando campo text para compatibilidade
 }
 
 // Interface para capítulo
@@ -130,6 +131,7 @@ export const BibleService = {
   getChapter: async (bookId: number, chapter: number): Promise<Chapter | null> => {
     try {
       console.log(`BibleService: Fetching chapter ${chapter} from book ID ${bookId}...`);
+      
       // Obter versículos para o capítulo
       const { data: verses, error: versesError } = await supabase
         .from('verses')
@@ -145,6 +147,24 @@ export const BibleService = {
 
       if (!verses || verses.length === 0) {
         console.warn(`BibleService: No verses found for book ${bookId}, chapter ${chapter}`);
+        
+        // Tentativa de recuperação: buscar informações do livro mesmo sem versículos
+        const { data: bookData } = await supabase
+          .from('books_mv')
+          .select('name')
+          .eq('id', bookId)
+          .single();
+          
+        if (bookData) {
+          return {
+            book_id: bookId,
+            book_name: bookData.name,
+            book_slug: '', // Não temos o slug neste caso
+            chapter: chapter,
+            verses: []
+          };
+        }
+        
         return null;
       }
 
@@ -154,12 +174,18 @@ export const BibleService = {
       const bookName = verses[0].book_name || '';
       const bookSlug = verses[0].book_slug || '';
 
+      // Garantir que todos os versículos tenham um campo text que reflita a tradução padrão
+      const enhancedVerses = verses.map(verse => ({
+        ...verse,
+        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text
+      }));
+
       return {
         book_id: bookId,
         book_name: bookName,
         book_slug: bookSlug,
         chapter: chapter,
-        verses: verses
+        verses: enhancedVerses
       };
     } catch (error) {
       console.error(`BibleService Error (getChapter - book: ${bookId}, chapter: ${chapter}):`, error);

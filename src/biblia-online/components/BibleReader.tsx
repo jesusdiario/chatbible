@@ -71,33 +71,43 @@ export const BibleReader: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : hasVerses ? (
+        ) : chapterData ? (
           <div className="p-4 max-w-2xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
               <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
+              <h3 className="italic text-zinc-950 text-sm">jesusdiario.com.br</h3>
             </div>
             
             <div className="mt-8 mb-32">
-              {chapterData.verses.map(verse => (
-                <BibleVerse 
-                  key={verse.id} 
-                  verse={verse} 
-                  translation={currentTranslation} 
-                  showActions={true} 
-                />
-              ))}
+              {hasVerses ? (
+                chapterData.verses.map(verse => (
+                  <BibleVerse 
+                    key={verse.id} 
+                    verse={verse} 
+                    translation={currentTranslation} 
+                    showActions={true} 
+                  />
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-10">
+                  <p className="text-xl mb-4">Nenhum versículo encontrado para este capítulo.</p>
+                  <p>Este capítulo pode estar em processo de atualização.</p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
           <div className="flex justify-center items-center h-64 text-gray-500">
-            Nenhum conteúdo disponível para este capítulo. 
-            <button 
-              onClick={handleOpenBooksNav} 
-              className="ml-2 text-blue-500 hover:underline"
-            >
-              Selecione outro livro
-            </button>
+            <p className="text-center">
+              Nenhum conteúdo disponível para este capítulo. 
+              <button 
+                onClick={handleOpenBooksNav} 
+                className="ml-2 text-blue-500 hover:underline"
+              >
+                Selecione outro livro
+              </button>
+            </p>
           </div>
         )}
       </ScrollArea>

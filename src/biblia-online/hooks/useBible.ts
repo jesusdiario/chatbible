@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BibleService, Book, Chapter, BibleTranslation } from '../services/bibleService';
 import { useToast } from '../hooks/use-toast';
@@ -74,20 +73,39 @@ export function useBible() {
         
         // Carregar os dados do capítulo usando o slug para melhor SEO
         let chapter: Chapter | null = null;
+        // Primeiro tentar pelo slug (para SEO)
         chapter = await BibleService.getChapterBySlug(currentBookSlug, adjustedChapter);
         
-        if (!chapter) {
-          console.log('useBible: Falling back to ID-based chapter fetch');
+        // Fallback para ID se o slug falhar
+        if (!chapter || (chapter.verses && chapter.verses.length === 0)) {
+          console.log('useBible: No verses found using slug, falling back to ID-based chapter fetch');
           chapter = await BibleService.getChapter(currentBookId, adjustedChapter);
         }
         
-        if (chapter && chapter.verses.length > 0) {
-          console.log(`useBible: Loaded chapter with ${chapter.verses.length} verses`);
+        if (chapter) {
+          if (chapter.verses && chapter.verses.length > 0) {
+            console.log(`useBible: Loaded chapter with ${chapter.verses.length} verses`);
+          } else {
+            console.log('useBible: Chapter loaded but no verses found');
+          }
+          setChapterData(chapter);
         } else {
-          console.log('useBible: No verses found for chapter');
+          console.log('useBible: No chapter data found');
+          // Criar um capítulo vazio para mostrar que não existem versículos
+          setChapterData({
+            book_id: currentBookId,
+            book_name: books.find(b => b.id === currentBookId)?.book_name || 'Desconhecido',
+            book_slug: currentBookSlug,
+            chapter: adjustedChapter,
+            verses: []
+          });
+          
+          toast({
+            title: 'Informação',
+            description: `Não foram encontrados versículos para este capítulo`,
+            variant: 'default',
+          });
         }
-        
-        setChapterData(chapter);
       } catch (error) {
         console.error('useBible Error (loadChapter):', error);
         toast({
@@ -95,13 +113,21 @@ export function useBible() {
           description: `Não foi possível carregar o capítulo ${currentChapter}`,
           variant: 'destructive',
         });
+        // Mesmo em caso de erro, definimos um objeto vazio para evitar problemas na UI
+        setChapterData({
+          book_id: currentBookId,
+          book_name: books.find(b => b.id === currentBookId)?.book_name || 'Desconhecido',
+          book_slug: currentBookSlug,
+          chapter: currentChapter,
+          verses: []
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadChapter();
-  }, [currentBookId, currentBookSlug, currentChapter, toast]);
+  }, [currentBookId, currentBookSlug, currentChapter, books, toast]);
 
   // Navegar para outro livro
   const navigateToBook = (bookId: number, bookSlug?: string) => {
