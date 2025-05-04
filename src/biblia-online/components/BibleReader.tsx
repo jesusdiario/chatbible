@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import { useBible } from '../hooks/useBible';
-import { Sheet, SheetContent } from '../components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
 import { ChapterNavigation } from './ChapterNavigation';
 import { BibleVerse } from './BibleVerse';
 import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
-import { ScrollArea } from '../components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
 
 export const BibleReader: React.FC = () => {
