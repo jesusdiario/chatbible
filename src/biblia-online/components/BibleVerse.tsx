@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Verse, BibleTranslation } from '../services/bibleService';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 
 interface BibleVerseProps {
   verse: Verse;
