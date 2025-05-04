@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { BibleService, Book, Chapter, BibleTranslation } from '../services/bibleService';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 
 export function useBible() {
   const [books, setBooks] = useState<Book[]>([]);
