@@ -35,7 +35,7 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
       return verse.text_acf;
     }
     
-    // Por último, tentamos o campo genérico text ou mostramos mensagem de indisponível
+    // Último fallback para qualquer tradução disponível
     return verse.text || "Texto não disponível";
   };
 

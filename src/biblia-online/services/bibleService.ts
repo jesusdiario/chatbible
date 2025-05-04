@@ -177,7 +177,7 @@ export const BibleService = {
       // Garantir que todos os versículos tenham um campo text que reflita a tradução padrão
       const enhancedVerses = verses.map(verse => ({
         ...verse,
-        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text
+        text: verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || ''
       }));
 
       return {
