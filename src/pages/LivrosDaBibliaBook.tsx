@@ -1,21 +1,14 @@
 
 import React, { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import BookChatLayout from "@/components/BookChatLayout";
 import BookLoadingState from "@/components/BookLoadingState";
 import BookErrorState from "@/components/BookErrorState";
 import BookChatContainer from "@/components/BookChatContainer";
 import { useBibleBook } from "@/hooks/useBibleBook";
 
-interface LocationState {
-  initialPrompt?: string;
-  systemPrompt?: string;
-}
-
 const LivrosDaBibliaBook = () => {
   const { book, slug } = useParams<{ book?: string, slug?: string }>();
-  const location = useLocation();
-  const state = location.state as LocationState | null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { bookDetails, loadingBook } = useBibleBook(book);
 
@@ -44,8 +37,6 @@ const LivrosDaBibliaBook = () => {
             bookDetails={bookDetails}
             book={book}
             slug={slug}
-            initialPrompt={state?.initialPrompt}
-            systemPrompt={state?.systemPrompt}
           />
         </div>
       </div>

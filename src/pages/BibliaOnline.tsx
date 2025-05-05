@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import BibleReaderPage from '../biblia-online/pages/BibleReaderPage';
 import LivrosDaBibliaBook from './LivrosDaBibliaBook';
 
