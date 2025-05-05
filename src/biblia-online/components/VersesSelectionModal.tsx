@@ -101,56 +101,53 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
           <DialogTitle className="text-center">{verseReference}</DialogTitle>
         </DialogHeader>
         
-        <div className="py-4 space-y-4">
-  {isLoadingButtons ? (
-    <div className="flex justify-center py-8">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-    </div>
-  ) : (
-    <>
-      <div className="grid grid-cols-2 gap-3">
-        {buttons.map(button => (
-          <Button
-            key={button.id}
-            variant="outline"
-            className="flex items-center justify-center gap-2 h-14"
-            onClick={() => handleButtonClick(button)}
-          >
-            {getButtonIcon(button.button_icon)}
-            <span>{button.button_name}</span>
-          </Button>
-        ))}
-
-        {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
-          <Button
-            variant="outline"
-            className="flex items-center justify-center gap-2 h-14"
-            onClick={handleCopyVerses}
-          >
-            <Copy className="w-5 h-5" />
-            <span>Copiar</span>
-          </Button>
-        )}
-
-        {clearSelection && (
-          <Button
-            variant="outline"
-            className="flex items-center justify-center gap-2 h-14 text-red-500 hover:text-red-600 hover:bg-red-50"
-            onClick={clearSelection}
-          >
-            <Trash2 className="w-5 h-5" />
-            <span>Limpar seleção</span>
-          </Button>
-        )}
-      </div>
-
-      {/* ✅ Mensagem adicionada abaixo dos botões */}
-      <div className="text-center text-sm text-muted-foreground">
-        Você pode fechar esta janela para selecionar mais versículos.
-      </div>
-    </>
-  )}
-</div>
+        <div className="py-4">
+          {isLoadingButtons ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {buttons.map(button => (
+                <Button
+                  key={button.id}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-14"
+                  onClick={() => handleButtonClick(button)}
+                >
+                  {getButtonIcon(button.button_icon)}
+                  <span>{button.button_name}</span>
+                </Button>
+              ))}
+              
+              {/* Botão de copiar sempre presente */}
+              {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-14"
+                  onClick={handleCopyVerses}
+                >
+                  <Copy className="w-5 h-5" />
+                  <span>Copiar</span>
+                </Button>
+              )}
+              
+              {/* Botão para limpar seleção */}
+              {clearSelection && (
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-14 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={clearSelection}
+                >
+                  <Trash2 className="w-5 h-5" />
+                  <span>Limpar seleção</span>
+                </Button>
+              )}
+              
+              {/* ✅ Mensagem adicionada abaixo dos botões */}
+              <div className="text-center text-sm text-muted-foreground">
+                Você pode fechar esta janela para selecionar mais versículos.
+        </div>
       </DialogContent>
     </Dialog>
   );
