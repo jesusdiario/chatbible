@@ -4,7 +4,7 @@ import { BibleButton } from '../types/buttons';
 
 export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
   try {
-    // Using the correct Supabase client from biblia-online path
+    // Usando o cliente Supabase específico para biblia-online
     const { data, error } = await supabase
       .from('biblia_buttons')
       .select('*')
@@ -15,15 +15,19 @@ export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
       return [];
     }
     
-    // Transform the data to match the BibleButton interface
-    // This ensures proper typing for the returned data
+    // Verificando se temos dados antes de tentar mapeá-los
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Convertendo explicitamente os dados para o formato BibleButton
     return data.map(item => ({
-      id: item.id.toString(),
+      id: item.id?.toString() || '',
       button_name: item.button_name || '',
       button_icon: item.button_icon || '',
       prompt_ai: item.prompt_ai || '',
       slug: item.slug || '',
-      created_at: item.created_at
+      created_at: item.created_at || ''
     }));
   } catch (err) {
     console.error('Unexpected error fetching bible buttons:', err);
