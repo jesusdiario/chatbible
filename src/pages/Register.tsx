@@ -11,55 +11,73 @@ import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 
-const Auth = () => {
+const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  
-  const handleAuth = async (e: React.FormEvent) => {
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Login
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
+      // Verificar se os termos foram aceitos
+      if (!termsAccepted) {
+        toast({
+          title: "Termos não aceitos",
+          description: "Você precisa aceitar os termos para criar uma conta.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Cadastro
+      const { error, data } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: {
+            terms_accepted: termsAccepted
+          }
+        }
       });
+
       if (error) throw error;
-      navigate("/");
+
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Preencha seu perfil para começar."
+      });
+
+      // Redirecionar para o onboarding
+      navigate("/onboarding");
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro durante a autenticação.",
+        description: error.message || "Ocorreu um erro durante o cadastro.",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/onboarding`
         }
       });
       if (error) throw error;
-
-      // No need to navigate here as the OAuth redirect will handle this
+      // Não é necessário navegar aqui, o redirecionamento do OAuth tratará disso
     } catch (error: any) {
       toast({
         title: "Erro de autenticação",
@@ -69,8 +87,9 @@ const Auth = () => {
       setGoogleLoading(false);
     }
   };
-  
-  return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Logo className="inline-flex justify-center mb-4" />
@@ -80,7 +99,7 @@ const Auth = () => {
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
           <h2 className="text-xl font-semibold text-dark mb-6">
-            Entre na sua conta
+            Crie sua conta gratuita
           </h2>
           
           <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
@@ -101,7 +120,7 @@ const Auth = () => {
             </span>
           </div>
           
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-dark">E-mail</Label>
               <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="border-slate-600 text-dark bg-[#ffffff]-950" />
@@ -117,18 +136,27 @@ const Auth = () => {
               </div>
             </div>
             
-            <Button type="submit" disabled={loading} className="w-full bg-[#4483f4] text-[#ffffff]">
-              {loading ? "Processando..." : "Entrar"}
+            <div className="flex items-start space-x-2 pt-2">
+              <Checkbox id="terms" checked={termsAccepted} onCheckedChange={checked => setTermsAccepted(checked === true)} />
+              <Label htmlFor="terms" className="text-sm text-dark-300 leading-tight">
+                Eu concordo com os <a href="#" className="text-primary hover:underline">Termos de Uso</a> e <a href="#" className="text-[#4483f4] hover:underline">Políticas de Privacidade</a>
+              </Label>
+            </div>
+            
+            <Button type="submit" disabled={loading || !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]">
+              {loading ? "Processando..." : "Criar conta"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <button onClick={() => navigate("/register")} className="text-[#4483f4] hover:underline text-sm" type="button">
-              Não tem uma conta? Crie agora
+            <button onClick={() => navigate("/auth")} className="text-[#4483f4] hover:underline text-sm" type="button">
+              Já tem uma conta? Entre
             </button>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
-export default Auth;
+
+export default Register;

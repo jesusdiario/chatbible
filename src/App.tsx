@@ -12,6 +12,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Importação dos componentes de páginas
 import Auth from "@/pages/Auth";
+import Register from "@/pages/Register"; // Nova página de registro
+import Onboarding from "@/pages/Onboarding"; // Nova página de onboarding
 import Index from "@/pages/Index";
 import Admin from "@/pages/Admin";
 import AdminPages from "@/pages/AdminPages";
@@ -41,6 +43,7 @@ const queryClient = new QueryClient({
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Enable debug tools in development
@@ -53,15 +56,40 @@ const App = () => {
     }
 
     // Verificar sessão atual
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
+      
+      if (session) {
+        // Verificar se o onboarding foi concluído
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+          
+        setOnboardingComplete(data?.onboarding_completed || false);
+      }
+      
       setLoading(false);
     });
 
     // Ouvir mudanças na autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event);
       setSession(session);
+      
+      if (session) {
+        // Verificar se o onboarding foi concluído quando o estado de auth muda
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .single();
+          
+        setOnboardingComplete(data?.onboarding_completed || false);
+      } else {
+        setOnboardingComplete(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -71,6 +99,23 @@ const App = () => {
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-900">Carregando...</div>;
     if (!session) return <Navigate to="/auth" replace />;
+    if (session && onboardingComplete === false) return <Navigate to="/onboarding" replace />;
+    return <>{children}</>;
+  };
+
+  // Componente para gerenciar rotas de autenticação
+  const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-900">Carregando...</div>;
+    if (session && onboardingComplete === true) return <Navigate to="/" replace />;
+    if (session && onboardingComplete === false) return <Navigate to="/onboarding" replace />;
+    return <>{children}</>;
+  };
+  
+  // Componente para gerenciar rotas de onboarding
+  const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-900">Carregando...</div>;
+    if (!session) return <Navigate to="/auth" replace />;
+    if (session && onboardingComplete === true) return <Navigate to="/" replace />;
     return <>{children}</>;
   };
 
@@ -82,7 +127,9 @@ const App = () => {
             <Toaster />
             <Sonner />
             <Routes>
-              <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
+              <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
+              <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
+              <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Index />
