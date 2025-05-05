@@ -1,19 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { BooksNavigation } from './BooksNavigation';
-import { ChapterNavigation } from './ChapterNavigation';
-import { BibleVerse } from './BibleVerse';
 import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { BibleTranslation } from '../services/bibleService';
-import { Loader2, BookOpen } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
 import Sidebar from '@/components/Sidebar';
 import { useSidebarControl } from '@/hooks/useSidebarControl';
+import { BibleContent } from './BibleContent';
+import { VerseSelectionButton } from './VerseSelectionButton';
+import { BibleNavigation } from './BibleNavigation';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -83,49 +79,6 @@ export const BibleReader: React.FC = () => {
     setIsChapterSelectOpen(true);
   };
 
-  // Controlador de navegação para o rodapé
-  const handleFooterClick = () => {
-    handleOpenBooksNav();
-  };
-
-  // Renderizar mensagem de erro ou conteúdo vazio
-  const renderEmptyOrError = () => {
-    if (error) {
-      return (
-        <div className="flex flex-col justify-center items-center h-64 text-gray-500">
-          <p className="mb-2 text-red-500">{error}</p>
-          <p>Tente selecionar outro livro ou capítulo</p>
-        </div>
-      );
-    }
-    return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        Nenhum conteúdo disponível
-      </div>
-    );
-  };
-
-  // Adicionar botão flutuante para abrir o modal se houver versículos selecionados
-  const renderSelectionFloatingButton = () => {
-    if (selectedVerses.length > 0 && !showModal) {
-      return (
-        <button
-          onClick={openModal}
-          className="fixed bottom-24 right-4 bg-primary text-white rounded-full p-3 shadow-lg z-50 md:bottom-28"
-          aria-label="Ver versículos selecionados"
-        >
-          <div className="relative">
-            <BookOpen className="h-6 w-6" />
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {selectedVerses.length}
-            </span>
-          </div>
-        </button>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
@@ -138,38 +91,21 @@ export const BibleReader: React.FC = () => {
         onChangeTranslation={changeTranslation} 
       />
       
-      <ScrollArea className="flex-1 pb-32">
-        {isLoading ? (
-          <div className="flex flex-col justify-center items-center h-64">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="mt-4 text-gray-500">Carregando conteúdo...</p>
-          </div>
-        ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
-          <div className="p-4 max-w-2xl mx-auto">
-            <div className="text-center mb-10">
-              <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
-              <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
-            </div>
-            
-            <div className="mt-8 mb-32">
-              {chapterData.verses.map(verse => (
-                <BibleVerse 
-                  key={verse.id} 
-                  verse={verse} 
-                  translation={currentTranslation} 
-                  showActions={true}
-                  isSelected={isVerseSelected(verse)}
-                  onSelect={handleVerseSelect}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          renderEmptyOrError()
-        )}
-      </ScrollArea>
+      <BibleContent 
+        isLoading={isLoading}
+        chapterData={chapterData}
+        error={error}
+        currentTranslation={currentTranslation}
+        selectedVerses={selectedVerses}
+        onVerseSelect={handleVerseSelect}
+        isVerseSelected={isVerseSelected}
+      />
       
-      {renderSelectionFloatingButton()}
+      <VerseSelectionButton 
+        selectedVerses={selectedVerses}
+        showModal={showModal}
+        onOpenModal={openModal}
+      />
       
       <BibleFooter 
         bookName={getCurrentBookName()} 
@@ -179,30 +115,19 @@ export const BibleReader: React.FC = () => {
         onOpenBooksNav={handleOpenBooksNav} 
       />
       
-      {/* Sheet para navegação de livros */}
-      <Sheet open={isNavigationOpen} onOpenChange={setIsNavigationOpen}>
-        <SheetContent side="left" className="p-0 w-full sm:w-[400px]">
-          <BooksNavigation 
-            books={books} 
-            currentBookId={currentBookId} 
-            onBookSelect={handleBookSelect} 
-            onClose={() => setIsNavigationOpen(false)} 
-          />
-        </SheetContent>
-      </Sheet>
-      
-      {/* Sheet para seleção de capítulos */}
-      <Sheet open={isChapterSelectOpen} onOpenChange={setIsChapterSelectOpen}>
-        <SheetContent side="left" className="p-0 w-full sm:w-[400px]">
-          <ChapterNavigation 
-            bookName={getCurrentBookName()} 
-            chapterCount={chapterCount} 
-            currentChapter={currentChapter} 
-            onChapterSelect={goToChapter} 
-            onBack={() => setIsChapterSelectOpen(false)} 
-          />
-        </SheetContent>
-      </Sheet>
+      <BibleNavigation 
+        isNavigationOpen={isNavigationOpen}
+        isChapterSelectOpen={isChapterSelectOpen}
+        books={books}
+        currentBookId={currentBookId}
+        bookName={getCurrentBookName()}
+        chapterCount={chapterCount}
+        currentChapter={currentChapter}
+        onBookSelect={handleBookSelect}
+        onChapterSelect={goToChapter}
+        onCloseNavigation={() => setIsNavigationOpen(false)}
+        onCloseChapterSelect={() => setIsChapterSelectOpen(false)}
+      />
       
       {/* Modal de seleção de versículos */}
       <VersesSelectionModal
