@@ -131,7 +131,6 @@ export const BibleReader: React.FC = () => {
         onOpenBooksNav={handleOpenBooksNav} 
         currentTranslation={currentTranslation} 
         onChangeTranslation={changeTranslation} 
-        toggleSidebar={toggleSidebar} 
       />
       
       <ScrollArea className="flex-1 pb-32">
