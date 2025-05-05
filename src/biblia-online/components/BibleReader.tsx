@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -12,8 +11,11 @@ import { BibleTranslation } from '../services/bibleService';
 import { Loader2 } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VerseSelectionDrawer } from './VerseSelectionDrawer';
+import { useNavigate } from 'react-router-dom';
 
 export const BibleReader: React.FC = () => {
+  const navigate = useNavigate();
+  
   const {
     books,
     currentBookId,

@@ -2,9 +2,9 @@
 import React from 'react';
 import { Verse, BibleTranslation } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
-import { X, Copy, Share2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { BibleButton } from '../hooks/useVerseSelection';
-import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface VerseSelectionDrawerProps {
   open: boolean;
@@ -27,37 +27,9 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
   isLoadingButtons,
   getSelectedVersesText
 }) => {
-  // Recupera o texto completo dos versículos para cópia/compartilhamento
+  const navigate = useNavigate();
+  // Recupera o texto completo dos versículos para uso nos botões
   const versesText = getSelectedVersesText(currentTranslation);
-
-  // Manipula a cópia do texto para a área de transferência
-  const handleCopyText = () => {
-    if (!navigator.clipboard) {
-      toast({
-        title: "Atenção",
-        description: "Seu navegador não suporta a funcionalidade de copiar para área de transferência",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    navigator.clipboard.writeText(versesText)
-      .then(() => {
-        toast({
-          title: "Sucesso",
-          description: "Texto copiado para a área de transferência!",
-          variant: "default"
-        });
-      })
-      .catch(err => {
-        console.error('Erro ao copiar texto: ', err);
-        toast({
-          title: "Erro",
-          description: "Não foi possível copiar o texto",
-          variant: "destructive"
-        });
-      });
-  };
 
   // Se não estiver aberto, não renderize nada
   if (!open) return null;
@@ -79,29 +51,6 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center"
-            onClick={handleCopyText}
-          >
-            <Copy className="h-4 w-4 mr-2" />
-            Copiar Texto
-          </Button>
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center"
-            onClick={() => {
-              const text = encodeURIComponent(versesText);
-              const url = `https://twitter.com/intent/tweet?text=${text}`;
-              window.open(url, '_blank');
-            }}
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Compartilhar
-          </Button>
-        </div>
-
         {isLoadingButtons ? (
           <div className="flex justify-center my-4">
             <p>Carregando opções...</p>
@@ -114,9 +63,8 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  console.log('Clicou no botão:', button.button_name);
-                  // Aqui implementaríamos a navegação ou ação específica do botão
-                  // router.push(`/chat/${button.slug}?reference=${verseReference}&text=${encodeURIComponent(versesText)}`);
+                  console.log('Navegando para chat com:', button.slug);
+                  navigate(`/chat/${button.slug}?reference=${encodeURIComponent(verseReference)}&text=${encodeURIComponent(versesText)}`);
                 }}
               >
                 {button.button_name}
