@@ -108,7 +108,7 @@ export const BibleReader: React.FC = () => {
       return (
         <button
           onClick={openModal}
-          className="fixed bottom-24 right-4 bg-primary text-white rounded-full p-3 shadow-lg z-50"
+          className="fixed bottom-24 right-4 bg-primary text-white rounded-full p-3 shadow-lg z-50 md:bottom-28"
           aria-label="Ver versículos selecionados"
         >
           <div className="relative">
