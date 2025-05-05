@@ -58,9 +58,12 @@ const ChatPage = () => {
   );
 
   // Check if user has reached message limit and is not subscribed
+  // Modificado: Não mostrar o diálogo para assinantes
   useEffect(() => {
     if (!canSendMessage && !subscribed && messageCount >= messageLimit) {
       setShowLimitDialog(true);
+    } else {
+      setShowLimitDialog(false); // Garante que o diálogo esteja fechado para assinantes
     }
   }, [canSendMessage, subscribed, messageCount, messageLimit]);
 
@@ -226,29 +229,31 @@ const ChatPage = () => {
       </main>
       
       {/* Limit Reached Dialog - Only show for non-subscribers */}
-      <Dialog 
-        open={showLimitDialog && !subscribed} 
-        onOpenChange={(open) => !open && setShowLimitDialog(false)}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Limite de Mensagens</DialogTitle>
-          </DialogHeader>
-          
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
-            <p className="text-lg text-center font-medium mb-6">
-              Você atingiu seu limite de {messageLimit} mensagens neste mês.
-            </p>
+      {!subscribed && (
+        <Dialog 
+          open={showLimitDialog} 
+          onOpenChange={(open) => !open && setShowLimitDialog(false)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Limite de Mensagens</DialogTitle>
+            </DialogHeader>
             
-            <Button 
-              onClick={handleUpgradeClick} 
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded transition-colors h-auto"
-            >
-              Fazer upgrade para continuar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+              <p className="text-lg text-center font-medium mb-6">
+                Você atingiu seu limite de {messageLimit} mensagens neste mês.
+              </p>
+              
+              <Button 
+                onClick={handleUpgradeClick} 
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded transition-colors h-auto"
+              >
+                Fazer upgrade para continuar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

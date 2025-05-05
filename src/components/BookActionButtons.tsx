@@ -42,15 +42,16 @@ const BookActionButtons = ({
   const {
     messageCount,
     messageLimit,
-    canSendMessage,
-    increment
+    canSendMessage
   } = useMessageCount();
 
-  const { startCheckout } = useSubscription();
+  const { subscribed, startCheckout } = useSubscription();
 
   /* ------------ HANDLERS ------------------------------------------ */
   const handleButtonClick = (suggestion: Suggestion) => {
-    if (!canSendMessage) {
+    // Verificar se o usuário pode enviar mensagens
+    // Os assinantes sempre podem enviar mensagens
+    if (!canSendMessage && !subscribed) {
       toast({
         title: "Limite de mensagens atingido",
         description: "Você atingiu seu limite mensal de mensagens.",
@@ -65,8 +66,6 @@ const BookActionButtons = ({
     suggestion.prompt_override
       ? sendMessage(suggestion.user_message, suggestion.prompt_override)
       : sendMessage(suggestion.user_message);
-
-    increment();
   };
 
   const handleUpgradeClick = () => {
@@ -86,7 +85,8 @@ const BookActionButtons = ({
 
   /* ------------ UI ------------------------------------------------- */
   // (1) Aviso / botão de upgrade caso tenha atingido o limite
-  if (!canSendMessage) {
+  // Não mostrar para assinantes
+  if (!canSendMessage && !subscribed) {
     return (
       <div className="flex flex-col items-center gap-3 mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
         <p className="text-sm text-amber-700">

@@ -30,6 +30,7 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
         <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />
       </div>
       
+      {/* Apenas mostrar o aviso para usuários não assinantes que atingiram o limite */}
       {!canSendMessage && !subscribed && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
           <p className="font-medium">Você atingiu seu limite mensal de mensagens</p>
