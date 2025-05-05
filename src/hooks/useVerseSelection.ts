@@ -1,10 +1,31 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Verse } from '@/types/biblia';
+import { fetchBibleButtons } from '@/biblia-online/services/buttonService';
+import { BibleButton } from '@/biblia-online/types/buttons';
 
 export function useVerseSelection() {
   const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [bibleButtons, setBibleButtons] = useState<BibleButton[]>([]);
+  const [isLoadingButtons, setIsLoadingButtons] = useState(false);
+  
+  // Load buttons on mount
+  useEffect(() => {
+    const loadButtons = async () => {
+      setIsLoadingButtons(true);
+      try {
+        const buttons = await fetchBibleButtons();
+        setBibleButtons(buttons);
+      } catch (err) {
+        console.error('Error loading Bible buttons:', err);
+      } finally {
+        setIsLoadingButtons(false);
+      }
+    };
+    
+    loadButtons();
+  }, []);
   
   // Handle verse selection/deselection
   const handleVerseSelect = (verse: Verse) => {
@@ -38,6 +59,42 @@ export function useVerseSelection() {
     }
   };
   
+  // Format selected verses references
+  const formatSelectedVerses = () => {
+    if (selectedVerses.length === 0) return '';
+    
+    // Group by book and chapter
+    const groups: Record<string, number[]> = {};
+    
+    selectedVerses.forEach(verse => {
+      const key = `${verse.book_name || ''} ${verse.chapter || ''}`;
+      if (!groups[key]) groups[key] = [];
+      if (verse.verse) groups[key].push(verse.verse);
+    });
+    
+    // Sort verse numbers and format as ranges where possible
+    return Object.entries(groups).map(([bookChapter, verses]) => {
+      verses.sort((a, b) => a - b);
+      
+      // Format consecutive verses as ranges
+      const ranges: string[] = [];
+      let start = verses[0];
+      let end = start;
+      
+      for (let i = 1; i < verses.length; i++) {
+        if (verses[i] === end + 1) {
+          end = verses[i];
+        } else {
+          ranges.push(start === end ? `${start}` : `${start}-${end}`);
+          start = end = verses[i];
+        }
+      }
+      ranges.push(start === end ? `${start}` : `${start}-${end}`);
+      
+      return `${bookChapter}:${ranges.join(', ')}`;
+    }).join('; ');
+  };
+  
   // Close modal and clear selection
   const handleCloseModal = () => {
     setShowModal(false);
@@ -47,8 +104,11 @@ export function useVerseSelection() {
   return {
     selectedVerses,
     showModal,
+    bibleButtons,
+    isLoadingButtons,
     handleVerseSelect,
     handleCloseModal,
-    setSelectedVerses
+    setSelectedVerses,
+    formatSelectedVerses
   };
 }

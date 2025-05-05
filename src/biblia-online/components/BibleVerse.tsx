@@ -4,17 +4,22 @@ import { Verse, BibleTranslation } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BibleVerseProps {
   verse: Verse;
   translation: BibleTranslation;
   showActions?: boolean;
+  isSelected?: boolean;
+  onSelect?: (verse: Verse) => void;
 }
 
 export const BibleVerse: React.FC<BibleVerseProps> = ({
   verse,
   translation,
   showActions = false,
+  isSelected = false,
+  onSelect
 }) => {
   const navigate = useNavigate();
 
@@ -48,13 +53,30 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
     });
   };
 
+  const handleVerseClick = () => {
+    if (onSelect) {
+      onSelect(verse);
+    }
+  };
+
   return (
-    <div className="group flex mb-4">
+    <div 
+      className={cn(
+        "group flex mb-4 cursor-pointer", 
+        isSelected && "bg-blue-50 rounded-md"
+      )}
+      onClick={handleVerseClick}
+    >
       <div className="mr-2 font-bold text-gray-400 pt-0.5 w-6 text-right">
         {verse.verse}
       </div>
       <div className="flex-1">
-        <p className="leading-relaxed">{getVerseText()}</p>
+        <p className={cn(
+          "leading-relaxed",
+          isSelected && "border-b-2 border-dotted border-blue-400"
+        )}>
+          {getVerseText()}
+        </p>
         {showActions && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
             <Button variant="outline" size="sm" onClick={handleExegeseClick}>

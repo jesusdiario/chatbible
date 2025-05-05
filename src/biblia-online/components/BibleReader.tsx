@@ -10,6 +10,8 @@ import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
 import { Loader2 } from 'lucide-react';
+import { useVerseSelection } from '@/hooks/useVerseSelection';
+import { VerseSelectionModal } from './VerseSelectionModal';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -31,6 +33,16 @@ export const BibleReader: React.FC = () => {
   } = useBible();
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
+  
+  const { 
+    selectedVerses, 
+    showModal, 
+    bibleButtons,
+    isLoadingButtons, 
+    handleVerseSelect, 
+    handleCloseModal,
+    formatSelectedVerses 
+  } = useVerseSelection();
 
   // Logging para debugging
   useEffect(() => {
@@ -66,6 +78,15 @@ export const BibleReader: React.FC = () => {
   // Controlador de navegação para o rodapé
   const handleFooterClick = () => {
     handleOpenBooksNav();
+  };
+
+  // Verificar se um versículo está selecionado
+  const isVerseSelected = (verseId: number, chapter: number | null, verse: number | null) => {
+    return selectedVerses.some(v => 
+      v.id === verseId && 
+      v.chapter === chapter && 
+      v.verse === verse
+    );
   };
 
   // Renderizar mensagem de erro ou conteúdo vazio
@@ -114,7 +135,9 @@ export const BibleReader: React.FC = () => {
                   key={verse.id} 
                   verse={verse} 
                   translation={currentTranslation} 
-                  showActions={true} 
+                  showActions={true}
+                  isSelected={isVerseSelected(verse.id, verse.chapter, verse.verse)}
+                  onSelect={handleVerseSelect}
                 />
               ))}
             </div>
@@ -156,6 +179,16 @@ export const BibleReader: React.FC = () => {
           />
         </SheetContent>
       </Sheet>
+      
+      {/* Modal de seleção de versículos */}
+      <VerseSelectionModal 
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        selectedVerses={selectedVerses}
+        formattedVerses={formatSelectedVerses()}
+        buttons={bibleButtons}
+        isLoading={isLoadingButtons}
+      />
     </div>
   );
 };
