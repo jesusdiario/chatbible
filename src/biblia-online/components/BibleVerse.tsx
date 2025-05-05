@@ -44,8 +44,8 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
   return (
     <div 
       className={cn(
-        "group relative flex mb-4 cursor-pointer py-1 px-2 rounded transition-colors",
-        isSelected ? "bg-blue-50" : "hover:bg-gray-50"
+        "group flex mb-4 cursor-pointer", 
+        isSelected && "bg-blue-50 rounded"
       )}
       onClick={handleClick}
     >
@@ -54,8 +54,8 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
       </div>
       <div className="flex-1">
         <p className={cn(
-          "leading-relaxed relative",
-          isSelected && "after:absolute after:left-0 after:right-0 after:bottom-0 after:border-b-2 after:border-dotted after:border-blue-500"
+          "leading-relaxed",
+          isSelected && "border-b border-dotted border-blue-500"
         )}>
           {getVerseText()}
         </p>

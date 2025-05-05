@@ -10,7 +10,6 @@ const BibliaOnline: React.FC = () => {
       <Routes>
         <Route path="/" element={<BibleReaderPage />} />
         <Route path="/livros-da-biblia/:book/:slug?" element={<LivrosDaBibliaBook />} />
-        <Route path="/versiculos/:slug?" element={<LivrosDaBibliaBook />} />
       </Routes>
     </div>
   );
