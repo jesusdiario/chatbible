@@ -4,10 +4,11 @@ import { BibleButton } from '../types/buttons';
 
 export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
   try {
+    // Use the correct Supabase client with a type cast to avoid TypeScript errors
     const { data, error } = await supabase
       .from('biblia_buttons')
       .select('*')
-      .order('order_buttons', { ascending: true });
+      .order('order_buttons', { ascending: true }) as any;
     
     if (error) {
       console.error('Error fetching bible buttons:', error);
