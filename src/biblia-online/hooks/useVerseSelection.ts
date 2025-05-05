@@ -15,7 +15,7 @@ export interface BibleButton {
 
 export function useVerseSelection() {
   const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [bibleButtons, setBibleButtons] = useState<BibleButton[]>([]);
   const [isLoadingButtons, setIsLoadingButtons] = useState(false);
   
@@ -124,18 +124,18 @@ export function useVerseSelection() {
         v.verse !== verse.verse
       ));
       
-      // Se era o último versículo selecionado, fecha o modal
+      // Se era o último versículo selecionado, fecha o bottom sheet
       if (selectedVerses.length === 1) {
-        setShowModal(false);
+        setShowBottomSheet(false);
       }
     } else {
       // Adiciona à seleção
       setSelectedVerses(prev => [...prev, verse]);
       
-      // Se é o primeiro versículo selecionado, carrega os botões e abre o modal
+      // Se é o primeiro versículo selecionado, carrega os botões e abre o bottom sheet
       if (selectedVerses.length === 0) {
         loadBibleButtons();
-        setShowModal(true);
+        setShowBottomSheet(true);
       }
     }
   };
@@ -149,19 +149,19 @@ export function useVerseSelection() {
     );
   };
   
-  // Fecha modal e limpa seleção
-  const handleCloseModal = () => {
-    setShowModal(false);
+  // Fecha bottom sheet e limpa seleção
+  const handleCloseBottomSheet = () => {
+    setShowBottomSheet(false);
     setSelectedVerses([]);
   };
   
   return {
     selectedVerses,
-    showModal,
+    showBottomSheet,
     bibleButtons,
     isLoadingButtons,
     handleVerseSelect,
-    handleCloseModal,
+    handleCloseBottomSheet,
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText,
