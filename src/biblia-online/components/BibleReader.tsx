@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -36,11 +37,11 @@ export const BibleReader: React.FC = () => {
   
   const {
     selectedVerses,
-    showDrawer,
+    showModal,
     bibleButtons,
     isLoadingButtons,
     handleVerseSelect,
-    handleCloseDrawer,
+    handleCloseModal,
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText
@@ -178,8 +179,8 @@ export const BibleReader: React.FC = () => {
       
       {/* Drawer para seleção de versículos */}
       <VerseSelectionDrawer
-        open={showDrawer}
-        onClose={handleCloseDrawer}
+        open={showModal}
+        onClose={handleCloseModal}
         verseReference={getVerseReference()}
         selectedVerses={selectedVerses}
         currentTranslation={currentTranslation}
