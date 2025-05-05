@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Verse } from '../services/bibleService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +15,7 @@ export interface BibleButton {
 
 export function useVerseSelection() {
   const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
   const [bibleButtons, setBibleButtons] = useState<BibleButton[]>([]);
   const [isLoadingButtons, setIsLoadingButtons] = useState(false);
   
@@ -124,18 +124,18 @@ export function useVerseSelection() {
         v.verse !== verse.verse
       ));
       
-      // Se era o último versículo selecionado, fecha o modal
+      // Se era o último versículo selecionado, fecha o sheet
       if (selectedVerses.length === 1) {
-        setShowModal(false);
+        setShowSheet(false);
       }
     } else {
       // Adiciona à seleção
       setSelectedVerses(prev => [...prev, verse]);
       
-      // Se é o primeiro versículo selecionado, carrega os botões e abre o modal
+      // Se é o primeiro versículo selecionado, carrega os botões e abre o sheet
       if (selectedVerses.length === 0) {
         loadBibleButtons();
-        setShowModal(true);
+        setShowSheet(true);
       }
     }
   };
@@ -149,19 +149,19 @@ export function useVerseSelection() {
     );
   };
   
-  // Fecha modal e limpa seleção
-  const handleCloseModal = () => {
-    setShowModal(false);
+  // Fecha bottom sheet e limpa seleção
+  const handleCloseSheet = () => {
+    setShowSheet(false);
     setSelectedVerses([]);
   };
   
   return {
     selectedVerses,
-    showModal,
+    showSheet,
     bibleButtons,
     isLoadingButtons,
     handleVerseSelect,
-    handleCloseModal,
+    handleCloseSheet,
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText,
