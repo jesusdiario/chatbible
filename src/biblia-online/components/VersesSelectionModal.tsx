@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Verse, BibleTranslation } from '../services/bibleService';
 import { BibleButton } from '../hooks/useVerseSelection';
 import { Button } from './ui/button';
-import { Loader2, Share2, Image, Copy, Save, BookOpen, PenSquare } from 'lucide-react';
+import { Loader2, Share2, Image, Copy, Save, BookOpen, PenSquare, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface VersesSelectionModalProps {
@@ -17,6 +17,7 @@ interface VersesSelectionModalProps {
   buttons: BibleButton[];
   isLoadingButtons: boolean;
   getSelectedVersesText: (translation: string) => string;
+  clearSelection?: () => void; // Nova prop opcional para limpar seleção
 }
 
 export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
@@ -27,7 +28,8 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
   currentTranslation,
   buttons,
   isLoadingButtons,
-  getSelectedVersesText
+  getSelectedVersesText,
+  clearSelection
 }) => {
   const navigate = useNavigate();
 
@@ -127,6 +129,18 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
                 >
                   <Copy className="w-5 h-5" />
                   <span>Copiar</span>
+                </Button>
+              )}
+              
+              {/* Botão para limpar seleção */}
+              {clearSelection && (
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-14 col-span-2 mt-2 border-dashed"
+                  onClick={clearSelection}
+                >
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                  <span className="text-red-500">Limpar seleção</span>
                 </Button>
               )}
             </div>

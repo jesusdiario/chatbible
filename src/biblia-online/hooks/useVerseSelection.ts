@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Verse } from '../services/bibleService';
+import { Verse, BibleTranslation } from '../services/bibleService';
 import { supabase } from '@/integrations/supabase/client';
 
 // Interface para os botões de ação bíblica
@@ -123,11 +123,6 @@ export function useVerseSelection() {
         v.chapter !== verse.chapter || 
         v.verse !== verse.verse
       ));
-      
-      // Se era o último versículo selecionado, fecha o modal
-      if (selectedVerses.length === 1) {
-        setShowModal(false);
-      }
     } else {
       // Adiciona à seleção
       setSelectedVerses(prev => [...prev, verse]);
@@ -149,10 +144,26 @@ export function useVerseSelection() {
     );
   };
   
-  // Fecha modal e limpa seleção
+  // Fecha modal SEM limpar seleção (modificado)
   const handleCloseModal = () => {
     setShowModal(false);
+    // Não limpa mais os versículos selecionados
+  };
+  
+  // Nova função para limpar explicitamente a seleção
+  const clearSelection = () => {
     setSelectedVerses([]);
+    setShowModal(false);
+  };
+  
+  // Nova função para abrir o modal com a seleção existente
+  const openModalWithSelection = () => {
+    if (selectedVerses.length > 0) {
+      if (bibleButtons.length === 0) {
+        loadBibleButtons();
+      }
+      setShowModal(true);
+    }
   };
   
   return {
@@ -165,6 +176,8 @@ export function useVerseSelection() {
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText,
-    setSelectedVerses
+    setSelectedVerses,
+    clearSelection,         // Nova função para limpar seleção
+    openModalWithSelection  // Nova função para reabrir o modal
   };
 }
