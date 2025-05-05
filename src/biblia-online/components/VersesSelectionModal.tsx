@@ -1,22 +1,16 @@
 
 import React from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { useNavigate } from 'react-router-dom';
 import { Verse, BibleTranslation } from '../services/bibleService';
-import { Loader2, Copy, Share2, X } from 'lucide-react';
 import { BibleButton } from '../hooks/useVerseSelection';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { Loader2, Share2, Image, Copy, Save, BookOpen, PenSquare } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface VersesSelectionModalProps {
   open: boolean;
   onClose: () => void;
-  clearSelection: () => void; // Nova prop para limpar seleção
   verseReference: string;
   selectedVerses: Verse[];
   currentTranslation: BibleTranslation;
@@ -28,7 +22,6 @@ interface VersesSelectionModalProps {
 export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
   open,
   onClose,
-  clearSelection,
   verseReference,
   selectedVerses,
   currentTranslation,
@@ -36,130 +29,109 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
   isLoadingButtons,
   getSelectedVersesText
 }) => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleCopy = () => {
-    const text = getSelectedVersesText(currentTranslation);
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        toast({
-          title: "Copiado!",
-          description: "Texto copiado para a área de transferência."
-        });
-      })
-      .catch(err => {
-        console.error('Erro ao copiar:', err);
-        toast({
-          title: "Erro",
-          description: "Não foi possível copiar o texto.",
-          variant: "destructive"
-        });
-      });
-  };
-
-  const handleShare = async () => {
-    const text = getSelectedVersesText(currentTranslation);
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${verseReference} | Bíblia`,
-          text: text
-        });
-        
-        toast({
-          title: "Compartilhado!",
-          description: "Conteúdo compartilhado com sucesso."
-        });
-      } catch (err) {
-        console.error('Erro ao compartilhar:', err);
-        
-        // Ignora erros de cancelamento pelo usuário
-        if (err.name !== 'AbortError') {
-          toast({
-            title: "Erro",
-            description: "Não foi possível compartilhar o conteúdo.",
-            variant: "destructive"
-          });
-        }
-      }
-    } else {
-      // Fallback para dispositivos que não suportam a API Share
-      handleCopy();
-      toast({
-        title: "Texto copiado!",
-        description: "Compartilhamento não disponível neste dispositivo."
-      });
+  // Escolhe o ícone certo para o botão baseado no nome do ícone
+  const getButtonIcon = (iconName: string) => {
+    switch (iconName.toLowerCase()) {
+      case 'share':
+        return <Share2 className="w-5 h-5" />;
+      case 'image':
+        return <Image className="w-5 h-5" />;
+      case 'copy':
+        return <Copy className="w-5 h-5" />;
+      case 'save':
+        return <Save className="w-5 h-5" />;
+      case 'annotation':
+      case 'book-open':
+        return <BookOpen className="w-5 h-5" />;
+      case 'pray':
+      case 'pen-square':
+        return <PenSquare className="w-5 h-5" />;
+      default:
+        return <BookOpen className="w-5 h-5" />;
     }
   };
 
+  // Manipula clique em um botão de ação
+  const handleButtonClick = (button: BibleButton) => {
+    const versesText = getSelectedVersesText(currentTranslation);
+    // Se for copiar, copiamos o texto para a área de transferência
+    if (button.button_name.toLowerCase().includes('copiar')) {
+      navigator.clipboard.writeText(versesText);
+      toast({
+        title: "Copiado!",
+        description: `${verseReference} foi copiado para a área de transferência.`,
+      });
+      onClose();
+      return;
+    }
+
+    // Caso contrário, navegamos para o chat com o prompt
+    const bookSlug = selectedVerses[0]?.book_slug || 'genesis';
+    
+    // Constrói o estado inicial para passar para a página de chat
+    const initialState = {
+      initialPrompt: versesText,  // O texto dos versículos será a mensagem visível
+      systemPrompt: button.prompt_ai, // O prompt da AI fica "nos bastidores"
+    };
+    
+    // Navega para o chat do livro específico
+    navigate(`/livros-da-biblia/${bookSlug}`, { state: initialState });
+    onClose();
+  };
+
+  // Função para copiar os versículos
+  const handleCopyVerses = () => {
+    const versesText = getSelectedVersesText(currentTranslation);
+    navigator.clipboard.writeText(versesText);
+    toast({
+      title: "Copiado!",
+      description: `${verseReference} foi copiado para a área de transferência.`,
+    });
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex justify-between items-center">
-            <span>Versículos selecionados</span>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={clearSelection}
-                title="Limpar seleção"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCopy}
-                title="Copiar texto"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleShare}
-                title="Compartilhar"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogTitle>
+          <DialogTitle className="text-center">{verseReference}</DialogTitle>
         </DialogHeader>
         
-        <div className="text-lg font-medium text-center text-secondary-foreground mb-4">
-          {verseReference}
-        </div>
-        
-        <div className="text-sm p-4 bg-muted rounded-md max-h-48 overflow-auto">
-          {getSelectedVersesText(currentTranslation)}
-        </div>
-        
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-center">
+        <div className="py-4">
           {isLoadingButtons ? (
-            <div className="flex justify-center py-4 w-full">
+            <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="grid grid-cols-2 gap-3">
               {buttons.map(button => (
-                <Button 
-                  key={button.id} 
+                <Button
+                  key={button.id}
                   variant="outline"
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    console.log("Botão clicado:", button);
-                    // Aqui você implementaria a ação do botão
-                  }}
+                  className="flex items-center justify-center gap-2 h-14"
+                  onClick={() => handleButtonClick(button)}
                 >
-                  <i className={`lucide lucide-${button.button_icon}`}></i>
-                  {button.button_name}
+                  {getButtonIcon(button.button_icon)}
+                  <span>{button.button_name}</span>
                 </Button>
               ))}
+              
+              {/* Botão de copiar sempre presente */}
+              {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-14"
+                  onClick={handleCopyVerses}
+                >
+                  <Copy className="w-5 h-5" />
+                  <span>Copiar</span>
+                </Button>
+              )}
             </div>
           )}
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
