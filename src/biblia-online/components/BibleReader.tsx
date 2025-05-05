@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -41,7 +40,9 @@ export const BibleReader: React.FC = () => {
     handleCloseModal,
     isVerseSelected,
     getVerseReference,
-    getSelectedVersesText
+    getSelectedVersesText,
+    openModal,
+    clearSelection
   } = useVerseSelection();
   
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -100,6 +101,27 @@ export const BibleReader: React.FC = () => {
     );
   };
 
+  // Adicionar botão flutuante para abrir o modal se houver versículos selecionados
+  const renderSelectionFloatingButton = () => {
+    if (selectedVerses.length > 0 && !showModal) {
+      return (
+        <button
+          onClick={openModal}
+          className="fixed bottom-24 right-4 bg-primary text-white rounded-full p-3 shadow-lg z-50"
+          aria-label="Ver versículos selecionados"
+        >
+          <div className="relative">
+            <BookOpen className="h-6 w-6" />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {selectedVerses.length}
+            </span>
+          </div>
+        </button>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
       <BibleHeader 
@@ -140,6 +162,8 @@ export const BibleReader: React.FC = () => {
           renderEmptyOrError()
         )}
       </ScrollArea>
+      
+      {renderSelectionFloatingButton()}
       
       <BibleFooter 
         bookName={getCurrentBookName()} 
@@ -184,6 +208,7 @@ export const BibleReader: React.FC = () => {
         buttons={bibleButtons}
         isLoadingButtons={isLoadingButtons}
         getSelectedVersesText={getSelectedVersesText}
+        clearSelection={clearSelection}
       />
     </div>
   );
