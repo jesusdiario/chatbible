@@ -17,7 +17,9 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
   
   const handleAuth = async (e: React.FormEvent) => {
@@ -25,18 +27,15 @@ const Auth = () => {
     setLoading(true);
     try {
       // Login
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
       if (error) throw error;
-      
-      // Se deu certo, navegamos para a home
-      console.log("Login bem-sucedido", data);
       navigate("/");
     } catch (error: any) {
-      console.error("Erro de autenticação:", error);
       toast({
         title: "Erro",
         description: error.message || "Ocorreu um erro durante a autenticação.",
@@ -50,19 +49,18 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`
+          redirectTo: window.location.origin
         }
       });
-      
       if (error) throw error;
-      
-      console.log("Redirecionando para autenticação Google", data);
-      // Não precisamos navegar aqui, o redirecionamento do OAuth tratará disso
+
+      // No need to navigate here as the OAuth redirect will handle this
     } catch (error: any) {
-      console.error("Erro ao tentar login com Google:", error);
       toast({
         title: "Erro de autenticação",
         description: error.message || "Ocorreu um erro ao tentar autenticar com Google.",
