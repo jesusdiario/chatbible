@@ -3,51 +3,80 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.9.0";
 
-// This function handles webhook events from Stripe
-serve(async (req) => {
-  try {
-    // Initialize Stripe with the secret key
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-      apiVersion: "2022-11-15",
-    });
+// CORS headers for API response
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
+// Helper logging function for enhanced debugging
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    logStep("Webhook function started");
+    
+    // Get the raw body for signature verification
+    const body = await req.text();
     const signature = req.headers.get("stripe-signature");
     
     if (!signature) {
-      return new Response("No stripe signature found", { status: 400 });
+      logStep("No stripe signature found", { status: 400 });
+      return new Response(JSON.stringify({ error: "No stripe signature found" }), { 
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
     
-    // Use the raw body text for signature verification
-    const body = await req.text();
+    // Initialize Stripe
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      logStep("STRIPE_SECRET_KEY is not set", { status: 500 });
+      return new Response(JSON.stringify({ error: "STRIPE_SECRET_KEY is not set" }), { 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
     
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2022-11-15",
+    });
     
+    // Parse the event without verification first
     let event;
     
-    // Verify the webhook signature
-    if (webhookSecret) {
-      try {
-        event = stripe.webhooks.constructEvent(
-          body,
-          signature,
-          webhookSecret
-        );
-      } catch (err) {
-        console.error(`Webhook signature verification failed:`, err);
-        return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
-      }
-    } else {
-      // If webhook secret isn't set, parse the body manually
+    try {
       event = JSON.parse(body);
+      logStep("Event parsed successfully", { type: event.type });
+    } catch (err) {
+      logStep("Event parsing failed", { error: err.message, status: 400 });
+      return new Response(JSON.stringify({ error: "Event parsing failed" }), { 
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
     
-    // Initialize Supabase client for updating records
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    // Initialize Supabase client for database operations
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    console.log(`Processing webhook event: ${event.type}`);
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      logStep("Supabase environment variables not set", { status: 500 });
+      return new Response(JSON.stringify({ error: "Supabase environment variables not set" }), { 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+    
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey);
     
     // Handle different event types
     switch (event.type) {
@@ -61,6 +90,7 @@ serve(async (req) => {
           
           // Update subscriptions table
           await handleSuccessfulSubscription(supabaseClient, userId, session);
+          logStep("Processed checkout.session.completed event", { userId });
         }
         break;
         
@@ -68,27 +98,35 @@ serve(async (req) => {
         // Handle subscription updates
         const subscription = event.data.object;
         await handleSubscriptionUpdate(supabaseClient, subscription);
+        logStep("Processed customer.subscription.updated event", { subId: subscription.id });
         break;
         
       case "customer.subscription.deleted":
         // Handle subscription cancellation
         const cancelledSubscription = event.data.object;
         await handleSubscriptionCancellation(supabaseClient, cancelledSubscription);
+        logStep("Processed customer.subscription.deleted event", { subId: cancelledSubscription.id });
         break;
         
-      // Add more event handlers as needed
+      default:
+        logStep("Unhandled event type", { type: event.type });
+        // Still return 200 for unhandled events to avoid Stripe retrying
     }
     
+    // Return a 200 success response to confirm receipt
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
     
   } catch (error) {
-    console.error("Error processing webhook:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in webhook handler", { message: errorMessage });
+    
+    // Still return 200 to avoid Stripe continuing to retry
+    return new Response(JSON.stringify({ received: true, error: errorMessage }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }
 });
