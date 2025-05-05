@@ -6,7 +6,7 @@ export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
   try {
     // We need to use a more generic approach to avoid TypeScript errors since
     // the biblia_buttons table isn't in the TypeScript definitions yet
-    const response = await supabase
+    const response = await (supabase as any)
       .from('biblia_buttons')
       .select('*')
       .order('order_buttons', { ascending: true });
