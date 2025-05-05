@@ -88,7 +88,8 @@ export const BibleReader: React.FC = () => {
         chapter={currentChapter} 
         onOpenBooksNav={handleOpenBooksNav} 
         currentTranslation={currentTranslation} 
-        onChangeTranslation={changeTranslation} 
+        onChangeTranslation={changeTranslation}
+        toggleSidebar={toggleSidebar}
       />
       
       <BibleContent 
