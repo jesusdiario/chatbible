@@ -4,7 +4,7 @@ import { Verse } from '@/types/biblia';
 
 export function useVerseSelection() {
   const [selectedVerses, setSelectedVerses] = useState<Verse[]>([]);
-  const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   
   // Handle verse selection/deselection
   const handleVerseSelect = (verse: Verse) => {
@@ -23,32 +23,32 @@ export function useVerseSelection() {
         v.verse !== verse.verse
       ));
       
-      // If was the last selected verse, close the bottom sheet
+      // If was the last selected verse, close the modal
       if (selectedVerses.length === 1) {
-        setShowBottomSheet(false);
+        setShowModal(false);
       }
     } else {
       // Add to selection
       setSelectedVerses(prev => [...prev, verse]);
       
-      // If first verse selected, open bottom sheet
+      // If first verse selected, open modal
       if (selectedVerses.length === 0) {
-        setShowBottomSheet(true);
+        setShowModal(true);
       }
     }
   };
   
-  // Close bottom sheet and clear selection
-  const handleCloseBottomSheet = () => {
-    setShowBottomSheet(false);
+  // Close modal and clear selection
+  const handleCloseModal = () => {
+    setShowModal(false);
     setSelectedVerses([]);
   };
   
   return {
     selectedVerses,
-    showBottomSheet,
+    showModal,
     handleVerseSelect,
-    handleCloseBottomSheet,
+    handleCloseModal,
     setSelectedVerses
   };
 }
