@@ -12,7 +12,6 @@ import { BibleTranslation } from '../services/bibleService';
 import { Loader2 } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import VerseActionBottomSheet from './VerseActionBottomSheet';
-import { supabase } from '@/integrations/supabase/client';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -36,16 +35,17 @@ export const BibleReader: React.FC = () => {
   const {
     selectedVerses,
     showBottomSheet,
+    bibleButtons,
+    isLoadingButtons,
     handleVerseSelect,
     handleCloseBottomSheet,
     isVerseSelected,
-    getVerseReference
+    getVerseReference,
+    getSelectedVersesText
   } = useVerseSelection();
   
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
-  const [bibleButtons, setBibleButtons] = useState([]);
-  const [isLoadingButtons, setIsLoadingButtons] = useState(false);
 
   // Logging para debugging
   useEffect(() => {
@@ -59,52 +59,6 @@ export const BibleReader: React.FC = () => {
       versesCount: chapterData?.verses?.length || 0
     });
   }, [currentBookId, currentBookSlug, currentChapter, isLoading, chapterData, chapterCount]);
-
-  // Carregar botões quando o bottom sheet é aberto
-  useEffect(() => {
-    if (showBottomSheet) {
-      loadBibleButtons();
-    }
-  }, [showBottomSheet]);
-
-  // Carrega botões da tabela biblia_buttons
-  const loadBibleButtons = async () => {
-    setIsLoadingButtons(true);
-    try {
-      const { data, error } = await supabase
-        .from('biblia_buttons')
-        .select('*')
-        .order('created_at');
-        
-      if (error) {
-        console.error('Erro ao carregar botões:', error);
-        return;
-      }
-      
-      if (data) {
-        setBibleButtons(data);
-      }
-    } catch (err) {
-      console.error('Erro ao buscar botões:', err);
-    } finally {
-      setIsLoadingButtons(false);
-    }
-  };
-
-  // Recupera o texto completo dos versículos selecionados
-  const getSelectedVersesText = (translation: string) => {
-    return selectedVerses.map(verse => {
-      const text = verse[translation] || 
-                  verse.text_naa || 
-                  verse.text_nvi || 
-                  verse.text_acf || 
-                  verse.text_ara || 
-                  verse.text_ntlh || 
-                  verse.text_nvt || 
-                  '';
-      return `${verse.book_name} ${verse.chapter}:${verse.verse} ${text}`;
-    }).join('\n\n');
-  };
 
   // Manipular a navegação de livros
   const handleOpenBooksNav = () => {

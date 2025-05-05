@@ -6,20 +6,27 @@ import QueryClientProvider from "@/providers/QueryClientProvider";
 import UIProvider from "@/providers/UIProvider";
 import DebugProvider from "@/providers/DebugProvider";
 import AppRoutes from "@/components/AppRoutes";
+import { ToastProvider } from "@/components/ui/toast"; 
+import { Toaster } from "@/components/ui/toaster";
 
 const App = () => {
   return (
-    <DebugProvider>
-      <QueryClientProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <UIProvider>
-              <AppRoutes />
-            </UIProvider>
-          </BrowserRouter>
-        </AuthProvider>
-      </QueryClientProvider>
-    </DebugProvider>
+    <React.StrictMode>
+      <DebugProvider>
+        <QueryClientProvider>
+          <ToastProvider>
+            <Toaster />
+            <AuthProvider>
+              <BrowserRouter>
+                <UIProvider>
+                  <AppRoutes />
+                </UIProvider>
+              </BrowserRouter>
+            </AuthProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      </DebugProvider>
+    </React.StrictMode>
   );
 };
 
