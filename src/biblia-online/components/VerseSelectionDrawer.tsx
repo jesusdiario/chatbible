@@ -27,7 +27,7 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
   isLoadingButtons,
   getSelectedVersesText
 }) => {
-  // Formate o texto dos versículos selecionados para exibição
+  // Recupera o texto completo dos versículos para cópia/compartilhamento
   const versesText = getSelectedVersesText(currentTranslation);
 
   // Manipula a cópia do texto para a área de transferência
@@ -76,9 +76,6 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
         {verseReference && (
           <div className="mb-4">
             <p className="text-blue-600 font-bold">{verseReference}</p>
-            <div className="mt-2 p-4 bg-gray-50 rounded-lg text-gray-700 max-h-28 overflow-y-auto">
-              {versesText}
-            </div>
           </div>
         )}
 
@@ -117,9 +114,8 @@ export const VerseSelectionDrawer: React.FC<VerseSelectionDrawerProps> = ({
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  // Aqui implementaríamos a navegação ou ação específica do botão
                   console.log('Clicou no botão:', button.button_name);
-                  // Exemplo: redirecionamento para chat ou assistente específico
+                  // Aqui implementaríamos a navegação ou ação específica do botão
                   // router.push(`/chat/${button.slug}?reference=${verseReference}&text=${encodeURIComponent(versesText)}`);
                 }}
               >
