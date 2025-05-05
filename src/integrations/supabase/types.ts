@@ -256,25 +256,31 @@ export type Database = {
       }
       biblia_buttons: {
         Row: {
+          button_icon: string | null
           button_name: string | null
           created_at: string
           id: number
           order_buttons: number | null
           prompt_ai: string | null
+          slug: string | null
         }
         Insert: {
+          button_icon?: string | null
           button_name?: string | null
           created_at?: string
           id?: number
           order_buttons?: number | null
           prompt_ai?: string | null
+          slug?: string | null
         }
         Update: {
+          button_icon?: string | null
           button_name?: string | null
           created_at?: string
           id?: number
           order_buttons?: number | null
           prompt_ai?: string | null
+          slug?: string | null
         }
         Relationships: []
       }

@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
 import { Loader2 } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
-import { VersesSelectionModal } from './VersesSelectionModal';
+import { VerseActionBottomSheet } from './VerseActionBottomSheet';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -174,8 +174,8 @@ export const BibleReader: React.FC = () => {
         </SheetContent>
       </Sheet>
       
-      {/* Modal de seleção de versículos */}
-      <VersesSelectionModal
+      {/* Bottom Sheet para ações com versículos */}
+      <VerseActionBottomSheet
         open={showModal}
         onClose={handleCloseModal}
         verseReference={getVerseReference()}
