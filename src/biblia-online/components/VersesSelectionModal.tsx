@@ -140,13 +140,15 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
                   onClick={clearSelection}
                 >
                   <Trash2 className="w-5 h-5" />
-                  <span>Limpar seleção</span>
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+            <span>Limpar seleção</span>
+          </Button>
+        )}
+      </div>
+
+      {/* ✅ Mensagem adicionada abaixo dos botões */}
+      <div className="text-center text-sm text-muted-foreground">
+        Você pode fechar esta janela para selecionar mais versículos.
+      </div>
+    </>
+  )}
+</div>
