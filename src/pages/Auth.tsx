@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,11 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import Logo from "@/components/Logo";
-
 const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -21,20 +20,49 @@ const Auth = () => {
     toast
   } = useToast();
   const navigate = useNavigate();
-  
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Login
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) throw error;
-      navigate("/");
+      if (isLogin) {
+        // Login
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
+        navigate("/");
+      } else {
+        // Cadastro
+        if (!termsAccepted) {
+          toast({
+            title: "Termos não aceitos",
+            description: "Você precisa aceitar os termos para criar uma conta.",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
+        const {
+          error
+        } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              terms_accepted: termsAccepted
+            }
+          }
+        });
+        if (error) throw error;
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Você já pode fazer login com suas credenciais."
+        });
+        setIsLogin(true);
+      }
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -45,7 +73,6 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
@@ -69,18 +96,19 @@ const Auth = () => {
       setGoogleLoading(false);
     }
   };
-  
   return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff]-950 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Logo className="inline-flex justify-center mb-4" />
+          <div className="inline-flex items-center justify-center mb-4">
+            
+          </div>
           <h1 className="text-3xl font-bold text-dark">BibleChat</h1>
           <p className="text-dark-500 mt-2">Seu Assistente Online de Estudo Bíblico.</p>
         </div>
 
-        <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
+        <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff]">
           <h2 className="text-xl font-semibold text-dark mb-6">
-            Entre na sua conta
+            {isLogin ? "Entre na sua conta" : "Crie sua conta gratuita"}
           </h2>
           
           <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
@@ -117,14 +145,21 @@ const Auth = () => {
               </div>
             </div>
             
-            <Button type="submit" disabled={loading} className="w-full bg-[#4483f4] text-[#ffffff]">
-              {loading ? "Processando..." : "Entrar"}
+            {!isLogin && <div className="flex items-start space-x-2 pt-2">
+                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={checked => setTermsAccepted(checked === true)} />
+                <Label htmlFor="terms" className="text-sm text-dark-300 leading-tight">
+                  Eu concordo com os <a href="#" className="text-primary hover:underline">Termos de Uso</a> e <a href="#" className="[#4483f4] hover:underline">Políticas de Privacidade</a>
+                </Label>
+              </div>}
+            
+            <Button type="submit" disabled={loading || !isLogin && !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]">
+              {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <button onClick={() => navigate("/register")} className="text-[#4483f4] hover:underline text-sm" type="button">
-              Não tem uma conta? Crie agora
+            <button onClick={() => setIsLogin(!isLogin)} className="text-[#4483f4] hover:underline text-sm" type="button">
+              {isLogin ? "Não tem uma conta? Crie agora" : "Já tem uma conta? Entre"}
             </button>
           </div>
         </div>
