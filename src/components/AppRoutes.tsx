@@ -33,9 +33,9 @@ const ProtectedRoute = ({
   children: React.ReactNode, 
   requiresOnboarding?: boolean 
 }) => {
-  const { user, loading, userProfile, profileLoading } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (loading || profileLoading) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <LoadingSpinner />
     </div>;
@@ -45,11 +45,8 @@ const ProtectedRoute = ({
     return <Navigate to="/auth" replace />;
   }
   
-  // If the profile exists, verifies if needs to complete the onboarding
-  if (requiresOnboarding && userProfile && !userProfile.onboarding_completed) {
-    const nextStep = userProfile.onboarding_step || 1;
-    return <Navigate to={`/onboarding/${nextStep}`} replace />;
-  }
+  // For now, skip the onboarding check until we fix the AuthContext issue
+  // We'll revisit this later when we have proper profile information
   
   return <>{children}</>;
 };
