@@ -12,6 +12,8 @@ import { BibleTranslation } from '../services/bibleService';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
+import Sidebar from '@/components/Sidebar';
+import { useSidebarControl } from '@/hooks/useSidebarControl';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -48,6 +50,7 @@ export const BibleReader: React.FC = () => {
   
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
+  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
 
   // Logging para debugging
   useEffect(() => {
@@ -125,6 +128,8 @@ export const BibleReader: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white relative">
+      <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
+      
       <BibleHeader 
         bookName={getCurrentBookName()} 
         chapter={currentChapter} 
@@ -171,7 +176,7 @@ export const BibleReader: React.FC = () => {
         chapter={currentChapter} 
         onPreviousChapter={goToPreviousChapter} 
         onNextChapter={goToNextChapter} 
-        onOpenBooksNav={handleFooterClick} 
+        onOpenBooksNav={handleOpenBooksNav} 
       />
       
       {/* Sheet para navegação de livros */}
