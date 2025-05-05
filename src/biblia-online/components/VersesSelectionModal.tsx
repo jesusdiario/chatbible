@@ -143,10 +143,8 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
                   <span>Limpar seleção</span>
                 </Button>
               )}
-              
-              {/* ✅ Mensagem adicionada abaixo dos botões */}
-              <div className="text-center text-sm text-muted-foreground">
-                Você pode fechar esta janela para selecionar mais versículos.
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
