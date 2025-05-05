@@ -9,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Menu, Search } from 'lucide-react';
+import { Menu, Search, MoreHorizontal } from 'lucide-react';
+import { useSidebarControl } from '@/hooks/useSidebarControl';
 
 interface BibleHeaderProps {
   bookName: string;
@@ -17,7 +18,6 @@ interface BibleHeaderProps {
   onOpenBooksNav: () => void;
   currentTranslation: BibleTranslation;
   onChangeTranslation: (translation: BibleTranslation) => void;
-  toggleSidebar: () => void;
 }
 
 export const BibleHeader: React.FC<BibleHeaderProps> = ({
@@ -26,8 +26,9 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   onOpenBooksNav,
   currentTranslation,
   onChangeTranslation,
-  toggleSidebar
 }) => {
+  const { toggleSidebar } = useSidebarControl();
+  
   const getTranslationLabel = () => {
     switch (currentTranslation) {
       case BibleTranslation.NVI:
@@ -61,7 +62,6 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
           size="icon" 
           className="rounded-full"
           onClick={toggleSidebar}
-          aria-label="Toggle Sidebar"
         >
           <Menu className="h-5 w-5" />
         </Button>
