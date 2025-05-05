@@ -58,7 +58,7 @@ const Auth = () => {
         .from('user_profiles')
         .select('onboarding_completed, onboarding_step')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
       
       console.log("Perfil do usuário:", profile);
       

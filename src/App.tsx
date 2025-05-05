@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -136,81 +135,98 @@ const App = () => {
               <Toaster />
               <Sonner />
               <Routes>
+                {/* Rotas de autenticação separadas */}
                 <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
                 <Route path="/register" element={session ? <Navigate to="/" replace /> : <Register />} />
                 <Route path="/onboarding/:step" element={
                   !session ? <Navigate to="/auth" replace /> : <Onboarding />
                 } />
+                
+                {/* Demais rotas */}
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Index />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/admin" element={
                   <ProtectedRoute>
                     <Admin />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/admin/paginas" element={
                   <ProtectedRoute>
                     <AdminPages />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/admin/livros" element={
                   <ProtectedRoute>
                     <AdminBooks />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/livros-da-biblia" element={
                   <ProtectedRoute>
                     <LivrosDaBiblia />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/temas-da-biblia" element={
                   <ProtectedRoute>
                     <TemasDaBiblia />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/teologia-crista" element={
                   <ProtectedRoute>
                     <TeologiaCrista />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/livros-da-biblia/:book" element={
                   <ProtectedRoute>
                     <LivrosDaBibliaBook />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/livros-da-biblia/:book/:slug" element={
                   <ProtectedRoute>
                     <LivrosDaBibliaBook />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/chat/:slug" element={
                   <ProtectedRoute>
                     <ChatPage />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/history" element={
                   <ProtectedRoute>
                     <ChatHistory />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/lexicon" element={
                   <ProtectedRoute>
                     <Lexicon />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/profile" element={
                   <ProtectedRoute>
                     <Profile />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/biblia-online" element={
                   <ProtectedRoute>
                     <BibliaOnline />
                   </ProtectedRoute>
                 } />
+                
                 <Route path="/lp" element={<LandingPage />} />
               </Routes>
             </TooltipProvider>

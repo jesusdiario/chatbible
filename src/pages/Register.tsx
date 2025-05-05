@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 
@@ -37,16 +37,32 @@ const Register = () => {
         return;
       }
 
-      // Cadastro com Supabase
-      const { error, data } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            terms_accepted: termsAccepted
+      // Verificação de senha forte
+      if (password.length < 6) {
+        toast({
+          title: "Senha fraca",
+          description: "Sua senha deve ter pelo menos 6 caracteres.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Cadastro com Supabase - Definindo um timeout mais curto
+      const { error, data } = await Promise.race([
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              terms_accepted: termsAccepted
+            }
           }
-        }
-      });
+        }),
+        new Promise<any>((_, reject) => 
+          setTimeout(() => reject(new Error("Tempo de resposta excedido. Tente novamente.")), 8000)
+        )
+      ]);
 
       if (error) throw error;
 
@@ -61,11 +77,27 @@ const Register = () => {
       });
     } catch (error: any) {
       console.error("Erro no registro:", error);
-      toast({
-        title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro durante o cadastro.",
-        variant: "destructive"
-      });
+      
+      // Tratamento de erros específicos
+      if (error.message === "Tempo de resposta excedido. Tente novamente.") {
+        toast({
+          title: "Erro no cadastro",
+          description: "O servidor está demorando para responder. Por favor, tente novamente em alguns instantes.",
+          variant: "destructive"
+        });
+      } else if (error.message?.includes("already registered")) {
+        toast({
+          title: "Email já registrado",
+          description: "Este email já está sendo utilizado. Tente fazer login ou use outro email.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message || "Ocorreu um erro durante o cadastro. Tente novamente.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -116,7 +148,14 @@ const Register = () => {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               <path d="M1 1h22v22H1z" fill="none" />
             </svg>
-            {googleLoading ? "Processando..." : "Continuar com Google"}
+            {googleLoading ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processando...
+              </span>
+            ) : (
+              "Continuar com Google"
+            )}
           </Button>
           
           <div className="relative my-6">
@@ -160,6 +199,9 @@ const Register = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {password && password.length < 6 && (
+                <p className="text-xs text-red-500 mt-1">A senha deve ter pelo menos 6 caracteres</p>
+              )}
             </div>
             
             <div className="flex items-start space-x-2 pt-2">
@@ -178,7 +220,14 @@ const Register = () => {
               disabled={loading || !termsAccepted} 
               className="w-full bg-[#4483f4] text-[#ffffff]"
             >
-              {loading ? "Processando..." : "Criar conta"}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </span>
+              ) : (
+                "Criar conta"
+              )}
             </Button>
           </form>
           
