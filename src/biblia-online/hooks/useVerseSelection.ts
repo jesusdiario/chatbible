@@ -90,11 +90,11 @@ export function useVerseSelection() {
       if (data) {
         // Transforma os dados para garantir que tenham a estrutura correta para BibleButton
         const formattedButtons: BibleButton[] = data.map(button => ({
-          id: button.id || '',
+          id: String(button.id || ''), // Converte o id para string
           button_name: button.button_name || '',
-          button_icon: button.button_icon || 'book-open',
+          button_icon: button.button_icon || 'book-open', // Valor padrão se não existir
           prompt_ai: button.prompt_ai || '',
-          slug: button.slug || '',
+          slug: button.slug || '', // Valor padrão se não existir
           created_at: button.created_at || new Date().toISOString()
         }));
         
