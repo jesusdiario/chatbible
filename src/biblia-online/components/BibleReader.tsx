@@ -10,8 +10,8 @@ import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
 import { Loader2 } from 'lucide-react';
-import { useVerseSelection } from '@/hooks/useVerseSelection';
-import { VerseSelectionModal } from './VerseSelectionModal';
+import { useVerseSelection } from '../hooks/useVerseSelection';
+import { VersesSelectionModal } from './VersesSelectionModal';
 
 export const BibleReader: React.FC = () => {
   const {
@@ -31,18 +31,21 @@ export const BibleReader: React.FC = () => {
     changeTranslation,
     getCurrentBookName
   } = useBible();
+  
+  const {
+    selectedVerses,
+    showModal,
+    bibleButtons,
+    isLoadingButtons,
+    handleVerseSelect,
+    handleCloseModal,
+    isVerseSelected,
+    getVerseReference,
+    getSelectedVersesText
+  } = useVerseSelection();
+  
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
-  
-  const { 
-    selectedVerses, 
-    showModal, 
-    bibleButtons,
-    isLoadingButtons, 
-    handleVerseSelect, 
-    handleCloseModal,
-    formatSelectedVerses 
-  } = useVerseSelection();
 
   // Logging para debugging
   useEffect(() => {
@@ -78,15 +81,6 @@ export const BibleReader: React.FC = () => {
   // Controlador de navegação para o rodapé
   const handleFooterClick = () => {
     handleOpenBooksNav();
-  };
-
-  // Verificar se um versículo está selecionado
-  const isVerseSelected = (verseId: number, chapter: number | null, verse: number | null) => {
-    return selectedVerses.some(v => 
-      v.id === verseId && 
-      v.chapter === chapter && 
-      v.verse === verse
-    );
   };
 
   // Renderizar mensagem de erro ou conteúdo vazio
@@ -136,7 +130,7 @@ export const BibleReader: React.FC = () => {
                   verse={verse} 
                   translation={currentTranslation} 
                   showActions={true}
-                  isSelected={isVerseSelected(verse.id, verse.chapter, verse.verse)}
+                  isSelected={isVerseSelected(verse)}
                   onSelect={handleVerseSelect}
                 />
               ))}
@@ -181,13 +175,15 @@ export const BibleReader: React.FC = () => {
       </Sheet>
       
       {/* Modal de seleção de versículos */}
-      <VerseSelectionModal 
-        isOpen={showModal}
+      <VersesSelectionModal
+        open={showModal}
         onClose={handleCloseModal}
+        verseReference={getVerseReference()}
         selectedVerses={selectedVerses}
-        formattedVerses={formatSelectedVerses()}
+        currentTranslation={currentTranslation}
         buttons={bibleButtons}
-        isLoading={isLoadingButtons}
+        isLoadingButtons={isLoadingButtons}
+        getSelectedVersesText={getSelectedVersesText}
       />
     </div>
   );

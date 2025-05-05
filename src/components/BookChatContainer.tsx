@@ -12,15 +12,21 @@ interface BookChatContainerProps {
   bookDetails: BibleBook;
   book?: string;
   slug?: string;
+  initialPrompt?: string;
+  systemPrompt?: string;
 }
 
 const BookChatContainer: React.FC<BookChatContainerProps> = ({ 
   bookDetails, 
   book,
-  slug 
+  slug,
+  initialPrompt: propInitialPrompt,
+  systemPrompt
 }) => {
   const location = useLocation();
-  const initialPrompt = location.state?.initialPrompt;
+  const locationInitialPrompt = location.state?.initialPrompt;
+  // Use o prompt das props ou do location.state
+  const initialPrompt = propInitialPrompt || locationInitialPrompt;
   
   const {
     messages,
@@ -90,9 +96,9 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     if (initialPrompt && !initialPromptSentRef.current && !isLoading && !isTyping && messages.length === 0) {
       console.log("Enviando prompt inicial:", initialPrompt);
       initialPromptSentRef.current = true;
-      handleSendMessage(initialPrompt);
+      handleSendMessage(initialPrompt, systemPrompt);
     }
-  }, [initialPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
+  }, [initialPrompt, systemPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
 
   return (
     <div className="flex flex-col h-full">
