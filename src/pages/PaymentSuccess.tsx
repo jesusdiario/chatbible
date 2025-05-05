@@ -26,7 +26,7 @@ const PaymentSuccess = () => {
       toast({
         title: "Pagamento processado com sucesso!",
         description: "Sua assinatura Premium foi ativada.",
-        variant: "success",
+        variant: "default", // Changed from "success" to "default" to fix the type error
       });
     }
     
