@@ -1,16 +1,9 @@
+
 import { useState } from 'react';
 import { Verse } from '../services/bibleService';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * useVerseSelection — Hook para seleção de versículos e ações contextuais.
- *
- * 🔄 PATCH 2025‑05‑05‑b: Ajuste adicional
- *   • Corrige ordem de operações ao adicionar primeiro versículo após fechar o modal.
- *   • Agora adicionamos o versículo **antes** de abrir o modal, garantindo que o
- *     conteúdo apareça imediatamente dentro do componente controlado.
- */
-
+// Interface para os botões de ação bíblica
 export interface BibleButton {
   id: string;
   button_name: string;
@@ -25,92 +18,143 @@ export function useVerseSelection() {
   const [showModal, setShowModal] = useState(false);
   const [bibleButtons, setBibleButtons] = useState<BibleButton[]>([]);
   const [isLoadingButtons, setIsLoadingButtons] = useState(false);
-
-  /*──────────────────── Helpers ────────────────────*/
+  
+  // Formata a referência dos versículos selecionados
   const getVerseReference = () => {
     if (selectedVerses.length === 0) return '';
-    const sorted = [...selectedVerses].sort((a, b) => (a.chapter !== b.chapter ? a.chapter - b.chapter : a.verse - b.verse));
-    if (sorted.length === 1) return `${sorted[0].book_name} ${sorted[0].chapter}:${sorted[0].verse}`;
-    const sameChapter = sorted.every(v => v.chapter === sorted[0].chapter);
-    const consecutive = sameChapter && sorted.every((v, i) => (i === 0 ? true : v.verse === sorted[i - 1].verse + 1));
-    if (sameChapter && consecutive) return `${sorted[0].book_name} ${sorted[0].chapter}:${sorted[0].verse}-${sorted[sorted.length - 1].verse}`;
-    if (sameChapter) return `${sorted[0].book_name} ${sorted[0].chapter}:${sorted.map(v => v.verse).join(',')}`;
-    const first = sorted[0];
-    const last = sorted[sorted.length - 1];
-    return `${first.book_name} ${first.chapter}:${first.verse}-${last.chapter}:${last.verse}`;
+    
+    // Ordena os versículos por capítulo e número
+    const sortedVerses = [...selectedVerses].sort((a, b) => {
+      if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+      return a.verse - b.verse;
+    });
+    
+    // Se só temos um versículo
+    if (sortedVerses.length === 1) {
+      const verse = sortedVerses[0];
+      return `${verse.book_name} ${verse.chapter}:${verse.verse}`;
+    }
+    
+    // Se temos versículos consecutivos do mesmo capítulo
+    const allSameChapter = sortedVerses.every(v => v.chapter === sortedVerses[0].chapter);
+    const allConsecutive = allSameChapter && sortedVerses.every((v, i) => {
+      if (i === 0) return true;
+      return v.verse === sortedVerses[i - 1].verse + 1;
+    });
+    
+    if (allSameChapter && allConsecutive) {
+      return `${sortedVerses[0].book_name} ${sortedVerses[0].chapter}:${sortedVerses[0].verse}-${sortedVerses[sortedVerses.length - 1].verse}`;
+    }
+    
+    // Se são do mesmo capítulo mas não consecutivos
+    if (allSameChapter) {
+      const verses = sortedVerses.map(v => v.verse).join(',');
+      return `${sortedVerses[0].book_name} ${sortedVerses[0].chapter}:${verses}`;
+    }
+    
+    // Se são de capítulos diferentes
+    const firstVerse = sortedVerses[0];
+    const lastVerse = sortedVerses[sortedVerses.length - 1];
+    return `${firstVerse.book_name} ${firstVerse.chapter}:${firstVerse.verse}-${lastVerse.chapter}:${lastVerse.verse}`;
   };
-
-  const getSelectedVersesText = (translation: string) =>
-    selectedVerses
-      .map(v => {
-        const text =
-          v[translation] ||
-          v.text_naa ||
-          v.text_nvi ||
-          v.text_acf ||
-          v.text_ara ||
-          v.text_ntlh ||
-          v.text_nvt ||
-          '';
-        return `${v.book_name} ${v.chapter}:${v.verse} ${text}`;
-      })
-      .join('\n\n');
-
-  /*──────────────────── Supabase ────────────────────*/
+  
+  // Recupera o texto completo dos versículos selecionados
+  const getSelectedVersesText = (translation: string) => {
+    return selectedVerses.map(verse => {
+      const text = verse[translation] || 
+                  verse.text_naa || 
+                  verse.text_nvi || 
+                  verse.text_acf || 
+                  verse.text_ara || 
+                  verse.text_ntlh || 
+                  verse.text_nvt || 
+                  '';
+      return `${verse.book_name} ${verse.chapter}:${verse.verse} ${text}`;
+    }).join('\n\n');
+  };
+  
+  // Carrega botões da tabela biblia_buttons
   const loadBibleButtons = async () => {
     setIsLoadingButtons(true);
     try {
-      const { data, error } = await supabase.from('biblia_buttons').select('*').order('created_at');
+      const { data, error } = await supabase
+        .from('biblia_buttons')
+        .select('*')
+        .order('created_at');
+        
       if (error) {
         console.error('Erro ao carregar botões:', error);
         return;
       }
-      setBibleButtons(
-        (data || []).map(b => ({
-          id: String(b.id ?? ''),
-          button_name: b.button_name ?? '',
-          button_icon: b.button_icon ?? 'book-open',
-          prompt_ai: b.prompt_ai ?? '',
-          slug: b.slug ?? '',
-          created_at: b.created_at ?? new Date().toISOString(),
-        }))
-      );
+      
+      if (data) {
+        // Transforma os dados para garantir que tenham a estrutura correta para BibleButton
+        const formattedButtons: BibleButton[] = data.map(button => ({
+          id: String(button.id || ''), // Converte o id para string
+          button_name: button.button_name || '',
+          button_icon: button.button_icon || 'book-open', // Valor padrão se não existir
+          prompt_ai: button.prompt_ai || '',
+          slug: button.slug || '', // Valor padrão se não existir
+          created_at: button.created_at || new Date().toISOString()
+        }));
+        
+        setBibleButtons(formattedButtons);
+      }
     } catch (err) {
       console.error('Erro ao buscar botões:', err);
     } finally {
       setIsLoadingButtons(false);
     }
   };
-
-  /*──────────────────── Interações ────────────────────*/
+  
+  // Manipula a seleção/desseleção de versículo
   const handleVerseSelect = (verse: Verse) => {
-    const isSelected = selectedVerses.some(v => v.book_id === verse.book_id && v.chapter === verse.chapter && v.verse === verse.verse);
-
+    // Verifica se já está selecionado
+    const isSelected = selectedVerses.some(v => 
+      v.book_id === verse.book_id && 
+      v.chapter === verse.chapter && 
+      v.verse === verse.verse
+    );
+    
     if (isSelected) {
-      // Remoção
-      const updated = selectedVerses.filter(v => v.book_id !== verse.book_id || v.chapter !== verse.chapter || v.verse !== verse.verse);
-      setSelectedVerses(updated);
-      if (updated.length === 0) setShowModal(false);
+      // Remove da seleção
+      setSelectedVerses(prev => prev.filter(v => 
+        v.book_id !== verse.book_id || 
+        v.chapter !== verse.chapter || 
+        v.verse !== verse.verse
+      ));
+      
+      // Se era o último versículo selecionado, fecha o modal
+      if (selectedVerses.length === 1) {
+        setShowModal(false);
+      }
     } else {
-      // Adição (⚠️ adicionar antes de abrir modal)
-      const newList = [...selectedVerses, verse];
-      setSelectedVerses(newList);
+      // Adiciona à seleção
+      setSelectedVerses(prev => [...prev, verse]);
+      
+      // Se é o primeiro versículo selecionado, carrega os botões e abre o modal
       if (selectedVerses.length === 0) {
-        // era vazio antes de adicionar
         loadBibleButtons();
         setShowModal(true);
       }
     }
   };
-
-  const isVerseSelected = (verse: Verse) =>
-    selectedVerses.some(v => v.book_id === verse.book_id && v.chapter === verse.chapter && v.verse === verse.verse);
-
+  
+  // Verifica se um versículo está selecionado
+  const isVerseSelected = (verse: Verse) => {
+    return selectedVerses.some(v => 
+      v.book_id === verse.book_id && 
+      v.chapter === verse.chapter && 
+      v.verse === verse.verse
+    );
+  };
+  
+  // Fecha modal e limpa seleção
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedVerses([]);
   };
-
+  
   return {
     selectedVerses,
     showModal,
@@ -121,6 +165,6 @@ export function useVerseSelection() {
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText,
-    setSelectedVerses,
+    setSelectedVerses
   };
 }
