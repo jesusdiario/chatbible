@@ -21,6 +21,8 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         throw new Error("Usuário não autenticado");
       }
       
+      console.log("Verificando assinatura para usuário:", userData.user.id, userData.user.email);
+      
       // Get subscription data from the subscribers table
       const { data: subscriberData, error: subscriberError } = await supabase
         .from('subscribers')
@@ -28,15 +30,22 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         .eq('user_id', userData.user.id)
         .single();
       
-      console.log("Dados de assinatura encontrados:", subscriberData);
+      if (subscriberData) {
+        console.log("Dados de assinatura encontrados na tabela 'subscribers':", subscriberData);
+      }
       
       if (subscriberError && subscriberError.code !== 'PGRST116') {
-        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function");
+        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function", subscriberError);
         
         // Call edge function as a fallback
         const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
         
-        if (functionError) throw functionError;
+        if (functionError) {
+          console.error("Erro ao verificar assinatura via Edge Function:", functionError);
+          throw functionError;
+        }
+        
+        console.log("Dados de assinatura obtidos via Edge Function:", functionData);
         
         setState(prev => ({
           ...prev,
@@ -55,6 +64,10 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       const isActive = subscriberData?.subscribed && 
                      (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
       
+      console.log("Status da assinatura:", isActive ? "Ativa" : "Inativa", 
+                 "Tier:", subscriberData?.subscription_tier || "Gratuito",
+                 "Término:", subscriberData?.subscription_end || "N/A");
+      
       // Get subscription plan details if available
       let plan = null;
       if (subscriberData?.subscription_tier) {
@@ -65,6 +78,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
           .single();
           
         if (planData) {
+          console.log("Dados do plano encontrados:", planData);
           plan = planData;
         }
       }
@@ -128,7 +142,11 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       // Chamar a edge function para criar o checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId, successUrl, cancelUrl }
+        body: { 
+          priceId, 
+          successUrl: successUrl || `${window.location.origin}/payment-success`, 
+          cancelUrl: cancelUrl || `${window.location.origin}/`
+        }
       });
 
       if (error) {
@@ -189,11 +207,16 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
     }
   };
 
+  const refreshSubscription = async () => {
+    console.log("Refreshing subscription data");
+    return checkSubscription();
+  };
+
   return {
     checkSubscription,
     startCheckout,
     openCustomerPortal,
     isProcessing,
-    refreshSubscription: checkSubscription
+    refreshSubscription
   };
 };

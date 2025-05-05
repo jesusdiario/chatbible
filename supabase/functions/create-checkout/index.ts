@@ -1,168 +1,137 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@12.9.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Helper logging function for enhanced debugging
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
-  // Lidar com requisições OPTIONS para CORS
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders, status: 204 });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Create checkout iniciado");
-    
-    // Inicialize o cliente Supabase com a service role key
+    // Parse request body
+    const { priceId, successUrl, cancelUrl } = await req.json();
+    logStep("Request received", { priceId, successUrl, cancelUrl });
+
+    // Get STRIPE_SECRET_KEY from environment variable
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+      apiVersion: '2023-10-16'
+    });
+
+    // Get authenticated user from request
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Obtenha a autorização do cabeçalho
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error("Erro de autorização: cabeçalho ausente");
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new Error('Missing Authorization header');
     }
 
-    // Verificar usuário autenticado
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    const token = authHeader.split(' ')[1];
+    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
 
-    if (userError || !user) {
-      console.error("Erro de autenticação:", userError);
-      return new Response(JSON.stringify({ error: "Usuário não autenticado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (authError || !userData.user) {
+      throw new Error('Authentication error: ' + (authError?.message || 'User not found'));
     }
 
-    console.log(`Usuário autenticado: ${user.id}`);
+    logStep("User authenticated", { userId: userData.user.id, email: userData.user.email });
 
-    // Extrair dados da solicitação
-    const requestData = await req.json();
-    const { priceId, successUrl, cancelUrl } = requestData;
+    // Check for existing Stripe customer or create new one
+    let customerId: string | undefined;
     
-    console.log(`Dados da requisição: priceId=${priceId}, successUrl=${successUrl}, cancelUrl=${cancelUrl}`);
-    
-    if (!priceId) {
-      console.error("ID do preço não fornecido");
-      return new Response(JSON.stringify({ error: "ID do preço não fornecido" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Check if customer exists in our database
+    const { data: subscriberData } = await supabaseClient
+      .from('subscribers')
+      .select('stripe_customer_id')
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
 
-    // Obter o plano de assinatura da base de dados
-    console.log(`Buscando plano com price_id: ${priceId}`);
-    const { data: planData, error: planError } = await supabaseClient
-      .from("subscription_plans")
-      .select("*")
-      .eq("stripe_price_id", priceId)
-      .single();
-
-    if (planError) {
-      console.error("Erro ao buscar plano:", planError);
-      return new Response(JSON.stringify({ error: `Plano não encontrado: ${planError.message}` }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!planData) {
-      console.error(`Plano com price_id ${priceId} não encontrado`);
-      // Tente criar a sessão mesmo sem encontrar o plano no banco
+    if (subscriberData?.stripe_customer_id) {
+      customerId = subscriberData.stripe_customer_id;
+      logStep("Using existing customer from subscribers table", { customerId });
     } else {
-      console.log(`Plano encontrado: ${planData.name}`);
-    }
-
-    // Inicialize o Stripe
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      console.error("Chave do Stripe não configurada");
-      return new Response(JSON.stringify({ error: "Erro de configuração do servidor" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Check Stripe for customer with matching email
+      const customers = await stripe.customers.list({
+        email: userData.user.email,
+        limit: 1,
       });
-    }
-    
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: "2022-11-15",
-    });
 
-    // Verificar se o cliente já existe no Stripe
-    console.log(`Buscando cliente com email: ${user.email}`);
-    let customerId;
-    const { data: customers } = await stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    });
-
-    if (customers.length > 0) {
-      customerId = customers[0].id;
-      console.log(`Cliente existente encontrado: ${customerId}`);
-    } else {
-      // Criar um novo cliente no Stripe
-      console.log("Criando novo cliente no Stripe");
-      const newCustomer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          user_id: user.id,
-        },
-      });
-      customerId = newCustomer.id;
-      console.log(`Novo cliente criado: ${customerId}`);
-      
-      // Registrar cliente no banco de dados
-      await supabaseClient
-        .from("subscribers")
-        .upsert({
-          email: user.email,
-          user_id: user.id,
-          stripe_customer_id: customerId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found existing Stripe customer", { customerId });
+      } else {
+        // Create new customer
+        const newCustomer = await stripe.customers.create({
+          email: userData.user.email,
+          name: userData.user.user_metadata?.full_name || userData.user.email,
+          metadata: {
+            userId: userData.user.id,
+          },
         });
+        customerId = newCustomer.id;
+        logStep("Created new Stripe customer", { customerId });
+      }
+
+      // Update our database with the Stripe customer ID
+      const { error: upsertError } = await supabaseClient
+        .from('subscribers')
+        .upsert({
+          user_id: userData.user.id,
+          email: userData.user.email,
+          stripe_customer_id: customerId,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      if (upsertError) {
+        logStep("Error upserting customer data", { error: upsertError.message });
+      }
     }
 
-    const origin = req.headers.get("origin") || "https://biblegpt.app";
-    const defaultSuccessUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`;
-    const defaultCancelUrl = `${origin}/profile`;
-    
-    // Criar a sessão de checkout do Stripe
-    console.log(`Criando sessão de checkout para o cliente ${customerId} com price ${priceId}`);
+    // Create a checkout session
+    const baseUrl = new URL(req.url).origin;
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: successUrl || defaultSuccessUrl,
-      cancel_url: cancelUrl || defaultCancelUrl,
-      allow_promotion_codes: true,
-      client_reference_id: user.id,
+      line_items: [{
+        price: priceId,
+        quantity: 1
+      }],
+      mode: 'subscription',
+      success_url: successUrl || `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${baseUrl}/`,
+      client_reference_id: userData.user.id, // IMPORTANTE: para associar o checkout ao usuário
+      subscription_data: {
+        metadata: {
+          userId: userData.user.id
+        }
+      }
     });
 
-    console.log(`Sessão de checkout criada: ${session.id}, URL: ${session.url}`);
+    logStep("Checkout session created", { sessionId: session.id });
+    
+    // Return the checkout session URL
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
-    console.error("Erro no checkout:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }

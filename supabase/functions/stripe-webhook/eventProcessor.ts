@@ -21,6 +21,12 @@ export async function processStripeEvent(event: any, supabaseClient: any) {
         // Update subscriptions table
         await handleSuccessfulSubscription(supabaseClient, userId, session);
         logStep("Processed checkout.session.completed event", { userId });
+      } else {
+        logStep("Missing customer or client_reference_id in checkout session", { 
+          hasCustomer: !!session.customer, 
+          hasClientRef: !!session.client_reference_id,
+          sessionId: session.id 
+        });
       }
       break;
       

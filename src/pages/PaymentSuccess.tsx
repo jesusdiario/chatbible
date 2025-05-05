@@ -11,31 +11,53 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  const { refreshSubscription } = useSubscription();
+  const { refreshSubscription, isLoading } = useSubscription();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (sessionId) {
-      // Registra o session_id no console para debug
-      console.log('Stripe session ID:', sessionId);
-      
-      // Atualiza os dados da assinatura imediatamente
-      refreshSubscription();
-      
-      // Notifica o usuário
-      toast({
-        title: "Pagamento processado com sucesso!",
-        description: "Sua assinatura Premium foi ativada.",
-        variant: "default", // Changed from "success" to "default" to fix the type error
-      });
-    }
+    let redirectTimeout: NodeJS.Timeout;
+
+    const updateSubscription = async () => {
+      if (sessionId) {
+        // Registra o session_id no console para debug
+        console.log('Stripe session ID:', sessionId);
+        
+        try {
+          // Atualiza os dados da assinatura imediatamente
+          await refreshSubscription();
+          
+          // Notifica o usuário
+          toast({
+            title: "Pagamento processado com sucesso!",
+            description: "Sua assinatura Premium foi ativada.",
+            variant: "default",
+          });
+          
+          // Redireciona para home após 5 segundos
+          redirectTimeout = setTimeout(() => {
+            navigate('/');
+          }, 5000);
+        } catch (error) {
+          console.error('Erro ao atualizar assinatura:', error);
+          toast({
+            title: "Erro ao atualizar sua assinatura",
+            description: "Tente atualizar a página ou entre em contato com o suporte.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Sem session_id, redirecionamos mais rapidamente
+        redirectTimeout = setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      }
+    };
+
+    updateSubscription();
     
-    // Redireciona para home após 5 segundos
-    const timeout = setTimeout(() => {
-      navigate('/');
-    }, 5000);
-    
-    return () => clearTimeout(timeout);
+    return () => {
+      if (redirectTimeout) clearTimeout(redirectTimeout);
+    };
   }, [sessionId, refreshSubscription, navigate, toast]);
 
   return (
@@ -56,6 +78,11 @@ const PaymentSuccess = () => {
               <div className="h-full bg-green-500 animate-progress"></div>
             </div>
           </div>
+          {isLoading && (
+            <div className="mt-2">
+              <div className="animate-spin h-5 w-5 border-2 border-green-500 rounded-full border-t-transparent"></div>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-center pt-2">
           <Button asChild>
