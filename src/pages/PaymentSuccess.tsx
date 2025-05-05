@@ -1,26 +1,42 @@
 
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useToast } from '@/hooks/use-toast';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
   const { refreshSubscription } = useSubscription();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Refresh subscription data when this page loads
-    refreshSubscription();
+    if (sessionId) {
+      // Registra o session_id no console para debug
+      console.log('Stripe session ID:', sessionId);
+      
+      // Atualiza os dados da assinatura imediatamente
+      refreshSubscription();
+      
+      // Notifica o usuário
+      toast({
+        title: "Pagamento processado com sucesso!",
+        description: "Sua assinatura Premium foi ativada.",
+        variant: "success",
+      });
+    }
     
-    // Redirect to home after 5 seconds
+    // Redireciona para home após 5 segundos
     const timeout = setTimeout(() => {
       navigate('/');
     }, 5000);
     
     return () => clearTimeout(timeout);
-  }, [refreshSubscription, navigate]);
+  }, [sessionId, refreshSubscription, navigate, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">

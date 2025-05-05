@@ -28,6 +28,8 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         .eq('user_id', userData.user.id)
         .single();
       
+      console.log("Dados de assinatura encontrados:", subscriberData);
+      
       if (subscriberError && subscriberError.code !== 'PGRST116') {
         console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function");
         

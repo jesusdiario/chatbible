@@ -28,6 +28,7 @@ import ChatPage from "@/pages/ChatPage";
 import LandingPage from "@/pages/LandingPage";
 import Lexicon from "@/pages/Lexicon";
 import BibliaOnline from "@/pages/BibliaOnline";
+import PaymentSuccess from "@/pages/PaymentSuccess";
 
 // Configure the query client with settings to prevent unnecessary fetches
 const queryClient = new QueryClient({
@@ -141,6 +142,9 @@ const App = () => {
                 <Route path="/onboarding/:step" element={
                   !session ? <Navigate to="/auth" replace /> : <Onboarding />
                 } />
+                
+                {/* Nova rota para página de pagamento bem-sucedido */}
+                <Route path="/payment-success" element={<PaymentSuccess />} />
                 
                 {/* Demais rotas */}
                 <Route path="/" element={
