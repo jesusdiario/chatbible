@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Verse, BibleTranslation } from '../services/bibleService';
 import { BibleButton } from '../hooks/useVerseSelection';
 import { Button } from './ui/button';
-import { Loader2, Share2, Image, Copy, Save, Annotation, PrayingHands } from 'lucide-react';
+import { Loader2, Share2, Image, Copy, Save, BookOpen, PenSquare } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface VersesSelectionModalProps {
@@ -43,11 +43,13 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
       case 'save':
         return <Save className="w-5 h-5" />;
       case 'annotation':
-        return <Annotation className="w-5 h-5" />;
+      case 'book-open':
+        return <BookOpen className="w-5 h-5" />;
       case 'pray':
-        return <PrayingHands className="w-5 h-5" />;
+      case 'pen-square':
+        return <PenSquare className="w-5 h-5" />;
       default:
-        return null;
+        return <BookOpen className="w-5 h-5" />;
     }
   };
 

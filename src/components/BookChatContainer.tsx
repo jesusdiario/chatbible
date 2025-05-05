@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
@@ -8,7 +9,7 @@ import { useChatOperations } from '@/hooks/useChatOperations';
 import { useLocation } from 'react-router-dom';
 
 interface BookChatContainerProps {
-  bookDetails: BookDetails;
+  bookDetails: BibleBook;
   book?: string;
   slug?: string;
   initialPrompt?: string;
@@ -19,11 +20,13 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   bookDetails, 
   book,
   slug,
-  initialPrompt,
+  initialPrompt: propInitialPrompt,
   systemPrompt
 }) => {
   const location = useLocation();
-  const initialPrompt = location.state?.initialPrompt;
+  const locationInitialPrompt = location.state?.initialPrompt;
+  // Use o prompt das props ou do location.state
+  const initialPrompt = propInitialPrompt || locationInitialPrompt;
   
   const {
     messages,

@@ -87,7 +87,19 @@ export function useVerseSelection() {
         return;
       }
       
-      setBibleButtons(data || []);
+      if (data) {
+        // Transforma os dados para garantir que tenham a estrutura correta para BibleButton
+        const formattedButtons: BibleButton[] = data.map(button => ({
+          id: button.id || '',
+          button_name: button.button_name || '',
+          button_icon: button.button_icon || 'book-open',
+          prompt_ai: button.prompt_ai || '',
+          slug: button.slug || '',
+          created_at: button.created_at || new Date().toISOString()
+        }));
+        
+        setBibleButtons(formattedButtons);
+      }
     } catch (err) {
       console.error('Erro ao buscar botões:', err);
     } finally {

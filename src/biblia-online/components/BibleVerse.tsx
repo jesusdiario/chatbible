@@ -35,24 +35,6 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
     return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || '';
   };
 
-  const handleExegeseClick = () => {
-    // Formatar a referência do versículo (livro, capítulo e versículo)
-    const verseReference = `${verse.book_name || ''} ${verse.chapter || ''}:${verse.verse || ''}`;
-    
-    // Obter o texto do versículo atual
-    const verseText = getVerseText();
-    
-    // Construir a mensagem para enviar ao chat
-    const prompt = `Exegese do versículo "${verseReference}: ${verseText}"`;
-    
-    // Redirecionar para a página de chat com o livro apropriado
-    navigate(`/livros-da-biblia/${verse.book_slug || 'genesis'}`, { 
-      state: { 
-        initialPrompt: prompt 
-      }
-    });
-  };
-
   const handleClick = () => {
     if (onSelect) {
       onSelect(verse);
@@ -81,16 +63,12 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
             <Button variant="outline" size="sm" onClick={(e) => {
               e.stopPropagation(); 
-              handleExegeseClick();
+              if (onSelect) {
+                onSelect(verse);
+              }
             }}>
               <MessageSquare className="mr-1 h-4 w-4" />
-              Exegese
-            </Button>
-            <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-              Salvar
-            </Button>
-            <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-              Copiar
+              Selecionar
             </Button>
           </div>
         )}
