@@ -20,7 +20,7 @@ export const useChatOperations = (
   const [isTyping, setIsTyping] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string | null>(null);
 
-  const handleSendMessage = useCallback(async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string, promptOverride?: string) => {
     if (!content.trim()) return;
     
     // Check if user has exceeded message limit
@@ -60,7 +60,7 @@ export const useChatOperations = (
         book, 
         userId || undefined, 
         slug,
-        undefined,
+        promptOverride, // Usar o prompt personalizado se fornecido
         (chunk) => {
           // Atualiza a mensagem completa de uma vez quando tiver todo o conteúdo
           setMessages((prev: Message[]) => {

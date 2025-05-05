@@ -9,12 +9,16 @@ interface BibleVerseProps {
   verse: Verse;
   translation: BibleTranslation;
   showActions?: boolean;
+  isSelected?: boolean;
+  onVerseSelect?: (verse: Verse) => void;
 }
 
 export const BibleVerse: React.FC<BibleVerseProps> = ({
   verse,
   translation,
   showActions = false,
+  isSelected = false,
+  onVerseSelect,
 }) => {
   const navigate = useNavigate();
 
@@ -48,13 +52,27 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
     });
   };
 
+  const handleVerseClick = () => {
+    if (onVerseSelect) {
+      onVerseSelect(verse);
+    }
+  };
+
   return (
-    <div className="group flex mb-4">
+    <div 
+      className={`group flex mb-4 ${isSelected ? 'cursor-pointer' : ''}`}
+      onClick={handleVerseClick}
+    >
       <div className="mr-2 font-bold text-gray-400 pt-0.5 w-6 text-right">
         {verse.verse}
       </div>
       <div className="flex-1">
-        <p className="leading-relaxed">{getVerseText()}</p>
+        <p 
+          className={`leading-relaxed ${isSelected ? 
+            'border-b-2 border-dotted border-blue-500' : ''}`}
+        >
+          {getVerseText()}
+        </p>
         {showActions && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
             <Button variant="outline" size="sm" onClick={handleExegeseClick}>
