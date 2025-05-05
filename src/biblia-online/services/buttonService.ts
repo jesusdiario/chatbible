@@ -4,7 +4,7 @@ import { BibleButton } from '../types/buttons';
 
 export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
   try {
-    // Make sure we're using the correct Supabase client and table reference
+    // Using the correct Supabase client from biblia-online path
     const { data, error } = await supabase
       .from('biblia_buttons')
       .select('*')
@@ -16,6 +16,7 @@ export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
     }
     
     // Transform the data to match the BibleButton interface
+    // This ensures proper typing for the returned data
     return data.map(item => ({
       id: item.id.toString(),
       button_name: item.button_name || '',
