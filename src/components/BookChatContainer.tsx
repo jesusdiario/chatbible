@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useChatState } from '@/hooks/useChatState';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
@@ -9,15 +8,19 @@ import { useChatOperations } from '@/hooks/useChatOperations';
 import { useLocation } from 'react-router-dom';
 
 interface BookChatContainerProps {
-  bookDetails: BibleBook;
+  bookDetails: BookDetails;
   book?: string;
   slug?: string;
+  initialPrompt?: string;
+  systemPrompt?: string;
 }
 
 const BookChatContainer: React.FC<BookChatContainerProps> = ({ 
   bookDetails, 
   book,
-  slug 
+  slug,
+  initialPrompt,
+  systemPrompt
 }) => {
   const location = useLocation();
   const initialPrompt = location.state?.initialPrompt;
@@ -90,9 +93,9 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     if (initialPrompt && !initialPromptSentRef.current && !isLoading && !isTyping && messages.length === 0) {
       console.log("Enviando prompt inicial:", initialPrompt);
       initialPromptSentRef.current = true;
-      handleSendMessage(initialPrompt);
+      handleSendMessage(initialPrompt, systemPrompt);
     }
-  }, [initialPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
+  }, [initialPrompt, systemPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
 
   return (
     <div className="flex flex-col h-full">

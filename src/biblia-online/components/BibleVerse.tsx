@@ -4,17 +4,22 @@ import { Verse, BibleTranslation } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BibleVerseProps {
   verse: Verse;
   translation: BibleTranslation;
   showActions?: boolean;
+  isSelected?: boolean;
+  onSelect?: (verse: Verse) => void;
 }
 
 export const BibleVerse: React.FC<BibleVerseProps> = ({
   verse,
   translation,
   showActions = false,
+  isSelected = false,
+  onSelect
 }) => {
   const navigate = useNavigate();
 
@@ -48,23 +53,43 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
     });
   };
 
+  const handleClick = () => {
+    if (onSelect) {
+      onSelect(verse);
+    }
+  };
+
   return (
-    <div className="group flex mb-4">
+    <div 
+      className={cn(
+        "group flex mb-4 cursor-pointer", 
+        isSelected && "bg-blue-50 rounded"
+      )}
+      onClick={handleClick}
+    >
       <div className="mr-2 font-bold text-gray-400 pt-0.5 w-6 text-right">
         {verse.verse}
       </div>
       <div className="flex-1">
-        <p className="leading-relaxed">{getVerseText()}</p>
-        {showActions && (
+        <p className={cn(
+          "leading-relaxed",
+          isSelected && "border-b border-dotted border-blue-500"
+        )}>
+          {getVerseText()}
+        </p>
+        {showActions && !isSelected && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-            <Button variant="outline" size="sm" onClick={handleExegeseClick}>
+            <Button variant="outline" size="sm" onClick={(e) => {
+              e.stopPropagation(); 
+              handleExegeseClick();
+            }}>
               <MessageSquare className="mr-1 h-4 w-4" />
               Exegese
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
               Salvar
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
               Copiar
             </Button>
           </div>
