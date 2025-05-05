@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -8,7 +9,7 @@ import { BibleHeader } from './BibleHeader';
 import { BibleFooter } from './BibleFooter';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BibleTranslation } from '../services/bibleService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, BookOpen } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
 
