@@ -633,28 +633,61 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          age_range: string | null
           avatar_url: string | null
+          baptized: boolean | null
+          christian_time: string | null
+          church_participation: string | null
           created_at: string | null
+          denomination: string | null
           display_name: string | null
+          goals: string[] | null
           id: string
+          leadership_role: string | null
+          ministry_service: string[] | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
           preferred_language: string | null
           updated_at: string | null
+          wants_plan: string | null
         }
         Insert: {
+          age_range?: string | null
           avatar_url?: string | null
+          baptized?: boolean | null
+          christian_time?: string | null
+          church_participation?: string | null
           created_at?: string | null
+          denomination?: string | null
           display_name?: string | null
+          goals?: string[] | null
           id: string
+          leadership_role?: string | null
+          ministry_service?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           preferred_language?: string | null
           updated_at?: string | null
+          wants_plan?: string | null
         }
         Update: {
+          age_range?: string | null
           avatar_url?: string | null
+          baptized?: boolean | null
+          christian_time?: string | null
+          church_participation?: string | null
           created_at?: string | null
+          denomination?: string | null
           display_name?: string | null
+          goals?: string[] | null
           id?: string
+          leadership_role?: string | null
+          ministry_service?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           preferred_language?: string | null
           updated_at?: string | null
+          wants_plan?: string | null
         }
         Relationships: []
       }

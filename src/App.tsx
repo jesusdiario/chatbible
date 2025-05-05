@@ -9,9 +9,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { detectReloadTriggers } from "@/utils/debugUtils";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Importação dos componentes de páginas
 import Auth from "@/pages/Auth";
+import Register from "@/pages/Register";
+import Onboarding from "@/pages/Onboarding";
 import Index from "@/pages/Index";
 import Admin from "@/pages/Admin";
 import AdminPages from "@/pages/AdminPages";
@@ -41,6 +44,8 @@ const queryClient = new QueryClient({
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     // Enable debug tools in development
@@ -55,6 +60,14 @@ const App = () => {
     // Verificar sessão atual
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      
+      if (session?.user) {
+        // Buscar informações de perfil do usuário
+        fetchUserProfile(session.user.id);
+      } else {
+        setProfileLoading(false);
+      }
+      
       setLoading(false);
     });
 
@@ -62,102 +75,148 @@ const App = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', _event);
       setSession(session);
+      
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+      } else {
+        setUserProfile(null);
+        setProfileLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const fetchUserProfile = async (userId: string) => {
+    setProfileLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar perfil do usuário:', error);
+      }
+      
+      setUserProfile(data || null);
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   // Componente de proteção de rota
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-900">Carregando...</div>;
-    if (!session) return <Navigate to="/auth" replace />;
+  const ProtectedRoute = ({ children, requiresOnboarding = true }: { children: React.ReactNode, requiresOnboarding?: boolean }) => {
+    if (loading || profileLoading) {
+      return <div className="min-h-screen flex items-center justify-center bg-slate-100">Carregando...</div>;
+    }
+    
+    if (!session) {
+      return <Navigate to="/auth" replace />;
+    }
+    
+    // Se o perfil existe, verifica se precisa completar o onboarding
+    if (requiresOnboarding && userProfile && !userProfile.onboarding_completed) {
+      const nextStep = userProfile.onboarding_step || 1;
+      return <Navigate to={`/onboarding/${nextStep}`} replace />;
+    }
+    
     return <>{children}</>;
   };
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ErrorBoundary>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/paginas" element={
-                <ProtectedRoute>
-                  <AdminPages />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/livros" element={
-                <ProtectedRoute>
-                  <AdminBooks />
-                </ProtectedRoute>
-              } />
-              <Route path="/livros-da-biblia" element={
-                <ProtectedRoute>
-                  <LivrosDaBiblia />
-                </ProtectedRoute>
-              } />
-              <Route path="/temas-da-biblia" element={
-                <ProtectedRoute>
-                  <TemasDaBiblia />
-                </ProtectedRoute>
-              } />
-              <Route path="/teologia-crista" element={
-                <ProtectedRoute>
-                  <TeologiaCrista />
-                </ProtectedRoute>
-              } />
-              <Route path="/livros-da-biblia/:book" element={
-                <ProtectedRoute>
-                  <LivrosDaBibliaBook />
-                </ProtectedRoute>
-              } />
-              <Route path="/livros-da-biblia/:book/:slug" element={
-                <ProtectedRoute>
-                  <LivrosDaBibliaBook />
-                </ProtectedRoute>
-              } />
-              <Route path="/chat/:slug" element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/history" element={
-                <ProtectedRoute>
-                  <ChatHistory />
-                </ProtectedRoute>
-              } />
-              <Route path="/lexicon" element={
-                <ProtectedRoute>
-                  <Lexicon />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/biblia-online" element={
-                <ProtectedRoute>
-                  <BibliaOnline />
-                </ProtectedRoute>
-              } />
-              <Route path="/lp" element={<LandingPage />} />
-            </Routes>
-          </TooltipProvider>
-        </ErrorBoundary>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/auth" element={session ? <Navigate to="/" replace /> : <Auth />} />
+                <Route path="/register" element={session ? <Navigate to="/" replace /> : <Register />} />
+                <Route path="/onboarding/:step" element={
+                  !session ? <Navigate to="/auth" replace /> : <Onboarding />
+                } />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/paginas" element={
+                  <ProtectedRoute>
+                    <AdminPages />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/livros" element={
+                  <ProtectedRoute>
+                    <AdminBooks />
+                  </ProtectedRoute>
+                } />
+                <Route path="/livros-da-biblia" element={
+                  <ProtectedRoute>
+                    <LivrosDaBiblia />
+                  </ProtectedRoute>
+                } />
+                <Route path="/temas-da-biblia" element={
+                  <ProtectedRoute>
+                    <TemasDaBiblia />
+                  </ProtectedRoute>
+                } />
+                <Route path="/teologia-crista" element={
+                  <ProtectedRoute>
+                    <TeologiaCrista />
+                  </ProtectedRoute>
+                } />
+                <Route path="/livros-da-biblia/:book" element={
+                  <ProtectedRoute>
+                    <LivrosDaBibliaBook />
+                  </ProtectedRoute>
+                } />
+                <Route path="/livros-da-biblia/:book/:slug" element={
+                  <ProtectedRoute>
+                    <LivrosDaBibliaBook />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chat/:slug" element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/history" element={
+                  <ProtectedRoute>
+                    <ChatHistory />
+                  </ProtectedRoute>
+                } />
+                <Route path="/lexicon" element={
+                  <ProtectedRoute>
+                    <Lexicon />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/biblia-online" element={
+                  <ProtectedRoute>
+                    <BibliaOnline />
+                  </ProtectedRoute>
+                } />
+                <Route path="/lp" element={<LandingPage />} />
+              </Routes>
+            </TooltipProvider>
+          </ErrorBoundary>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

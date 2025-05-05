@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,68 +11,59 @@ import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 
-const Auth = () => {
+const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Verificar se o usuário foi redirecionado de um reset de senha
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('reset') === 'true') {
-      toast({
-        title: "Senha alterada",
-        description: "Sua senha foi alterada com sucesso. Faça login com sua nova senha."
-      });
-    }
-  }, [location, toast]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      console.log("Tentando autenticar com email:", email);
-      
-      // Login
-      const { error, data } = await supabase.auth.signInWithPassword({
+      // Verificação dos termos de uso
+      if (!termsAccepted) {
+        toast({
+          title: "Termos não aceitos",
+          description: "Você precisa aceitar os termos para criar uma conta.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Cadastro com Supabase
+      const { error, data } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: {
+            terms_accepted: termsAccepted
+          }
+        }
       });
 
-      if (error) {
-        console.error("Erro de autenticação:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Login bem-sucedido:", data);
+      console.log("Usuário registrado:", data);
       
-      // Verificar se o usuário completou o onboarding
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('onboarding_completed, onboarding_step')
-        .eq('id', data.user.id)
-        .single();
+      // Redirecionar para a primeira etapa do onboarding
+      navigate("/onboarding/1");
       
-      console.log("Perfil do usuário:", profile);
-      
-      if (profile && !profile.onboarding_completed) {
-        const nextStep = profile.onboarding_step || 1;
-        navigate(`/onboarding/${nextStep}`);
-      } else {
-        navigate("/");
-      }
-    } catch (error: any) {
-      console.error("Erro completo:", error);
       toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro durante a autenticação.",
+        title: "Conta criada com sucesso!",
+        description: "Vamos conhecer você melhor."
+      });
+    } catch (error: any) {
+      console.error("Erro no registro:", error);
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro durante o cadastro.",
         variant: "destructive"
       });
     } finally {
@@ -83,61 +74,23 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      const redirectUrl = `${window.location.origin}/`;
-      
-      console.log("Iniciando login com Google, URL de redirecionamento:", redirectUrl);
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl
+          redirectTo: window.location.origin + "/onboarding/1"
         }
       });
       
       if (error) throw error;
-      
+
       // O redirecionamento será tratado pelo OAuth
     } catch (error: any) {
-      console.error("Erro no login com Google:", error);
       toast({
         title: "Erro de autenticação",
         description: error.message || "Ocorreu um erro ao tentar autenticar com Google.",
         variant: "destructive"
       });
       setGoogleLoading(false);
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      toast({
-        title: "Email necessário",
-        description: "Insira seu email para redefinir a senha",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Email enviado",
-        description: "Verifique seu email para instruções de redefinição de senha."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível enviar o email de redefinição.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -152,15 +105,11 @@ const Auth = () => {
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
           <h2 className="text-xl font-semibold text-dark mb-6">
-            Entre na sua conta
+            Crie sua conta gratuita
           </h2>
           
-          <Button 
-            onClick={handleGoogleSignIn} 
-            disabled={googleLoading} 
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+          <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -177,7 +126,7 @@ const Auth = () => {
             </span>
           </div>
           
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-dark">E-mail</Label>
               <Input 
@@ -192,16 +141,7 @@ const Auth = () => {
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-dark">Senha</Label>
-                <button 
-                  type="button" 
-                  onClick={handleForgotPassword} 
-                  className="text-xs text-[#4483f4] hover:underline"
-                >
-                  Esqueceu a senha?
-                </button>
-              </div>
+              <Label htmlFor="password" className="text-dark">Senha</Label>
               <div className="relative">
                 <Input 
                   id="password" 
@@ -222,22 +162,33 @@ const Auth = () => {
               </div>
             </div>
             
+            <div className="flex items-start space-x-2 pt-2">
+              <Checkbox 
+                id="terms" 
+                checked={termsAccepted} 
+                onCheckedChange={checked => setTermsAccepted(checked === true)} 
+              />
+              <Label htmlFor="terms" className="text-sm text-dark-300 leading-tight">
+                Eu concordo com os <a href="#" className="text-[#4483f4] hover:underline">Termos de Uso</a> e <a href="#" className="text-[#4483f4] hover:underline">Políticas de Privacidade</a>
+              </Label>
+            </div>
+            
             <Button 
               type="submit" 
-              disabled={loading} 
+              disabled={loading || !termsAccepted} 
               className="w-full bg-[#4483f4] text-[#ffffff]"
             >
-              {loading ? "Processando..." : "Entrar"}
+              {loading ? "Processando..." : "Criar conta"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
             <button 
-              onClick={() => navigate("/register")} 
+              onClick={() => navigate("/auth")} 
               className="text-[#4483f4] hover:underline text-sm" 
               type="button"
             >
-              Não tem uma conta? Crie agora
+              Já tem uma conta? Entre
             </button>
           </div>
         </div>
@@ -246,4 +197,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Register;
