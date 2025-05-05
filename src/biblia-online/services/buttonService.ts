@@ -4,6 +4,7 @@ import { BibleButton } from '../types/buttons';
 
 export const fetchBibleButtons = async (): Promise<BibleButton[]> => {
   try {
+    // Make sure we're using the correct Supabase client and table reference
     const { data, error } = await supabase
       .from('biblia_buttons')
       .select('*')
