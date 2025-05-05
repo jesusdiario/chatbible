@@ -123,20 +123,26 @@ export function useVerseSelection() {
         v.chapter !== verse.chapter || 
         v.verse !== verse.verse
       ));
-      
-      // Se era o último versículo selecionado, fecha o modal
-      if (selectedVerses.length === 1) {
-        setShowModal(false);
-      }
     } else {
       // Adiciona à seleção
       setSelectedVerses(prev => [...prev, verse]);
       
-      // Se é o primeiro versículo selecionado, carrega os botões e abre o modal
+      // Se é o primeiro versículo selecionado, carrega os botões
       if (selectedVerses.length === 0) {
         loadBibleButtons();
+      }
+    }
+    
+    // Se temos versículos selecionados após esta operação e o modal está fechado, abrimos o modal
+    if ((isSelected && selectedVerses.length > 1) || (!isSelected)) {
+      if (!showModal) {
         setShowModal(true);
       }
+    }
+    
+    // Se não temos mais versículos selecionados, fechamos o modal
+    if (isSelected && selectedVerses.length === 1) {
+      setShowModal(false);
     }
   };
   
@@ -149,10 +155,26 @@ export function useVerseSelection() {
     );
   };
   
-  // Fecha modal e limpa seleção
+  // Fecha modal mas mantém a seleção
   const handleCloseModal = () => {
     setShowModal(false);
+    // Não limpa mais a seleção de versículos: setSelectedVerses([]);
+  };
+  
+  // Remove todos os versículos selecionados
+  const clearSelection = () => {
     setSelectedVerses([]);
+    setShowModal(false);
+  };
+  
+  // Abre o modal se já houver versículos selecionados
+  const openModalWithSelection = () => {
+    if (selectedVerses.length > 0) {
+      if (!bibleButtons.length) {
+        loadBibleButtons();
+      }
+      setShowModal(true);
+    }
   };
   
   return {
@@ -165,6 +187,8 @@ export function useVerseSelection() {
     isVerseSelected,
     getVerseReference,
     getSelectedVersesText,
-    setSelectedVerses
+    setSelectedVerses,
+    clearSelection,
+    openModalWithSelection
   };
 }

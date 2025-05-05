@@ -41,7 +41,8 @@ export const BibleReader: React.FC = () => {
     handleCloseModal,
     isVerseSelected,
     getVerseReference,
-    getSelectedVersesText
+    getSelectedVersesText,
+    clearSelection
   } = useVerseSelection();
   
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -174,7 +175,7 @@ export const BibleReader: React.FC = () => {
         </SheetContent>
       </Sheet>
       
-      {/* Modal de seleção de versículos */}
+      {/* Modal de seleção de versículos - Agora com novo comportamento */}
       <VersesSelectionModal
         open={showModal}
         onClose={handleCloseModal}
@@ -184,7 +185,8 @@ export const BibleReader: React.FC = () => {
         buttons={bibleButtons}
         isLoadingButtons={isLoadingButtons}
         getSelectedVersesText={getSelectedVersesText}
+        clearSelection={clearSelection}
       />
     </div>
   );
-};
+}
