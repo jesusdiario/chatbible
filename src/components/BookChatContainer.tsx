@@ -6,6 +6,7 @@ import { loadChatMessages } from '@/services/persistenceService';
 import { BibleBook } from '@/types/bible';
 import BookChat from './BookChat';
 import { useChatOperations } from '@/hooks/useChatOperations';
+import { useLocation } from 'react-router-dom';
 
 interface BookChatContainerProps {
   bookDetails: BibleBook;
@@ -18,6 +19,9 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   book,
   slug 
 }) => {
+  const location = useLocation();
+  const initialPrompt = location.state?.initialPrompt;
+  
   const {
     messages,
     setMessages,
@@ -36,6 +40,9 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
 
   // Ref para evitar recargas durante o processamento de mensagens
   const preventReloadRef = useRef(false);
+  
+  // Ref para controlar se o prompt inicial já foi enviado
+  const initialPromptSentRef = useRef(false);
 
   // Função para recarregar as mensagens quando necessário
   const reloadMessages = useCallback(async () => {
@@ -77,6 +84,15 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   useEffect(() => {
     preventReloadRef.current = isTyping || messageProcessingRef.current;
   }, [isTyping, messageProcessingRef]);
+
+  // Efeito para enviar o prompt inicial quando necessário
+  useEffect(() => {
+    if (initialPrompt && !initialPromptSentRef.current && !isLoading && !isTyping && messages.length === 0) {
+      console.log("Enviando prompt inicial:", initialPrompt);
+      initialPromptSentRef.current = true;
+      handleSendMessage(initialPrompt);
+    }
+  }, [initialPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
 
   return (
     <div className="flex flex-col h-full">

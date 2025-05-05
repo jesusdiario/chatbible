@@ -2,6 +2,8 @@
 import React from 'react';
 import { Verse, BibleTranslation } from '../services/bibleService';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { MessageSquare } from 'lucide-react';
 
 interface BibleVerseProps {
   verse: Verse;
@@ -14,6 +16,8 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
   translation,
   showActions = false,
 }) => {
+  const navigate = useNavigate();
+
   // Determine which verse text to show based on selected translation
   const getVerseText = () => {
     // Primeiro, verificar a tradução selecionada
@@ -26,8 +30,23 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
     return verse[translation] || verse.text_naa || verse.text_nvi || verse.text_acf || verse.text_ara || verse.text_arc || verse.text_ntlh || verse.text_nvt || '';
   };
 
-  // Logging para debugging
-  console.log(`Renderizando versículo ${verse.verse} com tradução ${translation}`, verse);
+  const handleExegeseClick = () => {
+    // Formatar a referência do versículo (livro, capítulo e versículo)
+    const verseReference = `${verse.book_name || ''} ${verse.chapter || ''}:${verse.verse || ''}`;
+    
+    // Obter o texto do versículo atual
+    const verseText = getVerseText();
+    
+    // Construir a mensagem para enviar ao chat
+    const prompt = `Exegese do versículo "${verseReference}: ${verseText}"`;
+    
+    // Redirecionar para a página de chat com o livro apropriado
+    navigate(`/livros-da-biblia/${verse.book_slug || 'genesis'}`, { 
+      state: { 
+        initialPrompt: prompt 
+      }
+    });
+  };
 
   return (
     <div className="group flex mb-4">
@@ -38,11 +57,12 @@ export const BibleVerse: React.FC<BibleVerseProps> = ({
         <p className="leading-relaxed">{getVerseText()}</p>
         {showActions && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-            <Button variant="outline" size="sm">
-              Salvar
+            <Button variant="outline" size="sm" onClick={handleExegeseClick}>
+              <MessageSquare className="mr-1 h-4 w-4" />
+              Exegese
             </Button>
             <Button variant="outline" size="sm">
-              Compartilhar
+              Salvar
             </Button>
             <Button variant="outline" size="sm">
               Copiar
