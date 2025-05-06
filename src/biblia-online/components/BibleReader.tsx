@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
@@ -13,6 +13,20 @@ import { Loader2, BookOpen } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
 import { useSidebarControl } from '@/hooks/useSidebarControl';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Interface for localStorage reading progress
+interface ReadingProgress {
+  bookId: number;
+  bookSlug: string;
+  chapter: number;
+  translation: BibleTranslation;
+  lastVerseId?: number;
+  lastScrollPosition?: number;
+}
+
+// Storage key for reading progress
+const READING_PROGRESS_KEY = 'bible_reading_progress';
 
 export const BibleReader: React.FC = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebarControl();
@@ -51,9 +65,88 @@ export const BibleReader: React.FC = () => {
   
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isChapterSelectOpen, setIsChapterSelectOpen] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Track scroll position
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const position = e.currentTarget.scrollTop;
+    setScrollPosition(position);
+  };
 
-  // Logging para debugging
+  // Save reading progress to localStorage
+  const saveReadingProgress = useCallback(() => {
+    if (!currentBookId || !currentBookSlug || !currentChapter) return;
+    
+    const progress: ReadingProgress = {
+      bookId: currentBookId,
+      bookSlug: currentBookSlug,
+      chapter: currentChapter,
+      translation: currentTranslation,
+      lastScrollPosition: scrollPosition,
+    };
+    
+    // Find the first visible verse based on scroll position (simplified)
+    // In a real-world implementation, this would be more sophisticated
+    if (chapterData?.verses && chapterData.verses.length > 0) {
+      // Just save the first verse ID for demonstration
+      progress.lastVerseId = chapterData.verses[0].id;
+    }
+    
+    localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
+    console.log('Saved reading progress:', progress);
+  }, [currentBookId, currentBookSlug, currentChapter, currentTranslation, scrollPosition, chapterData?.verses]);
+
+  // Save progress when navigation changes
   useEffect(() => {
+    saveReadingProgress();
+  }, [currentBookId, currentChapter, saveReadingProgress]);
+
+  // Load reading progress on initial mount
+  useEffect(() => {
+    const loadReadingProgress = () => {
+      try {
+        const savedProgress = localStorage.getItem(READING_PROGRESS_KEY);
+        if (!savedProgress) return;
+        
+        const progress: ReadingProgress = JSON.parse(savedProgress);
+        console.log('Loading saved reading progress:', progress);
+        
+        // Navigate to the saved book and chapter
+        navigateToBook(progress.bookId, progress.bookSlug);
+        
+        // Set the saved translation
+        if (progress.translation && progress.translation !== currentTranslation) {
+          changeTranslation(progress.translation);
+        }
+        
+        // Go to the saved chapter (after navigateToBook has completed)
+        setTimeout(() => {
+          if (progress.chapter && progress.chapter !== 1) {
+            goToChapter(progress.chapter);
+          }
+          
+          // Restore scroll position after content has loaded
+          if (progress.lastScrollPosition) {
+            setTimeout(() => {
+              const scrollContainer = document.querySelector('.scroll-area-viewport');
+              if (scrollContainer) {
+                scrollContainer.scrollTop = progress.lastScrollPosition;
+              }
+            }, 500);
+          }
+        }, 100);
+      } catch (error) {
+        console.error('Error loading reading progress:', error);
+      }
+    };
+
+    loadReadingProgress();
+  }, []);
+
+  useEffect(() => {
+    // Logging para debugging
     console.log("Estado atual do BibleReader:", { 
       currentBookId, 
       currentBookSlug, 
@@ -64,6 +157,41 @@ export const BibleReader: React.FC = () => {
       versesCount: chapterData?.verses?.length || 0
     });
   }, [currentBookId, currentBookSlug, currentChapter, isLoading, chapterData, chapterCount]);
+
+  // Handle touch events for swipe navigation
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+    
+    // Minimum distance for swipe (px)
+    const minSwipeDistance = 50;
+    
+    if (Math.abs(deltaX) > minSwipeDistance) {
+      setIsTransitioning(true);
+      
+      // Right to left swipe (next chapter)
+      if (deltaX < 0) {
+        goToNextChapter();
+      } 
+      // Left to right swipe (previous chapter)
+      else {
+        goToPreviousChapter();
+      }
+      
+      // Reset transition state after animation completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500);
+    }
+    
+    setTouchStartX(null);
+  };
 
   // Manipular a navegação de livros
   const handleOpenBooksNav = () => {
@@ -77,15 +205,37 @@ export const BibleReader: React.FC = () => {
 
   // Manipular a seleção de livro
   const handleBookSelect = (bookId: number, bookSlug: string) => {
+    setIsTransitioning(true);
     navigateToBook(bookId, bookSlug);
     // Ao selecionar um livro, abrimos automaticamente a seleção de capítulos
     setIsNavigationOpen(false);
     setIsChapterSelectOpen(true);
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
   };
 
   // Controlador de navegação para o rodapé
   const handleFooterClick = () => {
     handleOpenBooksNav();
+  };
+
+  // Navegação com animação
+  const handleNavigatePrevious = () => {
+    setIsTransitioning(true);
+    goToPreviousChapter();
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
+  };
+
+  const handleNavigateNext = () => {
+    setIsTransitioning(true);
+    goToNextChapter();
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
   };
 
   // Renderizar mensagem de erro ou conteúdo vazio
@@ -137,35 +287,50 @@ export const BibleReader: React.FC = () => {
         toggleSidebar={toggleSidebar} 
       />
       
-      <ScrollArea className="flex-1 pb-32">
-        {isLoading ? (
-          <div className="flex flex-col justify-center items-center h-64">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="mt-4 text-gray-500">Carregando conteúdo...</p>
-          </div>
-        ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
-          <div className="p-4 max-w-2xl mx-auto">
-            <div className="text-center mb-10">
-              <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
-              <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
-            </div>
-            
-            <div className="mt-8 mb-32">
-              {chapterData.verses.map(verse => (
-                <BibleVerse 
-                  key={verse.id} 
-                  verse={verse} 
-                  translation={currentTranslation} 
-                  showActions={true}
-                  isSelected={isVerseSelected(verse)}
-                  onSelect={handleVerseSelect}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          renderEmptyOrError()
-        )}
+      <ScrollArea 
+        className="flex-1 pb-32 scroll-area"
+        onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${currentBookId}-${currentChapter}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center h-64">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="mt-4 text-gray-500">Carregando conteúdo...</p>
+              </div>
+            ) : chapterData && chapterData.verses && chapterData.verses.length > 0 ? (
+              <div className="p-4 max-w-2xl mx-auto">
+                <div className="text-center mb-10">
+                  <h1 className="text-3xl text-gray-500 font-medium mb-2">{chapterData.book_name}</h1>
+                  <h2 className="text-8xl font-bold mb-6">{chapterData.chapter}</h2>
+                </div>
+                
+                <div className="mt-8 mb-32">
+                  {chapterData.verses.map(verse => (
+                    <BibleVerse 
+                      key={verse.id} 
+                      verse={verse} 
+                      translation={currentTranslation} 
+                      showActions={true}
+                      isSelected={isVerseSelected(verse)}
+                      onSelect={handleVerseSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              renderEmptyOrError()
+            )}
+          </motion.div>
+        </AnimatePresence>
       </ScrollArea>
       
       {renderSelectionFloatingButton()}
@@ -173,8 +338,8 @@ export const BibleReader: React.FC = () => {
       <BibleFooter 
         bookName={getCurrentBookName()} 
         chapter={currentChapter} 
-        onPreviousChapter={goToPreviousChapter} 
-        onNextChapter={goToNextChapter} 
+        onPreviousChapter={handleNavigatePrevious} 
+        onNextChapter={handleNavigateNext} 
         onOpenBooksNav={handleFooterClick} 
       />
       
