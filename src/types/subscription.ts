@@ -3,7 +3,7 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   description?: string;
-  message_limit: number; // Para usuários Free; ignorado para Premium
+  message_limit: number;
   price_amount: number;
   price_currency: string;
   features: string[];
@@ -25,6 +25,6 @@ export interface MessageCountState {
   lastReset: Date;
   nextReset: Date;
   percentUsed: number;
-  canSendMessage: boolean; // Será sempre true para usuários Premium
+  canSendMessage: boolean;
   daysUntilReset: number;
 }
