@@ -12,11 +12,8 @@ import { BibleTranslation } from '../services/bibleService';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
-import { useSidebarControl } from '@/hooks/useSidebarControl';
 
 export const BibleReader: React.FC = () => {
-  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
-  
   const {
     books,
     currentBookId,

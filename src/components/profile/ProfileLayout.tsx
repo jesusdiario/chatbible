@@ -20,7 +20,7 @@ const ProfileLayout = ({ children }: ProfileLayoutProps) => {
       />
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[110px] md:pt-[120px] lg:pt-[130px] px-4 md:px-8 max-w-3xl mx-auto pb-10">
+        <div className="pt-[70px] px-4 md:px-8 max-w-3xl mx-auto pb-10">
           <h1 className="text-2xl font-bold mb-6">Meu Perfil</h1>
           {children}
         </div>
