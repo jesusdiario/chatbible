@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BooksNavigation } from './BooksNavigation';
@@ -68,95 +67,43 @@ export const BibleReader: React.FC = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   
   // Track scroll position
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const position = e.currentTarget.scrollTop;
     setScrollPosition(position);
+    
+    // Salvar a posição de rolagem no localStorage
+    try {
+      localStorage.setItem('bible:lastScrollPosition', JSON.stringify(position));
+    } catch (error) {
+      console.warn('Não foi possível salvar a posição de rolagem', error);
+    }
   };
 
-  // Save reading progress to localStorage
-  const saveReadingProgress = useCallback(() => {
-    if (!currentBookId || !currentBookSlug || !currentChapter) return;
-    
-    const progress: ReadingProgress = {
-      bookId: currentBookId,
-      bookSlug: currentBookSlug,
-      chapter: currentChapter,
-      translation: currentTranslation,
-      lastScrollPosition: scrollPosition,
-    };
-    
-    // Find the first visible verse based on scroll position (simplified)
-    // In a real-world implementation, this would be more sophisticated
-    if (chapterData?.verses && chapterData.verses.length > 0) {
-      // Just save the first verse ID for demonstration
-      progress.lastVerseId = chapterData.verses[0].id;
-    }
-    
-    localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(progress));
-    console.log('Saved reading progress:', progress);
-  }, [currentBookId, currentBookSlug, currentChapter, currentTranslation, scrollPosition, chapterData?.verses]);
-
-  // Save progress when navigation changes
+  // Restaurar a posição de rolagem quando o conteúdo do capítulo for carregado
   useEffect(() => {
-    saveReadingProgress();
-  }, [currentBookId, currentChapter, saveReadingProgress]);
-
-  // Load reading progress on initial mount
-  useEffect(() => {
-    const loadReadingProgress = () => {
+    if (!isLoading && chapterData && chapterData.verses && chapterData.verses.length > 0) {
       try {
-        const savedProgress = localStorage.getItem(READING_PROGRESS_KEY);
-        if (!savedProgress) return;
-        
-        const progress: ReadingProgress = JSON.parse(savedProgress);
-        console.log('Loading saved reading progress:', progress);
-        
-        // Navigate to the saved book and chapter
-        navigateToBook(progress.bookId, progress.bookSlug);
-        
-        // Set the saved translation
-        if (progress.translation && progress.translation !== currentTranslation) {
-          changeTranslation(progress.translation);
-        }
-        
-        // Go to the saved chapter (after navigateToBook has completed)
-        setTimeout(() => {
-          if (progress.chapter && progress.chapter !== 1) {
-            goToChapter(progress.chapter);
-          }
+        const savedScrollPosition = localStorage.getItem('bible:lastScrollPosition');
+        if (savedScrollPosition) {
+          const position = JSON.parse(savedScrollPosition);
           
-          // Restore scroll position after content has loaded
-          if (progress.lastScrollPosition) {
-            setTimeout(() => {
-              const scrollContainer = document.querySelector('.scroll-area-viewport');
-              if (scrollContainer) {
-                scrollContainer.scrollTop = progress.lastScrollPosition;
-              }
-            }, 500);
-          }
-        }, 100);
+          // Precisamos de um pequeno atraso para garantir que o DOM esteja pronto
+          setTimeout(() => {
+            const scrollContainer = document.querySelector('.scroll-area-viewport');
+            if (scrollContainer) {
+              scrollContainer.scrollTop = position;
+              console.log('Posição de rolagem restaurada:', position);
+            }
+          }, 100);
+        }
       } catch (error) {
-        console.error('Error loading reading progress:', error);
+        console.warn('Não foi possível restaurar a posição de rolagem', error);
       }
-    };
-
-    loadReadingProgress();
-  }, []);
-
-  useEffect(() => {
-    // Logging para debugging
-    console.log("Estado atual do BibleReader:", { 
-      currentBookId, 
-      currentBookSlug, 
-      currentChapter, 
-      isLoading, 
-      chapterCount,
-      hasChapterData: !!chapterData,
-      versesCount: chapterData?.verses?.length || 0
-    });
-  }, [currentBookId, currentBookSlug, currentChapter, isLoading, chapterData, chapterCount]);
+    }
+  }, [isLoading, chapterData]);
 
   // Handle touch events for swipe navigation
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {

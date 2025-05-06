@@ -1,14 +1,33 @@
-
 import { useState, useEffect } from 'react';
 import { BibleService, Book, Chapter, BibleTranslation } from '../services/bibleService';
 import { useToast } from '@/hooks/use-toast';
 
+// Função utilitária para ler valores do localStorage com fallback seguro
+const getSavedValue = <T>(key: string, fallback: T): T => {
+  try {
+    if (typeof window === 'undefined') return fallback;
+    const value = localStorage.getItem(key);
+    return value !== null ? JSON.parse(value) as T : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 export function useBible() {
   const [books, setBooks] = useState<Book[]>([]);
-  const [currentBookId, setCurrentBookId] = useState<number>(40); // Iniciar com Mateus (id 40)
-  const [currentBookSlug, setCurrentBookSlug] = useState<string>('mateus'); // Iniciar com Mateus
-  const [currentChapter, setCurrentChapter] = useState<number>(1);
-  const [currentTranslation, setCurrentTranslation] = useState<BibleTranslation>(BibleTranslation.Default);
+  // Inicializar estados com valores do localStorage ou usar valores padrão
+  const [currentBookId, setCurrentBookId] = useState<number>(
+    getSavedValue('bible:lastBookId', 40) // Mateus como padrão
+  );
+  const [currentBookSlug, setCurrentBookSlug] = useState<string>(
+    getSavedValue('bible:lastBookSlug', 'mateus')
+  );
+  const [currentChapter, setCurrentChapter] = useState<number>(
+    getSavedValue('bible:lastChapter', 1)
+  );
+  const [currentTranslation, setCurrentTranslation] = useState<BibleTranslation>(
+    getSavedValue('bible:lastTranslation', BibleTranslation.Default)
+  );
   const [chapterData, setChapterData] = useState<Chapter | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [chapterCount, setChapterCount] = useState<number>(0);
@@ -110,6 +129,24 @@ export function useBible() {
 
     loadChapter();
   }, [currentBookId, currentBookSlug, currentChapter, toast]);
+
+  // Persistir dados de navegação no localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bible:lastBookId', JSON.stringify(currentBookId));
+      localStorage.setItem('bible:lastBookSlug', JSON.stringify(currentBookSlug));
+      localStorage.setItem('bible:lastChapter', JSON.stringify(currentChapter));
+      localStorage.setItem('bible:lastTranslation', JSON.stringify(currentTranslation));
+      console.log('Progresso de leitura salvo:', {
+        bookId: currentBookId,
+        bookSlug: currentBookSlug,
+        chapter: currentChapter,
+        translation: currentTranslation
+      });
+    } catch (error) {
+      console.warn('Não foi possível persistir o progresso de leitura', error);
+    }
+  }, [currentBookId, currentBookSlug, currentChapter, currentTranslation]);
 
   // Navegar para outro livro
   const navigateToBook = (bookId: number, bookSlug?: string) => {
