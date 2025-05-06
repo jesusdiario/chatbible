@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BibleTranslation } from '../services/bibleService';
@@ -53,7 +54,7 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 border-b">
+    <div className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 border-b mb-[30px] md:mb-[40px] lg:mb-[50px]">
       <div className="flex space-x-4">
         <Button 
           variant="ghost" 

@@ -101,7 +101,7 @@ const ChatHeader = ({
   };
 
   return (
-    <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-white shadow-sm">
+    <header className="fixed top-0 z-30 w-full border-b border-gray-200 bg-white shadow-sm mb-[30px] md:mb-[40px] lg:mb-[50px]">
       <div className="flex h-[60px] items-center justify-between px-4">
         {/* Left section - Menu toggle */}
         <div className="flex items-center">
