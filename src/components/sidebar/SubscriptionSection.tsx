@@ -17,7 +17,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ onOpenSubscri
         </div>
         <div className="text-left">
           <div className="text-sm font-medium">Upgrade Pro</div>
-          <div className="text-xs text-gray-500">Libere + Mensagens</div>
+          <div className="text-xs text-gray-500">Mensagens Ilimitada!</div>
         </div>
       </button>
     </div>
