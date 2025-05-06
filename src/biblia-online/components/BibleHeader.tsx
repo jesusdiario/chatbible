@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BibleTranslation } from '../services/bibleService';
@@ -9,8 +8,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Menu, Search, Crown } from 'lucide-react';
-import { useSubscription } from '@/hooks/useSubscription';
+import { Menu, Search } from 'lucide-react';
 
 interface BibleHeaderProps {
   bookName: string;
@@ -29,8 +27,6 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   onChangeTranslation,
   toggleSidebar
 }) => {
-  const { subscribed } = useSubscription();
-  
   const getTranslationLabel = () => {
     switch (currentTranslation) {
       case BibleTranslation.NVI:
@@ -75,13 +71,6 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
       </div>
       
       <div className="flex items-center">
-        {subscribed && (
-          <div className="flex items-center mr-2 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-xs">
-            <Crown className="h-3 w-3 mr-1" />
-            <span>Pro</span>
-          </div>
-        )}
-        
         <Select 
           value={currentTranslation}
           onValueChange={handleTranslationChange}

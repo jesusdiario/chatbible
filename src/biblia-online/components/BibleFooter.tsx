@@ -7,10 +7,8 @@ import {
   Search,
   MoreHorizontal,
   ChevronLeft,
-  ChevronRight,
-  Crown
+  ChevronRight
 } from 'lucide-react';
-import { useSubscription } from '@/hooks/useSubscription';
 
 interface BibleFooterProps {
   bookName: string;
@@ -27,8 +25,6 @@ export const BibleFooter: React.FC<BibleFooterProps> = ({
   onNextChapter,
   onOpenBooksNav,
 }) => {
-  const { subscribed } = useSubscription();
-  
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
       <div className="flex justify-between items-center px-4 py-2">
@@ -42,12 +38,6 @@ export const BibleFooter: React.FC<BibleFooterProps> = ({
           onClick={onOpenBooksNav}
         >
           {bookName} {chapter}
-          {subscribed && (
-            <span className="ml-2 flex items-center text-amber-600 text-xs">
-              <Crown className="h-3 w-3 mr-0.5" />
-              <span>Pro</span>
-            </span>
-          )}
         </Button>
         
         <Button variant="ghost" onClick={onNextChapter} className="px-2 py-1">

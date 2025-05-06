@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileLayout from "@/components/profile/ProfileLayout";
 import AccountSection from "@/components/profile/AccountSection";
 import SubscriptionSection from "@/components/profile/SubscriptionSection";
-import UsageSection from "@/components/profile/UsageSection";
 import LanguageSection from "@/components/profile/LanguageSection";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -76,8 +74,8 @@ const Profile = () => {
     <ProfileLayout>
       <div className="space-y-8">
         <AccountSection user={user} />
-        <UsageSection />
         <LanguageSection />
+        {/* Uso removido */}
         <SubscriptionSection />
       </div>
     </ProfileLayout>
