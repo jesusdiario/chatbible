@@ -10,6 +10,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Menu, Search } from 'lucide-react';
+import GoogleTranslate from '@/components/GoogleTranslate';
 
 interface BibleHeaderProps {
   bookName: string;
@@ -97,6 +98,10 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
         >
           {bookName} {chapter}
         </Button>
+
+        <div className="ml-2">
+          <GoogleTranslate />
+        </div>
       </div>
     </div>
   );
