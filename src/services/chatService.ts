@@ -44,7 +44,7 @@ export const sendChatMessage = async (
     "Solus Christus...",
     "Soli Deo Gloria...",
     "Revisão teológica...",
-    "Concluído!"
+    "Montando o texto..."
   ];
   
   // Inicia a sequência de estágios de carregamento
@@ -58,7 +58,7 @@ export const sendChatMessage = async (
     if (currentStageIndex >= loadingStages.length) {
       clearInterval(stageInterval);
     }
-  }, 2000); // Muda o estágio a cada 2 segundos
+  }, 1000); // Muda o estágio a cada 1 segundo
 
   const response = await fetch(
     'https://qdukcxetdfidgxcuwjdo.functions.supabase.co/chat',
