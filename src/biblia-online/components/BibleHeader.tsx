@@ -10,6 +10,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Menu, Search } from 'lucide-react';
+import { useSidebarControl } from '@/hooks/useSidebarControl';
 
 interface BibleHeaderProps {
   bookName: string;
@@ -17,8 +18,6 @@ interface BibleHeaderProps {
   onOpenBooksNav: () => void;
   currentTranslation: BibleTranslation;
   onChangeTranslation: (translation: BibleTranslation) => void;
-  toggleSidebar: () => void;
-  isSidebarOpen?: boolean;
 }
 
 export const BibleHeader: React.FC<BibleHeaderProps> = ({
@@ -27,9 +26,9 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   onOpenBooksNav,
   currentTranslation,
   onChangeTranslation,
-  toggleSidebar,
-  isSidebarOpen = false
 }) => {
+  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
+
   const getTranslationLabel = () => {
     switch (currentTranslation) {
       case BibleTranslation.NVI:
