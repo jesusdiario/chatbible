@@ -842,8 +842,15 @@ export type Database = {
         | "cartas_paulinas"
         | "cartas_gerais"
         | "apocalipse"
-        | "temas"
-        | "teologia"
+        | "doutrina-de-deus"
+        | "doutrina-das-escrituras"
+        | "doutrina-do-homem"
+        | "doutrina-do-pecado"
+        | "doutrina-de-cristo"
+        | "doutrina-da-salvacao"
+        | "doutrina-do-espirito-santo"
+        | "doutrina-da-igreja"
+        | "doutrina-das-ultimas-coisas"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -969,8 +976,15 @@ export const Constants = {
         "cartas_paulinas",
         "cartas_gerais",
         "apocalipse",
-        "temas",
-        "teologia",
+        "doutrina-de-deus",
+        "doutrina-das-escrituras",
+        "doutrina-do-homem",
+        "doutrina-do-pecado",
+        "doutrina-de-cristo",
+        "doutrina-da-salvacao",
+        "doutrina-do-espirito-santo",
+        "doutrina-da-igreja",
+        "doutrina-das-ultimas-coisas",
       ],
     },
   },
