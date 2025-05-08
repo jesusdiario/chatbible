@@ -16,8 +16,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = 'md' }) => {
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <img 
-        src="/lovable-uploads/logo-jd-bible-chat.png"
-        alt="BibleChat Logo" 
+        src="Discipler" 
         className={`${sizeClass[size]} object-contain`}
       />
     </div>
