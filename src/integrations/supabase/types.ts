@@ -287,7 +287,6 @@ export type Database = {
       chat_history: {
         Row: {
           book_slug: string | null
-          check_item: boolean | null
           created_at: string
           id: string
           is_accessible: boolean | null
@@ -303,7 +302,6 @@ export type Database = {
         }
         Insert: {
           book_slug?: string | null
-          check_item?: boolean | null
           created_at?: string
           id?: string
           is_accessible?: boolean | null
@@ -319,7 +317,6 @@ export type Database = {
         }
         Update: {
           book_slug?: string | null
-          check_item?: boolean | null
           created_at?: string
           id?: string
           is_accessible?: boolean | null
