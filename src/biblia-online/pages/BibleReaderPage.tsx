@@ -6,15 +6,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Cliente de consulta para reagir a consultas
 const queryClient = new QueryClient();
 
-interface BibleReaderPageProps {
-  isSidebarOpen?: boolean;
-  toggleSidebar?: () => void;
-}
-
-const BibleReaderPage: React.FC<BibleReaderPageProps> = ({ isSidebarOpen, toggleSidebar }) => {
+const BibleReaderPage: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BibleReader isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <BibleReader />
     </QueryClientProvider>
   );
 };
