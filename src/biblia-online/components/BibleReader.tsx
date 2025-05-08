@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -28,7 +29,8 @@ interface ReadingProgress {
 const READING_PROGRESS_KEY = 'bible_reading_progress';
 
 export const BibleReader: React.FC = () => {
-  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
+  // Use the shared sidebar control
+  const sidebarControl = useSidebarControl();
   
   const {
     books,
@@ -231,7 +233,7 @@ export const BibleReader: React.FC = () => {
         onOpenBooksNav={handleOpenBooksNav} 
         currentTranslation={currentTranslation} 
         onChangeTranslation={changeTranslation} 
-        toggleSidebar={toggleSidebar} 
+        toggleSidebar={sidebarControl.toggleSidebar} 
       />
       
       <ScrollArea 
