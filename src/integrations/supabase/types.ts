@@ -517,6 +517,33 @@ export type Database = {
         }
         Relationships: []
       }
+      study_guide_progress: {
+        Row: {
+          book_slug: string | null
+          completed_at: string
+          id: string
+          is_completed: boolean
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          book_slug?: string | null
+          completed_at?: string
+          id?: string
+          is_completed?: boolean
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          book_slug?: string | null
+          completed_at?: string
+          id?: string
+          is_completed?: boolean
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
