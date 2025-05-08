@@ -117,7 +117,7 @@ const ChatHeader = ({
 
         {/* Center section - Logo */}
         <div className={`absolute left-1/2 transform -translate-x-1/2 transition-all duration-300 ${isSidebarOpen ? 'md:left-[calc(50%+128px)]' : ''}`}>
-          <h1 className="text-xl font-bold">BibleChat</h1>
+          <h1 className="text-xl font-bold">Discipler</h1>
         </div>
 
         {/* Right section - Search and History sidebar */}

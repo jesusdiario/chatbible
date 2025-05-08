@@ -131,8 +131,8 @@ const Register = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Logo className="mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-dark">BibleChat</h1>
-          <p className="text-dark-500 mt-2">Seu Assistente Online de Estudo Bíblico.</p>
+          <h1 className="text-3xl font-bold text-dark">Discipler</h1>
+          <p className="text-dark-500 mt-2">Seu Assistente Online de Estudo Bíblico e Discipulado.</p>
         </div>
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
