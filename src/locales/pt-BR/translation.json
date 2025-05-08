@@ -82,7 +82,7 @@
     "askAboutBook": "Faça uma pergunta sobre {{book}}...",
     "askAboutBible": "Faça uma pergunta sobre a Bíblia...",
     "addChat": "Adicionar Conversa",
-    "disclaimer": "O BibleChat pode cometer erros. Considere verificar informações importantes."
+    "disclaimer": "O Discipler consulta conteúdo teologicamente revisado, mas pode cometer erros. Ore, medite, compreenda, aplique. Versão Beta 1.0."
   },
   "errors": {
     "general": "Ocorreu um erro. Por favor, tente novamente.",
