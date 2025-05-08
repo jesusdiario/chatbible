@@ -10,6 +10,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Menu, Search } from 'lucide-react';
+import Sidebar from "@/components/Sidebar";
 
 interface BibleHeaderProps {
   bookName: string;

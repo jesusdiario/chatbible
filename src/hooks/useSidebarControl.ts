@@ -11,6 +11,7 @@ export function useSidebarControl() {
     isSidebarOpen,
     setIsSidebarOpen,
     toggleSidebar,
-    setApiKey, // Exported to fix the type error
+    apiKey,
+    setApiKey,
   };
 }

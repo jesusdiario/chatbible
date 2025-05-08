@@ -16,7 +16,7 @@ interface BookChatProps {
   loadingStage?: string | null;
 }
 
-const BookChat: React.FC<BookChatProps> = ({
+export const BookChat: React.FC<BookChatProps> = ({
   title,
   messages,
   isLoading,
