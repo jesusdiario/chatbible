@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -14,10 +13,6 @@ import { useVerseSelection } from '../hooks/useVerseSelection';
 import { VersesSelectionModal } from './VersesSelectionModal';
 import { useSidebarControl } from '@/hooks/useSidebarControl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StudyGuideButton } from './StudyGuide/StudyGuideButton';
-import { StudyGuideModal } from './StudyGuide/StudyGuideModal';
-import { StudyGuideQuestion } from '../types/studyGuide';
-import { useAuth } from '@/contexts/AuthContext';
 
 // Interface for localStorage reading progress
 interface ReadingProgress {
@@ -32,16 +27,8 @@ interface ReadingProgress {
 // Storage key for reading progress
 const READING_PROGRESS_KEY = 'bible_reading_progress';
 
-interface BibleReaderProps {
-  isSidebarOpen?: boolean;
-  toggleSidebar?: () => void;
-}
-
-export const BibleReader: React.FC<BibleReaderProps> = ({ 
-  isSidebarOpen, 
-  toggleSidebar 
-}) => {
-  const { user } = useAuth();
+export const BibleReader: React.FC = () => {
+  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
   
   const {
     books,
@@ -80,8 +67,6 @@ export const BibleReader: React.FC<BibleReaderProps> = ({
   const [scrollPosition, setScrollPosition] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isStudyGuideOpen, setIsStudyGuideOpen] = useState(false);
-  
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   
   // Track scroll position
@@ -200,13 +185,6 @@ export const BibleReader: React.FC<BibleReaderProps> = ({
     }, 500);
   };
 
-  // Handle study guide question selection
-  const handleStudyGuideQuestionSelect = (question: StudyGuideQuestion) => {
-    // Implementation will go here
-    console.log('Selected question:', question);
-    // You could navigate to a chat or trigger some action here
-  };
-
   // Renderizar mensagem de erro ou conteúdo vazio
   const renderEmptyOrError = () => {
     if (error) {
@@ -253,13 +231,8 @@ export const BibleReader: React.FC<BibleReaderProps> = ({
         onOpenBooksNav={handleOpenBooksNav} 
         currentTranslation={currentTranslation} 
         onChangeTranslation={changeTranslation} 
-        toggleSidebar={toggleSidebar || (() => {})}
-        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar} 
       />
-      
-      <div className="flex justify-center pt-2 pb-4 bg-white border-b">
-        <StudyGuideButton onClick={() => setIsStudyGuideOpen(true)} />
-      </div>
       
       <ScrollArea 
         className="flex-1 pb-32 scroll-area"
@@ -353,14 +326,6 @@ export const BibleReader: React.FC<BibleReaderProps> = ({
         isLoadingButtons={isLoadingButtons}
         getSelectedVersesText={getSelectedVersesText}
         clearSelection={clearSelection}
-      />
-      
-      {/* Modal do guia de estudos */}
-      <StudyGuideModal
-        open={isStudyGuideOpen}
-        onOpenChange={setIsStudyGuideOpen}
-        bookSlug={currentBookSlug}
-        onQuestionSelect={handleStudyGuideQuestionSelect}
       />
     </div>
   );

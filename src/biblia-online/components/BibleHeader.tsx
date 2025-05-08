@@ -18,7 +18,6 @@ interface BibleHeaderProps {
   currentTranslation: BibleTranslation;
   onChangeTranslation: (translation: BibleTranslation) => void;
   toggleSidebar: () => void;
-  isSidebarOpen?: boolean;
 }
 
 export const BibleHeader: React.FC<BibleHeaderProps> = ({
@@ -27,8 +26,7 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
   onOpenBooksNav,
   currentTranslation,
   onChangeTranslation,
-  toggleSidebar,
-  isSidebarOpen
+  toggleSidebar
 }) => {
   const getTranslationLabel = () => {
     switch (currentTranslation) {
@@ -61,7 +59,7 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
         <Button 
           variant="ghost" 
           size="icon" 
-          className={`rounded-full transition-transform ${isSidebarOpen ? 'rotate-90' : ''}`}
+          className="rounded-full"
           onClick={toggleSidebar}
           aria-label="Toggle Sidebar"
         >
