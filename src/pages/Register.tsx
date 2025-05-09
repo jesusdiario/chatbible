@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
-
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,13 +16,13 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       // Verificação dos termos de uso
       if (!termsAccepted) {
@@ -49,35 +47,30 @@ const Register = () => {
       }
 
       // Cadastro com Supabase - Definindo um timeout mais curto
-      const { error, data } = await Promise.race([
-        supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              terms_accepted: termsAccepted
-            }
+      const {
+        error,
+        data
+      } = await Promise.race([supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            terms_accepted: termsAccepted
           }
-        }),
-        new Promise<any>((_, reject) => 
-          setTimeout(() => reject(new Error("Tempo de resposta excedido. Tente novamente.")), 8000)
-        )
-      ]);
-
+        }
+      }), new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Tempo de resposta excedido. Tente novamente.")), 8000))]);
       if (error) throw error;
-
       console.log("Usuário registrado:", data);
-      
+
       // Redirecionar para a página inicial ao invés do onboarding
       navigate("/");
-      
       toast({
         title: "Conta criada com sucesso!",
         description: "Bem-vindo ao Discipler."
       });
     } catch (error: any) {
       console.error("Erro no registro:", error);
-      
+
       // Tratamento de erros específicos
       if (error.message === "Tempo de resposta excedido. Tente novamente.") {
         toast({
@@ -102,17 +95,17 @@ const Register = () => {
       setLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin // Redirect to homepage instead of onboarding
         }
       });
-      
       if (error) throw error;
 
       // O redirecionamento será tratado pelo OAuth
@@ -125,9 +118,7 @@ const Register = () => {
       setGoogleLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff] p-4">
+  return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Logo className="mx-auto mb-4" />
@@ -136,9 +127,7 @@ const Register = () => {
         </div>
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
-          <h2 className="text-xl font-semibold text-dark mb-6">
-            Crie sua conta gratuita
-          </h2>
+          <h2 className="text-xl font-semibold text-dark mb-6">                 Crie sua conta gratuita!</h2>
           
           <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -148,14 +137,10 @@ const Register = () => {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               <path d="M1 1h22v22H1z" fill="none" />
             </svg>
-            {googleLoading ? (
-              <span className="flex items-center">
+            {googleLoading ? <span className="flex items-center">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processando...
-              </span>
-            ) : (
-              "Continuar com Google"
-            )}
+              </span> : "Continuar com Google"}
           </Button>
           
           <div className="relative my-6">
@@ -168,82 +153,42 @@ const Register = () => {
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-dark">E-mail</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="seu@email.com" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                required 
-                className="border-slate-600 text-dark bg-[#ffffff]" 
-              />
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="border-slate-600 text-dark bg-[#ffffff]" />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="password" className="text-dark">Senha</Label>
               <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="********" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  required 
-                  className="border-slate-600 text-dark pr-10 bg-[#ffffff]" 
-                />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dark"
-                >
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={e => setPassword(e.target.value)} required className="border-slate-600 text-dark pr-10 bg-[#ffffff]" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-dark">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {password && password.length < 6 && (
-                <p className="text-xs text-red-500 mt-1">A senha deve ter pelo menos 6 caracteres</p>
-              )}
+              {password && password.length < 6 && <p className="text-xs text-red-500 mt-1">A senha deve ter pelo menos 6 caracteres</p>}
             </div>
             
             <div className="flex items-start space-x-2 pt-2">
-              <Checkbox 
-                id="terms" 
-                checked={termsAccepted} 
-                onCheckedChange={checked => setTermsAccepted(checked === true)} 
-              />
+              <Checkbox id="terms" checked={termsAccepted} onCheckedChange={checked => setTermsAccepted(checked === true)} />
               <Label htmlFor="terms" className="text-sm text-dark-300 leading-tight">
                 Eu concordo com os <a href="#" className="text-[#4483f4] hover:underline">Termos de Uso</a> e <a href="#" className="text-[#4483f4] hover:underline">Políticas de Privacidade</a>
               </Label>
             </div>
             
-            <Button 
-              type="submit" 
-              disabled={loading || !termsAccepted} 
-              className="w-full bg-[#4483f4] text-[#ffffff]"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
+            <Button type="submit" disabled={loading || !termsAccepted} className="w-full bg-[#4483f4] text-[#ffffff]">
+              {loading ? <span className="flex items-center justify-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processando...
-                </span>
-              ) : (
-                "Criar conta"
-              )}
+                </span> : "Criar conta"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <button 
-              onClick={() => navigate("/auth")} 
-              className="text-[#4483f4] hover:underline text-sm" 
-              type="button"
-            >
+            <button onClick={() => navigate("/auth")} className="text-[#4483f4] hover:underline text-sm" type="button">
               Já tem uma conta? Entre
             </button>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Register;
