@@ -1,49 +1,55 @@
 
-import React from 'react';
-import ChatInput from '@/components/ChatInput';
-import ActionButtons, { ChatContext } from '@/components/ActionButtons';
-import { useMessageCount } from '@/hooks/useMessageCount';
-import { useSubscription } from '@/hooks/useSubscription';
+import React, { useContext } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Book } from 'lucide-react';
+import { ChatContext } from './ActionButtons';
+import ActionButtons from './ActionButtons';
 
 interface EmptyChatStateProps {
   title: string;
   onSendMessage: (content: string) => void;
-  isLoading: boolean;
+  isLoading?: boolean;
   bookSlug?: string;
+  isDevocional?: boolean;
 }
 
-const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChatStateProps) => {
-  const { canSendMessage } = useMessageCount();
-  const { subscribed, startCheckout } = useSubscription();
-  
-  const handleUpgradeClick = () => {
-    // Use o ID do produto real criado na Stripe
-    startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
-  };
-  
+const EmptyChatState: React.FC<EmptyChatStateProps> = ({
+  title,
+  onSendMessage,
+  isLoading = false,
+  bookSlug,
+  isDevocional = false
+}) => {
+  const { t } = useTranslation();
+
+  // Custom text specifically for Devocional Diário
+  const placeholderText = isDevocional
+    ? "Devocional diário do versículo..."
+    : t('chat.askAboutBook', { book: title });
+
   return (
-    <div className="w-full max-w-3xl px-4 space-y-4">
-      <div>
-        <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
-          Converse sobre {title}
-        </h1>
-        <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />
-      </div>
-      
-      {/* Apenas mostrar o aviso para usuários não assinantes que atingiram o limite */}
-      {!canSendMessage && !subscribed && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-          <p className="font-medium">Você atingiu seu limite mensal de mensagens</p>
-          <p>Faça upgrade para o plano Premium para mensagens ilimitadas.</p>
-          
-          <button 
-            onClick={handleUpgradeClick}
-            className="mt-2 w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded transition-colors"
-          >
-            Fazer upgrade para continuar
-          </button>
+    <div className="max-w-3xl w-full mx-auto px-4 text-center">
+      <div className="flex justify-center mb-6">
+        <div className="h-16 w-16 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+          <Book className="h-8 w-8 text-gray-600" />
         </div>
-      )}
+      </div>
+      <h1 className="text-2xl font-bold mb-2">{title}</h1>
+      <p className="text-gray-600 mb-8">{t('chat.howCanIHelp')}</p>
+      
+      <ChatContext.Provider value={{ sendMessage: onSendMessage }}>
+        <ActionButtons bookSlug={bookSlug} isDevocional={isDevocional} />
+      </ChatContext.Provider>
+      
+      <div className="mt-8">
+        <button 
+          onClick={() => onSendMessage(placeholderText)}
+          disabled={isLoading}
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
+        >
+          {placeholderText}
+        </button>
+      </div>
     </div>
   );
 };

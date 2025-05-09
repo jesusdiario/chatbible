@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,23 +11,24 @@ interface ChatInputProps {
   onSend: (message: string, promptOverride?: string) => void;
   isLoading?: boolean;
   bookSlug?: string;
+  isDevocional?: boolean;
 }
 
 const ChatInput = ({
   onSend,
   isLoading,
-  bookSlug
+  bookSlug,
+  isDevocional = false
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
-  const {
-    t
-  } = useTranslation();
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Format book name to display with first letter capitalized
   const formattedBookName = bookSlug ? bookSlug.charAt(0).toUpperCase() + bookSlug.slice(1).replace(/-/g, ' ') : t('bible.explore');
+  
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!message.trim() || isLoading) return;
@@ -42,6 +44,7 @@ const ChatInput = ({
       textareaRef.current.style.height = 'auto';
     }
   };
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Submit on Enter (without Shift)
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -49,6 +52,7 @@ const ChatInput = ({
       handleSubmit();
     }
   };
+  
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -88,16 +92,37 @@ const ChatInput = ({
     onSend(content, promptOverride);
     setIsModalOpen(false); // Close the modal after sending
   };
+
+  // Set placeholder text based on whether it's Devocional Diário or not
+  const placeholderText = isDevocional
+    ? "Devocional diário do versículo..."
+    : bookSlug 
+      ? t('chat.askAboutBook', { book: formattedBookName })
+      : t('chat.askAboutBible');
+  
+  // Button text based on whether it's Devocional Diário or not
+  const questionsButtonText = isDevocional
+    ? "Temas para Devocionais"
+    : t('chat.readyQuestions');
+
   return <div className="w-full">
       {/* Main input form */}
       <form onSubmit={handleSubmit} className="relative w-full">
         <div className="rounded-[24px] bg-white shadow-md p-4">
           {/* Message Input */}
-          <textarea ref={textareaRef} value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={bookSlug ? t('chat.askAboutBook', {
-          book: formattedBookName
-        }) : t('chat.askAboutBible')} className="w-full resize-none overflow-hidden focus:outline-none min-h-[24px] mb-2" style={{
-          fontSize: '16px'
-        }} rows={1} disabled={isLoading} />
+          <textarea 
+            ref={textareaRef} 
+            value={message} 
+            onChange={e => setMessage(e.target.value)} 
+            onKeyDown={handleKeyDown} 
+            placeholder={placeholderText}
+            className="w-full resize-none overflow-hidden focus:outline-none min-h-[24px] mb-2" 
+            style={{
+              fontSize: '16px'
+            }} 
+            rows={1} 
+            disabled={isLoading} 
+          />
           
           {/* Buttons row below the textarea */}
           <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -108,7 +133,7 @@ const ChatInput = ({
             
             {/* Ready Questions button */}
             <button type="button" onClick={handleQuestionsClick} className="text-sm px-4 py-1.5 rounded-[18px] border border-gray-200 hover:bg-gray-100 text-[13px]">
-              {t('chat.readyQuestions')}
+              {questionsButtonText}
             </button>
             
             {/* Send button - aligned to the right */}
@@ -128,7 +153,7 @@ const ChatInput = ({
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('chat.readyQuestions')}</DialogTitle>
+            <DialogTitle>{questionsButtonText}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             {bookSlug && <ChatContext.Provider value={{
@@ -141,4 +166,5 @@ const ChatInput = ({
       </Dialog>
     </div>;
 };
+
 export default ChatInput;

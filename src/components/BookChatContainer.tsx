@@ -14,6 +14,7 @@ interface BookChatContainerProps {
   slug?: string;
   initialPrompt?: string;
   systemPrompt?: string;
+  isDevocional?: boolean;
 }
 
 const BookChatContainer: React.FC<BookChatContainerProps> = ({ 
@@ -21,7 +22,8 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
   book,
   slug,
   initialPrompt: propInitialPrompt,
-  systemPrompt
+  systemPrompt,
+  isDevocional = false
 }) => {
   const location = useLocation();
   const locationInitialPrompt = location.state?.initialPrompt;
@@ -110,6 +112,7 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
         bookSlug={book}
         onSendMessage={handleSendMessage}
         loadingStage={loadingStage}
+        isDevocional={isDevocional}
       />
     </div>
   );
