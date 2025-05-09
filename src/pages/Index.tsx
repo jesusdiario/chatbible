@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import BookChatLayout from "@/components/BookChatLayout";
 import BookLoadingState from "@/components/BookLoadingState";
@@ -6,64 +6,84 @@ import BookErrorState from "@/components/BookErrorState";
 import BookChatContainer from "@/components/BookChatContainer";
 import { useBibleBook } from "@/hooks/useBibleBook";
 
-/**
- * Fixed constants for the unique book we want to expose in this route.
- */
-const FIXED_BOOK_SLUG = "devocional-diario";
+const FIXED_BOOK_SLUG = "devocional-diario"; // slug único do livro
 
 interface LocationState {
   initialPrompt?: string;
   systemPrompt?: string;
 }
 
-/**
- * Component dedicated to the unique "Devocional Diário" book (id: 59a90833-ab60-42fc-9a2f-8f33f2d30226).
- * All other route params are still respected for the chat `slug`, but the book itself is hard‑wired.
- */
 const DevocionalBook = () => {
-  // `slug` keeps identifying the specific chat thread (if any)
   const { slug } = useParams<{ slug?: string }>();
-
-  // Location state can pass initial/system prompts when the user navigates from elsewhere
   const location = useLocation();
   const state = location.state as LocationState | null;
-
-  // Sidebar toggle state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Always load the fixed book details via the existing hook
+  // 1️⃣  Título do chat
+const isDevocional = bookSlug === 'devocional-diario';
+const pageTitle = isDevocional
+  ? 'Devocional Diário'               // antes: `Converse sobre ${bookTitle}`
+  : `Converse sobre ${bookTitle}`;
+
+// 2️⃣  Placeholder do campo de entrada
+const inputPlaceholder = isDevocional
+  ? 'Crie seu devocional inserindo 1 versículo'   // antes: 'Faça uma pergunta sobre ...'
+  : `Faça uma pergunta sobre ${bookTitle.toLowerCase()}...`;
+
+// 3️⃣  Texto do botão (onde era “Guia de Estudo”)
+<Button size="sm">
+  {isDevocional ? 'Temas de Devocionais' : 'Guia de Estudo'}
+</Button>
+
+  // Logs iniciais
+  useEffect(() => {
+    console.log("[DevocionalBook] Mounted", { slug });
+  }, [slug]);
+
   const { bookDetails, loadingBook } = useBibleBook(FIXED_BOOK_SLUG);
 
-  // Handle loading & error states ------------------------------------------------
+  useEffect(() => {
+    console.log("[DevocionalBook] loadingBook", loadingBook);
+  }, [loadingBook]);
+
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((prev) => {
+      const next = !prev;
+      console.log("[DevocionalBook] Sidebar toggled", next);
+      return next;
+    });
+  };
+
   if (loadingBook) {
+    console.log("[DevocionalBook] Rendering loading state");
     return (
       <BookLoadingState
         isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={handleToggleSidebar}
       />
     );
   }
 
   if (!bookDetails) {
+    console.warn("[DevocionalBook] bookDetails not found");
     return (
       <BookErrorState
         isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={handleToggleSidebar}
       />
     );
   }
 
-  // Render the chat UI -----------------------------------------------------------
+  // Render principal
   return (
     <BookChatLayout
       isSidebarOpen={isSidebarOpen}
-      onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      onToggleSidebar={handleToggleSidebar}
     >
       <div className="pt-20 pb-6 px-4">
         <div className="max-w-4xl mx-auto w-full">
           <BookChatContainer
             bookDetails={bookDetails}
-            // We forcibly pass the fixed slug so that downstream hooks/components stay consistent
             book={FIXED_BOOK_SLUG}
             slug={slug}
             initialPrompt={state?.initialPrompt}
