@@ -21,19 +21,11 @@ const EmptyChatState = ({ title, onSendMessage, isLoading, bookSlug }: EmptyChat
     startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
   };
   
-  // Título personalizado para Devocional Diário
-  const getTitleText = () => {
-    if (bookSlug === 'devocional-diario') {
-      return 'Devocional Diário';
-    }
-    return `Converse sobre ${title}`;
-  };
-  
   return (
     <div className="w-full max-w-3xl px-4 space-y-4">
       <div>
         <h1 className="mb-8 text-3xl md:text-4xl font-semibold text-center">
-          {getTitleText()}
+          Converse sobre {title}
         </h1>
         <ChatInput onSend={onSendMessage} isLoading={isLoading} bookSlug={bookSlug} />
       </div>

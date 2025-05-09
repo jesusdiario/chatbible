@@ -855,7 +855,6 @@ export type Database = {
         | "doutrina-da-igreja"
         | "doutrina-das-ultimas-coisas"
         | "temas"
-        | "devocional"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -991,7 +990,6 @@ export const Constants = {
         "doutrina-da-igreja",
         "doutrina-das-ultimas-coisas",
         "temas",
-        "devocional",
       ],
     },
   },
