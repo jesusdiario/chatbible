@@ -7,7 +7,6 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 // Page imports
 import Auth from "@/pages/Auth";
 import Register from "@/pages/Register";
-import Onboarding from "@/pages/Onboarding";
 import Index from "@/pages/Index";
 import Admin from "@/pages/Admin";
 import AdminPages from "@/pages/AdminPages";
@@ -27,11 +26,9 @@ import NotFound from "@/pages/NotFound";
 
 // Protected Route component logic
 const ProtectedRoute = ({ 
-  children, 
-  requiresOnboarding = true 
+  children 
 }: { 
-  children: React.ReactNode, 
-  requiresOnboarding?: boolean 
+  children: React.ReactNode
 }) => {
   const { user, loading } = useAuth();
   
@@ -44,9 +41,6 @@ const ProtectedRoute = ({
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-  
-  // For now, skip the onboarding check until we fix the AuthContext issue
-  // We'll revisit this later when we have proper profile information
   
   return <>{children}</>;
 };
@@ -64,9 +58,6 @@ export const AppRoutes: React.FC = () => {
       {/* Auth routes */}
       <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
       <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
-      <Route path="/onboarding/:step" element={
-        !user ? <Navigate to="/auth" replace /> : <Onboarding />
-      } />
       
       {/* Payment Success page */}
       <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -68,12 +68,12 @@ const Register = () => {
 
       console.log("Usuário registrado:", data);
       
-      // Redirecionar para a primeira etapa do onboarding
-      navigate("/onboarding/1");
+      // Redirecionar para a página inicial ao invés do onboarding
+      navigate("/");
       
       toast({
         title: "Conta criada com sucesso!",
-        description: "Vamos conhecer você melhor."
+        description: "Bem-vindo ao Discipler."
       });
     } catch (error: any) {
       console.error("Erro no registro:", error);
@@ -109,7 +109,7 @@ const Register = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + "/onboarding/1"
+          redirectTo: window.location.origin // Redirect to homepage instead of onboarding
         }
       });
       

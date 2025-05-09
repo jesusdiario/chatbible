@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
+
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +32,7 @@ const Auth = () => {
       });
     }
   }, [location, toast]);
+  
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -51,17 +53,9 @@ const Auth = () => {
       }
       console.log("Login bem-sucedido:", data);
 
-      // Verificar se o usuário completou o onboarding
-      const {
-        data: profile
-      } = await supabase.from('user_profiles').select('onboarding_completed, onboarding_step').eq('id', data.user.id).maybeSingle();
-      console.log("Perfil do usuário:", profile);
-      if (profile && !profile.onboarding_completed) {
-        const nextStep = profile.onboarding_step || 1;
-        navigate(`/onboarding/${nextStep}`);
-      } else {
-        navigate("/");
-      }
+      // Redirecionar direto para a página inicial
+      navigate("/");
+      
     } catch (error: any) {
       console.error("Erro completo:", error);
       toast({
@@ -73,6 +67,7 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
@@ -99,6 +94,7 @@ const Auth = () => {
       setGoogleLoading(false);
     }
   };
+  
   const handleForgotPassword = async () => {
     if (!email) {
       toast({
@@ -130,6 +126,7 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  
   return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
@@ -196,4 +193,5 @@ const Auth = () => {
       </div>
     </div>;
 };
+
 export default Auth;
