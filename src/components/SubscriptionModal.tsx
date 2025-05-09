@@ -81,7 +81,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                   ))}
                   <li className="flex items-start">
                     <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-                    <span>Renovação mensal</span>
+                    <span>Renovação Mensal</span>
                   </li>
                 </ul>
                 
@@ -98,7 +98,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                   ) : (
                     <>
                       <CreditCard className="h-4 w-4" />
-                      Assinar agora
+                      Assinar Agora
                     </>
                   )}
                 </Button>
