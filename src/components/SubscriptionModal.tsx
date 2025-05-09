@@ -81,11 +81,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                   ))}
                   <li className="flex items-start">
                     <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-                    <span>Até {plan.message_limit} mensagens por mês</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-                    <span>Renovação automática mensal</span>
+                    <span>Renovação mensal</span>
                   </li>
                 </ul>
                 
