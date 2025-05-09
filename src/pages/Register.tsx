@@ -127,7 +127,7 @@ const Register = () => {
         </div>
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
-          <h2 className="text-xl font-semibold text-dark mb-6">                 Crie sua conta gratuita!</h2>
+          <h2 className="text-xl font-semibold text-dark mb-6">Crie sua conta gratuita para conhecer!</h2>
           
           <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
