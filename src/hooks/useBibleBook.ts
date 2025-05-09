@@ -1,35 +1,51 @@
-
 import { useState, useEffect } from 'react';
 import { getBibleBookBySlug } from '@/services/bibleService';
 import { BibleBook } from '@/types/bible';
 
-export const useBibleBook = (bookSlug: string | undefined) => {
+export const useBibleBook = (bookSlug?: string) => {
   const [bookDetails, setBookDetails] = useState<BibleBook | null>(null);
-  const [loadingBook, setLoadingBook] = useState(true);
+  const [loadingBook, setLoadingBook] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!bookSlug || bookSlug.trim() === '') {
+      setBookDetails(null);
+      setLoadingBook(false);
+      return;
+    }
+
+    let isMounted = true; // garante que o estado só será atualizado se o componente ainda estiver montado
+
     const fetchBookDetails = async () => {
-      if (!bookSlug) {
-        setLoadingBook(false);
-        return;
-      }
-      
+      setLoadingBook(true);
+
       try {
-        setLoadingBook(true);
         const bookData = await getBibleBookBySlug(bookSlug);
-        if (bookData) {
-          setBookDetails(bookData);
-        } else {
-          console.error("Book not found:", bookSlug);
+
+        if (isMounted) {
+          if (bookData && bookData !== bookDetails) {
+            setBookDetails(bookData);
+          } else if (!bookData) {
+            console.warn('Livro não encontrado:', bookSlug);
+            setBookDetails(null);
+          }
         }
-      } catch (error) {
-        console.error("Error fetching book details:", error);
+      } catch (err) {
+        if (isMounted) {
+          console.error('Erro ao buscar livro:', err);
+          setBookDetails(null);
+        }
       } finally {
-        setLoadingBook(false);
+        if (isMounted) {
+          setLoadingBook(false);
+        }
       }
     };
 
     fetchBookDetails();
+
+    return () => {
+      isMounted = false;
+    };
   }, [bookSlug]);
 
   return { bookDetails, loadingBook };
