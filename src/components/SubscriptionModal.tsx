@@ -54,8 +54,8 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
         </button>
         
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-semibold mb-2">Upgrade para BibleGPT Pro</h2>
-          <p className="text-slate-400">Libere todo o potencial do BibleGPT</p>
+          <h2 className="text-2xl font-semibold mb-2">Upgrade Discipler Pro</h2>
+          <p className="text-slate-400">Usufrua Sem Limites!</p>
         </div>
         
         {plans.length > 0 ? (
