@@ -14,7 +14,6 @@ interface BookChatProps {
   bookSlug?: string;
   onSendMessage: (content: string) => void;
   loadingStage?: string | null;
-  isDevocional?: boolean;
 }
 
 export const BookChat: React.FC<BookChatProps> = ({
@@ -24,8 +23,7 @@ export const BookChat: React.FC<BookChatProps> = ({
   isTyping,
   bookSlug,
   onSendMessage,
-  loadingStage,
-  isDevocional = false
+  loadingStage
 }) => {
   const { t } = useTranslation();
   
@@ -65,7 +63,6 @@ export const BookChat: React.FC<BookChatProps> = ({
           onSendMessage={onSendMessage}
           isLoading={isLoading}
           bookSlug={bookSlug}
-          isDevocional={isDevocional}
         />
       ) : (
         <>
@@ -80,7 +77,6 @@ export const BookChat: React.FC<BookChatProps> = ({
               onSend={onSendMessage} 
               isLoading={isLoading}
               bookSlug={bookSlug}
-              isDevocional={isDevocional}
             />
           </div>
         </>
