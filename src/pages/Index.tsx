@@ -19,22 +19,6 @@ const DevocionalBook = () => {
   const state = location.state as LocationState | null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // 1️⃣  Título do chat
-const isDevocional = bookSlug === 'devocional-diario';
-const pageTitle = isDevocional
-  ? 'Devocional Diário'               // antes: `Converse sobre ${bookTitle}`
-  : `Converse sobre ${bookTitle}`;
-
-// 2️⃣  Placeholder do campo de entrada
-const inputPlaceholder = isDevocional
-  ? 'Crie seu devocional inserindo 1 versículo'   // antes: 'Faça uma pergunta sobre ...'
-  : `Faça uma pergunta sobre ${bookTitle.toLowerCase()}...`;
-
-// 3️⃣  Texto do botão (onde era “Guia de Estudo”)
-<Button size="sm">
-  {isDevocional ? 'Temas de Devocionais' : 'Guia de Estudo'}
-</Button>
-
   // Logs iniciais
   useEffect(() => {
     console.log("[DevocionalBook] Mounted", { slug });
