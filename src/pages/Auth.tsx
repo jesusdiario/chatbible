@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
-
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +31,6 @@ const Auth = () => {
       });
     }
   }, [location, toast]);
-  
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +53,6 @@ const Auth = () => {
 
       // Redirecionar direto para a página inicial
       navigate("/");
-      
     } catch (error: any) {
       console.error("Erro completo:", error);
       toast({
@@ -67,7 +64,6 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
@@ -94,7 +90,6 @@ const Auth = () => {
       setGoogleLoading(false);
     }
   };
-  
   const handleForgotPassword = async () => {
     if (!email) {
       toast({
@@ -126,7 +121,6 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  
   return <div className="min-h-screen flex flex-col items-center justify-center bg-[#ffffff] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
@@ -136,9 +130,7 @@ const Auth = () => {
         </div>
 
         <div className="rounded-lg p-6 border border-[##F9F9F9] bg-[#ffffff] shadow-sm">
-          <h2 className="text-xl font-semibold text-dark mb-6">
-            Entre na sua conta
-          </h2>
+          
           
           <Button onClick={handleGoogleSignIn} disabled={googleLoading} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
@@ -193,5 +185,4 @@ const Auth = () => {
       </div>
     </div>;
 };
-
 export default Auth;
