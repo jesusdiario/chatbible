@@ -100,10 +100,24 @@ const BookChatContainer: React.FC<BookChatContainerProps> = ({
     }
   }, [initialPrompt, systemPrompt, isLoading, isTyping, messages.length, handleSendMessage]);
 
+  // Garantir que temos o título correto, mesmo durante o carregamento
+  const getTitle = () => {
+    if (bookDetails && bookDetails.title) {
+      return bookDetails.title;
+    }
+    
+    // Caso especial para o Devocional Diário
+    if (book === 'devocional-diario') {
+      return 'Devocional Diário';
+    }
+    
+    return book || 'Chat';
+  };
+
   return (
     <div className="flex flex-col h-full">
       <BookChat
-        title={bookDetails.title}
+        title={getTitle()}
         messages={messages}
         isLoading={isLoading}
         isTyping={isTyping}

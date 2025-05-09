@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Home, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +28,17 @@ const ChatInput = ({
 
   // Format book name to display with first letter capitalized
   const formattedBookName = bookSlug ? bookSlug.charAt(0).toUpperCase() + bookSlug.slice(1).replace(/-/g, ' ') : t('bible.explore');
+  
+  // Texto personalizado para Devocional Diário
+  const getPlaceholderText = () => {
+    if (bookSlug === 'devocional-diario') {
+      return 'Devocional diário do versículo...';
+    }
+    return bookSlug ? t('chat.askAboutBook', {
+      book: formattedBookName
+    }) : t('chat.askAboutBible');
+  };
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!message.trim() || isLoading) return;
@@ -88,16 +100,33 @@ const ChatInput = ({
     onSend(content, promptOverride);
     setIsModalOpen(false); // Close the modal after sending
   };
+  
+  // Texto personalizado para o botão de perguntas prontas
+  const getReadyQuestionsText = () => {
+    if (bookSlug === 'devocional-diario') {
+      return 'Temas para Devocionais';
+    }
+    return t('chat.readyQuestions');
+  };
+  
   return <div className="w-full">
       {/* Main input form */}
       <form onSubmit={handleSubmit} className="relative w-full">
         <div className="rounded-[24px] bg-white shadow-md p-4">
           {/* Message Input */}
-          <textarea ref={textareaRef} value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={bookSlug ? t('chat.askAboutBook', {
-          book: formattedBookName
-        }) : t('chat.askAboutBible')} className="w-full resize-none overflow-hidden focus:outline-none min-h-[24px] mb-2" style={{
-          fontSize: '16px'
-        }} rows={1} disabled={isLoading} />
+          <textarea 
+            ref={textareaRef} 
+            value={message} 
+            onChange={e => setMessage(e.target.value)} 
+            onKeyDown={handleKeyDown} 
+            placeholder={getPlaceholderText()} 
+            className="w-full resize-none overflow-hidden focus:outline-none min-h-[24px] mb-2" 
+            style={{
+              fontSize: '16px'
+            }} 
+            rows={1} 
+            disabled={isLoading} 
+          />
           
           {/* Buttons row below the textarea */}
           <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -108,7 +137,7 @@ const ChatInput = ({
             
             {/* Ready Questions button */}
             <button type="button" onClick={handleQuestionsClick} className="text-sm px-4 py-1.5 rounded-[18px] border border-gray-200 hover:bg-gray-100 text-[13px]">
-              {t('chat.readyQuestions')}
+              {getReadyQuestionsText()}
             </button>
             
             {/* Send button - aligned to the right */}
@@ -128,7 +157,9 @@ const ChatInput = ({
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('chat.readyQuestions')}</DialogTitle>
+            <DialogTitle>
+              {bookSlug === 'devocional-diario' ? 'Temas para Devocionais' : t('chat.readyQuestions')}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             {bookSlug && <ChatContext.Provider value={{
