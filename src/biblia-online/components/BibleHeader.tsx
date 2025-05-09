@@ -9,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Menu, Search } from 'lucide-react';
+import { Menu, Search, Home } from 'lucide-react';
 import Sidebar from "@/components/Sidebar";
+import { Link } from "react-router-dom";
 
 interface BibleHeaderProps {
   bookName: string;
@@ -65,6 +66,18 @@ export const BibleHeader: React.FC<BibleHeaderProps> = ({
           aria-label="Toggle Sidebar"
         >
           <Menu className="h-5 w-5" />
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="rounded-full"
+          aria-label="Home"
+          asChild
+        >
+          <Link to="/">
+            <Home className="h-5 w-5" />
+          </Link>
         </Button>
         
         <Button variant="ghost" size="icon" className="rounded-full">
