@@ -1,98 +1,78 @@
+import React, { useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import BookChatLayout from "@/components/BookChatLayout";
+import BookLoadingState from "@/components/BookLoadingState";
+import BookErrorState from "@/components/BookErrorState";
+import BookChatContainer from "@/components/BookChatContainer";
+import { useBibleBook } from "@/hooks/useBibleBook";
 
-import React from "react";
-import Sidebar from "@/components/Sidebar";
-import ChatHeader from "@/components/ChatHeader";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { useBibleData } from "@/hooks/useBibleData";
-import { useSidebarControl } from "@/hooks/useSidebarControl";
-import { BibleCategorySection } from "@/components/BibleCategorySection";
-import { useTranslation } from "react-i18next";
+/**
+ * Fixed constants for the unique book we want to expose in this route.
+ */
+const FIXED_BOOK_SLUG = "devocional-diario";
 
-const ErrorState: React.FC<{ error: any; isSidebarOpen: boolean; onToggleSidebar: () => void }> = ({
-  error, isSidebarOpen, onToggleSidebar
-}) => {
-  const { t } = useTranslation();
-  
-  return (
-    <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={onToggleSidebar} 
+interface LocationState {
+  initialPrompt?: string;
+  systemPrompt?: string;
+}
+
+/**
+ * Component dedicated to the unique "Devocional Diário" book (id: 59a90833-ab60-42fc-9a2f-8f33f2d30226).
+ * All other route params are still respected for the chat `slug`, but the book itself is hard‑wired.
+ */
+const DevocionalBook = () => {
+  // `slug` keeps identifying the specific chat thread (if any)
+  const { slug } = useParams<{ slug?: string }>();
+
+  // Location state can pass initial/system prompts when the user navigates from elsewhere
+  const location = useLocation();
+  const state = location.state as LocationState | null;
+
+  // Sidebar toggle state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Always load the fixed book details via the existing hook
+  const { bookDetails, loadingBook } = useBibleBook(FIXED_BOOK_SLUG);
+
+  // Handle loading & error states ------------------------------------------------
+  if (loadingBook) {
+    return (
+      <BookLoadingState
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-        <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
-          <div className="p-4 bg-red-900 rounded">
-            <p className="font-bold">{t('errors.general')}:</p>
-            <pre className="mt-2 overflow-auto text-sm">{JSON.stringify(error, null, 2)}</pre>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-};
-
-const LoadingState: React.FC<{ isSidebarOpen: boolean; onToggleSidebar: () => void }> = ({
-  isSidebarOpen, onToggleSidebar
-}) => {
-  const { t } = useTranslation();
-  
-  return (
-    <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={onToggleSidebar} 
-      />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-        <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={onToggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-black min-h-screen flex justify-center items-center">
-          <LoadingSpinner />
-        </div>
-      </main>
-    </div>
-  );
-};
-
-const CategoriesList: React.FC<{
-  categories: any[]; booksByCategory: Record<string, any[]>;
-}> = ({ categories, booksByCategory }) => (
-  <div className="max-w-7xl mx-auto space-y-12">
-    {categories.map(category => {
-      const categoryBooks = booksByCategory[category.slug] || [];
-      return (
-        <BibleCategorySection key={category.slug} category={category} books={categoryBooks} />
-      );
-    })}
-  </div>
-);
-
-const LivrosDaBiblia = () => {
-  const { isSidebarOpen, toggleSidebar } = useSidebarControl();
-  const { categories, booksByCategory, isLoading, isError, error } = useBibleData();
-  const { t } = useTranslation();
-
-  if (isError) {
-    return <ErrorState error={error} isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />;
+    );
   }
 
-  if (isLoading) {
-    return <LoadingState isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />;
+  if (!bookDetails) {
+    return (
+      <BookErrorState
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+    );
   }
 
+  // Render the chat UI -----------------------------------------------------------
   return (
-    <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={toggleSidebar} 
-      />
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
-        <ChatHeader isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
-        <div className="pt-[60px] pb-4 px-4 md:px-8 bg-chatgpt-main text-dark min-h-screen">
-          <CategoriesList categories={categories} booksByCategory={booksByCategory} />
+    <BookChatLayout
+      isSidebarOpen={isSidebarOpen}
+      onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+    >
+      <div className="pt-20 pb-6 px-4">
+        <div className="max-w-4xl mx-auto w-full">
+          <BookChatContainer
+            bookDetails={bookDetails}
+            // We forcibly pass the fixed slug so that downstream hooks/components stay consistent
+            book={FIXED_BOOK_SLUG}
+            slug={slug}
+            initialPrompt={state?.initialPrompt}
+            systemPrompt={state?.systemPrompt}
+          />
         </div>
-      </main>
-    </div>
+      </div>
+    </BookChatLayout>
   );
 };
 
-export default LivrosDaBiblia;
+export default DevocionalBook;
