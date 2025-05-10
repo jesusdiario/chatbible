@@ -27,9 +27,8 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
     setIsProcessing(true);
     try {
       console.log(`Iniciando checkout para o plano com priceId: ${priceId}`);
-      // Use o ID do produto real criado na Stripe
-      await startCheckout('price_1RJfFtLyyMwTutR95rlmrvcA');
-      // Não vamos fechar o modal aqui pois o usuário será redirecionado para o Stripe
+      await startCheckout(priceId);
+      // Não fechamos o modal aqui pois o usuário será redirecionado para o Stripe
     } catch (error) {
       console.error('Erro ao iniciar checkout:', error);
       toast({

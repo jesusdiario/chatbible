@@ -94,7 +94,7 @@ serve(async (req) => {
           email: userData.user.email,
           stripe_customer_id: customerId,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
+        });
 
       if (upsertError) {
         logStep("Error upserting customer data", { error: upsertError.message });
