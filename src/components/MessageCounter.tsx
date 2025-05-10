@@ -1,6 +1,7 @@
 
 import React from "react";
-import { AlertTriangle, Info, Infinity } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { 
   Tooltip,
@@ -8,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useMessageCount } from "@/hooks/useMessageCount";
 
 interface MessageCounterProps {
   currentCount: number;
@@ -17,10 +19,11 @@ interface MessageCounterProps {
 }
 
 const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: MessageCounterProps) => {
-  const { subscriptionTier, subscribed, startCheckout } = useSubscription();
+  const { subscriptionStatus } = useAuth();
+  const { startCheckout } = useSubscription();
   
-  // Não mostrar nada enquanto estiver carregando ou se o usuário for assinante
-  if (isLoading || subscribed) return null;
+  // Don't show anything for subscribed users or while loading
+  if (isLoading || subscriptionStatus.isSubscribed) return null;
   
   // Calcula a porcentagem do limite utilizado
   const usagePercentage = (currentCount / limit) * 100;
@@ -59,7 +62,7 @@ const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: Mess
       <div className="flex items-center justify-end gap-1">
         <div className={textColor}>
           {currentCount}/{limit} mensagens enviadas este mês 
-          {subscriptionTier && ` (Plano ${subscriptionTier})`}
+          {subscriptionStatus.tier && ` (Plano ${subscriptionStatus.tier})`}
         </div>
         
         <TooltipProvider>

@@ -2,22 +2,28 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "./useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useMessageCount = (messageLimitFromProps?: number) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { subscribed, messageLimit: subscriptionMessageLimit } = useSubscription();
+  const { subscriptionStatus } = useAuth();
   const { toast } = useToast();
   const fetchInProgressRef = useRef(false);
 
   const DEFAULT_MESSAGE_LIMIT = 10;
-  const MESSAGE_LIMIT = messageLimitFromProps || subscriptionMessageLimit || DEFAULT_MESSAGE_LIMIT;
+  const MESSAGE_LIMIT = messageLimitFromProps || (subscriptionStatus.isSubscribed ? 10000 : DEFAULT_MESSAGE_LIMIT);
   const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
   // Add this function to fetch or create the message count
   const fetchOrCreateMessageCount = useCallback(async () => {
+    // Skip fetch for known subscribers - optimization
+    if (subscriptionStatus.isSubscribed && !loading) {
+      setLoading(false);
+      return;
+    }
+    
     // Prevenir múltiplas chamadas simultâneas
     if (fetchInProgressRef.current) {
       return;
@@ -103,26 +109,33 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       setLoading(false);
       fetchInProgressRef.current = false;
     }
-  }, [RESET_TIME]);
+  }, [RESET_TIME, loading, subscriptionStatus.isSubscribed]);
 
   useEffect(() => {
-    fetchOrCreateMessageCount();
+    // Skip all this for Pro users as an optimization
+    if (!subscriptionStatus.isSubscribed) {
+      fetchOrCreateMessageCount();
 
-    const intervalId = setInterval(() => {
-      if (timeUntilReset > 0) {
-        setTimeUntilReset(prev => {
-          const newTime = prev - 60000;
-          if (newTime <= 0) {
-            fetchOrCreateMessageCount();
-            return 0;
-          }
-          return newTime;
-        });
-      }
-    }, 60000);
+      const intervalId = setInterval(() => {
+        if (timeUntilReset > 0) {
+          setTimeUntilReset(prev => {
+            const newTime = prev - 60000;
+            if (newTime <= 0) {
+              fetchOrCreateMessageCount();
+              return 0;
+            }
+            return newTime;
+          });
+        }
+      }, 60000);
 
-    return () => clearInterval(intervalId);
-  }, [fetchOrCreateMessageCount, timeUntilReset]);
+      return () => clearInterval(intervalId);
+    } else {
+      // For subscribers, just set basic state and don't bother with API calls
+      setMessageCount(0);
+      setLoading(false);
+    }
+  }, [fetchOrCreateMessageCount, timeUntilReset, subscriptionStatus.isSubscribed]);
 
   const incrementMessageCount = async () => {
     try {
@@ -131,8 +144,13 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
   
       const userId = session.user.id;
       
-      // Usuários Pro sempre podem enviar mensagens
-      if (!subscribed && messageCount >= MESSAGE_LIMIT) {
+      // Pro users always can send messages
+      if (subscriptionStatus.isSubscribed) {
+        return true;
+      }
+
+      // Free users check against limit
+      if (messageCount >= MESSAGE_LIMIT) {
         return false;
       }
 
@@ -161,7 +179,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
 
   // Verificar se o usuário ainda tem mensagens disponíveis
   // Pro users (subscribed) can always send messages
-  const canSendMessage = subscribed || messageCount < MESSAGE_LIMIT;
+  const canSendMessage = subscriptionStatus.isSubscribed || messageCount < MESSAGE_LIMIT;
   
   // Dias restantes para reset
   const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
