@@ -1,13 +1,19 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getBibleBookBySlug } from '@/services/bibleService';
 import { BibleBook } from '@/types/bible';
 
 export const useBibleBook = (bookSlug: string | undefined) => {
   const [bookDetails, setBookDetails] = useState<BibleBook | null>(null);
   const [loadingBook, setLoadingBook] = useState(true);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    // Se já buscou o livro com esse slug, não buscar novamente
+    if (fetchedRef.current && bookDetails?.slug === bookSlug) {
+      return;
+    }
+    
     const fetchBookDetails = async () => {
       if (!bookSlug) {
         setLoadingBook(false);
@@ -19,6 +25,7 @@ export const useBibleBook = (bookSlug: string | undefined) => {
         const bookData = await getBibleBookBySlug(bookSlug);
         if (bookData) {
           setBookDetails(bookData);
+          fetchedRef.current = true;
         } else {
           console.error("Book not found:", bookSlug);
         }
@@ -30,7 +37,7 @@ export const useBibleBook = (bookSlug: string | undefined) => {
     };
 
     fetchBookDetails();
-  }, [bookSlug]);
+  }, [bookSlug, bookDetails]);
 
   return { bookDetails, loadingBook };
 };
