@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSubscriptionState } from './subscription/useSubscriptionState';
 import { useSubscriptionActions } from './subscription/useSubscriptionActions';
 import { useSubscriptionPlans } from './subscription/useSubscriptionPlans';
@@ -14,7 +14,6 @@ export const useSubscription = () => {
     refreshSubscription
   } = useSubscriptionActions(setState);
   const plans = useSubscriptionPlans(state.subscriptionTier);
-  const initialCheckDoneRef = useRef(false);
   
   // Update messageLimit when we have plans and subscription tier
   useEffect(() => {
@@ -30,12 +29,9 @@ export const useSubscription = () => {
     }
   }, [plans, state.subscriptionTier, setState]);
 
-  // Check subscription when component mounts, but only once
+  // Check subscription when component mounts
   useEffect(() => {
-    if (!initialCheckDoneRef.current) {
-      checkSubscription();
-      initialCheckDoneRef.current = true;
-    }
+    checkSubscription();
   }, []);
 
   return {

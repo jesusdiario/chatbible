@@ -3,7 +3,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Page imports
 import Auth from "@/pages/Auth";
@@ -23,8 +22,28 @@ import LandingPage from "@/pages/LandingPage";
 import Lexicon from "@/pages/Lexicon";
 import BibliaOnline from "@/pages/BibliaOnline";
 import PaymentSuccess from "@/pages/PaymentSuccess";
-import LimitExceeded from "@/pages/LimitExceeded";
 import NotFound from "@/pages/NotFound";
+
+// Protected Route component logic
+const ProtectedRoute = ({ 
+  children 
+}: { 
+  children: React.ReactNode
+}) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-slate-100">
+      <LoadingSpinner />
+    </div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 export const AppRoutes: React.FC = () => {
   const { user, loading } = useAuth();
@@ -42,9 +61,6 @@ export const AppRoutes: React.FC = () => {
       
       {/* Payment Success page */}
       <Route path="/payment-success" element={<PaymentSuccess />} />
-      
-      {/* Limit Exceeded page - no ProtectedRoute wrapper as it has its own auth check */}
-      <Route path="/limit-exceeded" element={<LimitExceeded />} />
       
       {/* Protected routes */}
       <Route path="/" element={
@@ -120,7 +136,7 @@ export const AppRoutes: React.FC = () => {
       } />
       
       <Route path="/profile" element={
-        <ProtectedRoute allowLimitedAccess={true}>
+        <ProtectedRoute>
           <Profile />
         </ProtectedRoute>
       } />

@@ -1,46 +1,48 @@
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "./useSubscription";
+
+interface MessageCount {
+  id: string;
+  user_id: string;
+  count: number;
+  last_reset_time: string;
+}
 
 export const useMessageCount = (messageLimitFromProps?: number) => {
   const [messageCount, setMessageCount] = useState(0);
   const [timeUntilReset, setTimeUntilReset] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { subscriptionStatus } = useAuth();
+  const { subscribed } = useSubscription();
   const { toast } = useToast();
-  const fetchInProgressRef = useRef(false);
 
   const DEFAULT_MESSAGE_LIMIT = 10;
-  const MESSAGE_LIMIT = messageLimitFromProps || (subscriptionStatus.isSubscribed ? 10000 : DEFAULT_MESSAGE_LIMIT);
+  const MESSAGE_LIMIT = messageLimitFromProps || DEFAULT_MESSAGE_LIMIT;
   const RESET_TIME = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
   // Add this function to fetch or create the message count
   const fetchOrCreateMessageCount = useCallback(async () => {
-    // Skip fetch for known subscribers - optimization
-    if (subscriptionStatus.isSubscribed && !loading) {
-      setLoading(false);
-      return;
-    }
-    
-    // Prevenir múltiplas chamadas simultâneas
-    if (fetchInProgressRef.current) {
-      return;
-    }
-    
     try {
-      fetchInProgressRef.current = true;
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
         setLoading(false);
-        fetchInProgressRef.current = false;
         return;
       }
 
       const userId = session.user.id;
+
+      // Get subscription status
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', userId)
+        .single();
+
+      const isSubscribed = subData?.subscribed || false;
 
       // Continue with message count fetch
       const { data, error } = await supabase
@@ -52,7 +54,6 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       if (error && error.code !== 'PGRST116') {
         console.error("Erro ao buscar contador de mensagens:", error);
         setLoading(false);
-        fetchInProgressRef.current = false;
         return;
       }
 
@@ -70,7 +71,6 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
         if (insertError) {
           console.error("Erro ao criar contador de mensagens:", insertError);
           setLoading(false);
-          fetchInProgressRef.current = false;
           return;
         }
 
@@ -103,54 +103,54 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       }
 
       setLoading(false);
-      fetchInProgressRef.current = false;
     } catch (error) {
       console.error("Erro ao processar contador de mensagens:", error);
       setLoading(false);
-      fetchInProgressRef.current = false;
     }
-  }, [RESET_TIME, loading, subscriptionStatus.isSubscribed]);
+  }, [RESET_TIME]);
 
   useEffect(() => {
-    // Skip all this for Pro users as an optimization
-    if (!subscriptionStatus.isSubscribed) {
-      fetchOrCreateMessageCount();
+    fetchOrCreateMessageCount();
 
-      const intervalId = setInterval(() => {
-        if (timeUntilReset > 0) {
-          setTimeUntilReset(prev => {
-            const newTime = prev - 60000;
-            if (newTime <= 0) {
-              fetchOrCreateMessageCount();
-              return 0;
-            }
-            return newTime;
-          });
-        }
-      }, 60000);
+    const intervalId = setInterval(() => {
+      if (timeUntilReset > 0) {
+        setTimeUntilReset(prev => {
+          const newTime = prev - 60000;
+          if (newTime <= 0) {
+            fetchOrCreateMessageCount();
+            return 0;
+          }
+          return newTime;
+        });
+      }
+    }, 60000);
 
-      return () => clearInterval(intervalId);
-    } else {
-      // For subscribers, just set basic state and don't bother with API calls
-      setMessageCount(0);
-      setLoading(false);
-    }
-  }, [fetchOrCreateMessageCount, timeUntilReset, subscriptionStatus.isSubscribed]);
+    return () => clearInterval(intervalId);
+  }, [fetchOrCreateMessageCount, timeUntilReset]);
 
   const incrementMessageCount = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return false;
+      if (!session) return;
   
       const userId = session.user.id;
       
-      // Pro users always can send messages
-      if (subscriptionStatus.isSubscribed) {
-        return true;
-      }
+      // Get subscription status for checking limits
+      const { data: subData } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', userId)
+        .single();
 
-      // Free users check against limit
-      if (messageCount >= MESSAGE_LIMIT) {
+      const isUserSubscribed = subData?.subscribed || false;
+
+      // Check if user can send message (Pro users can always send)
+      if (!isUserSubscribed && messageCount >= MESSAGE_LIMIT) {
+        toast({
+          title: "Limite de mensagens atingido",
+          description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano Premium para mensagens ilimitadas.",
+          variant: "destructive",
+        });
         return false;
       }
 
@@ -166,7 +166,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
       
       if (error) {
         console.error("Erro ao incrementar contador de mensagens:", error);
-        return false;
+        return;
       }
       
       setMessageCount(prev => prev + 1);
@@ -179,7 +179,7 @@ export const useMessageCount = (messageLimitFromProps?: number) => {
 
   // Verificar se o usuário ainda tem mensagens disponíveis
   // Pro users (subscribed) can always send messages
-  const canSendMessage = subscriptionStatus.isSubscribed || messageCount < MESSAGE_LIMIT;
+  const canSendMessage = subscribed || messageCount < MESSAGE_LIMIT;
   
   // Dias restantes para reset
   const daysUntilReset = Math.ceil(timeUntilReset / (24 * 60 * 60 * 1000));
