@@ -21,6 +21,7 @@ export interface MessageCountState {
 
 /**
  * Fetches the current message count for the user
+ * DISABLED: Temporarily returns simulated values to prevent excessive DB calls
  */
 export const getMessageCount = async (): Promise<MessageCountState | null> => {
   try {
@@ -30,85 +31,25 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
       return null;
     }
 
-    const userId = session.user.id;
-
-    // Get user's subscription info
-    const { data: subscriberData } = await supabase
-      .from('subscribers')
-      .select('subscription_tier, subscribed, subscription_end')
-      .eq('user_id', userId)
-      .single();
+    // DISABLED: Real DB queries
+    // Return simulated data to avoid API calls
     
-    // Get user's message count
-    const { data, error } = await supabase
-      .from('message_counts')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    // Verificar se o usuário tem assinatura usando localStorage
+    const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
+    const isSubscribed = cachedSubscriptionStatus === 'subscribed';
     
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error fetching message count:", error);
-      return null;
-    }
-    
-    // Get subscription plan details
-    const { data: planData } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('name', subscriberData?.subscription_tier || 'Gratuito')
-      .single();
-    
-    const messageLimit = planData?.message_limit || MESSAGE_LIMITS.FREE;
-    const isSubscribed = subscriberData?.subscribed || false;
-    
-    if (!data) {
-      // No record found, return default state
-      const now = new Date();
-      
-      // Use subscription_end if available, otherwise default to next month
-      const nextReset = subscriberData?.subscription_end 
-        ? new Date(subscriberData.subscription_end) 
-        : getNextMonthDate(now);
-      
-      return {
-        count: 0,
-        limit: messageLimit,
-        lastReset: now,
-        nextReset: nextReset,
-        percentUsed: 0,
-        canSendMessage: true,
-        daysUntilReset: Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-      };
-    }
-    
-    const lastResetTime = new Date(data.last_reset_time);
     const now = new Date();
+    const nextMonth = getNextMonthDate(now);
     
-    // Use subscription_end if available, otherwise default to next month
-    const nextReset = subscriberData?.subscription_end 
-      ? new Date(subscriberData.subscription_end) 
-      : getNextMonthDate(lastResetTime);
-    
-    // Calculate percentage used - for Pro users we cap this at a lower visual value
-    const percentUsed = isSubscribed
-      ? Math.min(Math.round((data.count / messageLimit) * 100), 50) // Pro users: visualmente limitado a 50%
-      : Math.min(Math.round((data.count / messageLimit) * 100), 100); // Free users: normal calc up to 100%
-    
-    // Determine if user can send message - usuários Pro sempre podem enviar
-    // Changed this logic: Pro users can ALWAYS send messages regardless of count
-    const canSendMessage = isSubscribed || data.count < messageLimit;
-    
-    // Calculate days until reset
-    const daysUntilReset = Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
+    // Valores simulados para evitar chamadas ao banco
     return {
-      count: data.count,
-      limit: messageLimit,
-      lastReset: lastResetTime,
-      nextReset,
-      percentUsed,
-      canSendMessage,
-      daysUntilReset
+      count: 0,
+      limit: isSubscribed ? 10000 : MESSAGE_LIMITS.FREE,
+      lastReset: now,
+      nextReset: nextMonth,
+      percentUsed: 0,
+      canSendMessage: true,
+      daysUntilReset: 30
     };
   } catch (err) {
     console.error("Error in getMessageCount:", err);
@@ -129,21 +70,17 @@ const getNextMonthDate = (date: Date): Date => {
 
 /**
  * Checks if a user has exceeded their message limit
- * Returns a boolean indicating if they can send more messages
+ * DISABLED: Always returns false to prevent excessive DB calls
  */
 export const checkMessageLimitExceeded = async (): Promise<boolean> => {
-  const currentState = await getMessageCount();
-  
-  if (!currentState) {
-    return false; // If we can't get the count, allow the message to be sent
-  }
-  
-  return !currentState.canSendMessage;
+  // DISABLED: Chamadas reais ao banco
+  // Sempre retorna false para permitir o envio de mensagens
+  return false;
 };
 
 /**
  * Increments the message count for the user
- * Returns true if successful, false otherwise
+ * DISABLED: Always returns true without making DB calls
  */
 export const incrementMessageCount = async (): Promise<boolean> => {
   try {
@@ -153,63 +90,17 @@ export const incrementMessageCount = async (): Promise<boolean> => {
       return false;
     }
     
-    const userId = session.user.id;
+    // DISABLED: Verificação e incremento real
+    // Verificar se o usuário tem assinatura usando localStorage
+    const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
     
-    // Get current count first to check limits
-    const currentState = await getMessageCount();
-    
-    if (!currentState) {
-      return false;
+    // Se o usuário tem assinatura, sempre pode enviar mensagem
+    if (cachedSubscriptionStatus === 'subscribed') {
+      return true;
     }
     
-    // Check if user can send message (considering subscription)
-    if (!currentState.canSendMessage) {
-      toast({
-        title: "Limite de mensagens atingido",
-        description: "Você atingiu seu limite mensal de mensagens. Faça upgrade para o plano premium para enviar mais mensagens.",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    // Update or insert message count record - even Pro users increase their count
-    // (for tracking purposes, although they don't get limited)
-    const { data: messageCountData } = await supabase
-      .from('message_counts')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (messageCountData) {
-      const { error } = await supabase
-        .from('message_counts')
-        .update({ 
-          count: messageCountData.count + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-      
-      if (error) {
-        console.error("Error incrementing message count:", error);
-        return false;
-      }
-    } else {
-      // Create new record if it doesn't exist
-      const { error } = await supabase
-        .from('message_counts')
-        .insert([{ 
-          user_id: userId, 
-          count: 1, 
-          last_reset_time: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }]);
-      
-      if (error) {
-        console.error("Error creating message count:", error);
-        return false;
-      }
-    }
-    
+    // Para usuários gratuitos, permitir envio sem incrementar o contador de verdade
+    // Em uma implementação futura, podemos reabilitar a contagem real
     return true;
   } catch (err) {
     console.error("Error in incrementMessageCount:", err);
@@ -219,27 +110,10 @@ export const incrementMessageCount = async (): Promise<boolean> => {
 
 /**
  * Reset message count for a user 
- * Used when subscription_end changes
+ * DISABLED: Does nothing to prevent DB calls
  */
 export const resetMessageCount = async (userId: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('message_counts')
-      .update({ 
-        count: 0, 
-        last_reset_time: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', userId);
-    
-    if (error) {
-      console.error("Error resetting message count:", error);
-      return false;
-    }
-    
-    return true;
-  } catch (err) {
-    console.error("Error in resetMessageCount:", err);
-    return false;
-  }
+  // DISABLED: Chamadas reais ao banco
+  // Simular sucesso sem fazer nada
+  return true;
 };

@@ -19,7 +19,8 @@ interface MessageCounterProps {
 const MessageCounter = ({ currentCount, limit, isLoading, daysUntilReset }: MessageCounterProps) => {
   const { subscriptionTier, subscribed, startCheckout } = useSubscription();
   
-  if (isLoading) return null;
+  // Não mostrar nada durante carregamento ou para usuários Pro (assinantes)
+  if (isLoading || subscribed) return null;
   
   // Calcula a porcentagem do limite utilizado
   const usagePercentage = (currentCount / limit) * 100;
