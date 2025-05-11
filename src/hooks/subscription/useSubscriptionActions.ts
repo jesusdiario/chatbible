@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -116,7 +115,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
     }
   };
 
-  const startCheckout = async (priceId: string, successUrl?: string, cancelUrl?: string) => {
+  const startCheckout = async (priceId: string, email?: string, password?: string, name?: string, successUrl?: string, cancelUrl?: string) => {
     if (!setState) return;
     
     try {
@@ -125,28 +124,20 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       console.log(`Iniciando checkout com priceId: ${priceId}`);
       
-      // Verificar autenticação do usuário antes de iniciar o checkout
-      const { data: userData, error: authError } = await supabase.auth.getUser();
+      const payload: Record<string, any> = { 
+        priceId,
+        successUrl: successUrl || `${window.location.origin}/payment-success`, 
+        cancelUrl: cancelUrl || `${window.location.origin}/`
+      };
       
-      if (authError || !userData.user) {
-        console.error('Usuário não autenticado:', authError);
-        toast({
-          title: "Erro",
-          description: "Você precisa estar logado para assinar um plano",
-          variant: "destructive",
-        });
-        setState(prev => ({ ...prev, isLoading: false }));
-        setIsProcessing(false);
-        return;
-      }
+      // Add user creation fields if provided
+      if (email) payload.email = email;
+      if (password) payload.password = password;
+      if (name) payload.name = name;
       
       // Chamar a edge function para criar o checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          priceId, 
-          successUrl: successUrl || `${window.location.origin}/payment-success`, 
-          cancelUrl: cancelUrl || `${window.location.origin}/`
-        }
+        body: payload
       });
 
       if (error) {
@@ -171,7 +162,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       console.error('Erro ao iniciar checkout:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível iniciar o processo de assinatura",
+        description: error instanceof Error ? error.message : "Não foi possível iniciar o processo de assinatura",
         variant: "destructive",
       });
       setState(prev => ({ ...prev, isLoading: false }));

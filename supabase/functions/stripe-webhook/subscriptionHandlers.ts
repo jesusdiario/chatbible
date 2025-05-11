@@ -1,4 +1,3 @@
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.9.0";
 import { logStep } from "./utils.ts";
@@ -6,73 +5,100 @@ import { logStep } from "./utils.ts";
 // Handle successful subscription
 export async function handleSuccessfulSubscription(
   supabaseClient: any,
-  userId: string,
   session: any
 ) {
   // Get customer ID from session
   const customerId = session.customer;
+  const metadata = session.metadata || {};
   
   try {
-    // Get user by ID
-    const { data: userData, error: userError } = await supabaseClient.auth
-      .admin
-      .getUserById(userId);
-    
-    if (userError) {
-      logStep("Error fetching user data", { error: userError.message, userId });
-      throw userError;
-    }
-    
-    // Get or create subscriber record
-    let email = userData.user?.email;
-    if (!email) {
-      logStep("Email not found in user data, fetching from Stripe", { userId });
-      // Fallback to fetching from Stripe
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-        apiVersion: "2022-11-15",
-      });
-      const customer = await stripe.customers.retrieve(customerId);
-      email = typeof customer !== 'string' && 'email' in customer ? customer.email : null;
-      logStep("Retrieved email from Stripe", { email });
-    }
+    const email = metadata.email;
     
     if (!email) {
-      logStep("Could not determine user email", { userId, customerId });
-      throw new Error("Could not determine user email");
+      logStep("No email found in session metadata", { sessionId: session.id });
+      throw new Error("No email found in session metadata");
     }
+
+    logStep("Processing checkout session", { email, customerId });
     
-    // Check if a subscription already exists for this user
-    const { data: existingSubscriber } = await supabaseClient
-      .from("subscribers")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
+    // Check if we need to create a new user account
+    if (metadata.create_account === 'true' && metadata.password) {
+      logStep("Creating new user account", { email });
       
-    logStep("Checking for existing subscriber", { 
-      exists: !!existingSubscriber, 
-      email, 
-      userId 
-    });
-    
-    // Upsert subscriber data
-    const { data: updatedData, error: upsertError } = await supabaseClient
-      .from("subscribers")
-      .upsert({
-        user_id: userId,
+      // Create user in Supabase
+      const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
         email: email,
-        stripe_customer_id: customerId,
-        subscribed: true,
-        // Default to "Premium" until we get more details in subscription.updated event
-        subscription_tier: "Premium",
-        updated_at: new Date().toISOString()
-      }, { onConflict: "user_id" });
-    
-    if (upsertError) {
-      logStep("Error upserting subscriber", { error: upsertError.message });
-      throw upsertError;
+        password: metadata.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: metadata.name || email.split('@')[0]
+        }
+      });
+      
+      if (authError) {
+        logStep("Error creating user account", { error: authError.message });
+        throw authError;
+      }
+      
+      const userId = authData.user.id;
+      logStep("User account created successfully", { userId });
+      
+      // Create subscriber record
+      const { error: subscriberError } = await supabaseClient
+        .from("subscribers")
+        .insert({
+          user_id: userId,
+          email: email,
+          stripe_customer_id: customerId,
+          subscribed: true,
+          subscription_tier: "Premium", // Default tier
+          updated_at: new Date().toISOString()
+        });
+      
+      if (subscriberError) {
+        logStep("Error creating subscriber record", { error: subscriberError.message });
+        throw subscriberError;
+      }
+      
+      logStep("Subscriber record created successfully", { userId });
+    } else {
+      // For existing users, update their subscription status
+      logStep("Updating subscription for existing user", { email });
+      
+      // Get user by email
+      const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserByEmail(email);
+      
+      if (userError) {
+        logStep("Error fetching user data", { error: userError.message });
+        throw userError;
+      }
+      
+      if (!userData.user) {
+        logStep("No user found with email", { email });
+        throw new Error("No user found with email: " + email);
+      }
+      
+      const userId = userData.user.id;
+      
+      // Upsert subscriber data
+      const { error: upsertError } = await supabaseClient
+        .from("subscribers")
+        .upsert({
+          user_id: userId,
+          email: email,
+          stripe_customer_id: customerId,
+          subscribed: true,
+          subscription_tier: "Premium", // Default tier until we get more details
+          updated_at: new Date().toISOString()
+        });
+      
+      if (upsertError) {
+        logStep("Error upserting subscriber", { error: upsertError.message });
+        throw upsertError;
+      }
+      
+      logStep("Successfully updated subscriber", { userId, email });
     }
-    
-    logStep("Successfully upserted subscriber", { userId, email });
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

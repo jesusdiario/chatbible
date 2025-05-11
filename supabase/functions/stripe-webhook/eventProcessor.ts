@@ -14,20 +14,9 @@ export async function processStripeEvent(event: any, supabaseClient: any) {
       // Handle checkout completion
       const session = event.data.object;
       
-      // Find the related customer
-      if (session.customer && session.client_reference_id) {
-        const userId = session.client_reference_id;
-        
-        // Update subscriptions table
-        await handleSuccessfulSubscription(supabaseClient, userId, session);
-        logStep("Processed checkout.session.completed event", { userId });
-      } else {
-        logStep("Missing customer or client_reference_id in checkout session", { 
-          hasCustomer: !!session.customer, 
-          hasClientRef: !!session.client_reference_id,
-          sessionId: session.id 
-        });
-      }
+      // Update subscriptions table
+      await handleSuccessfulSubscription(supabaseClient, session);
+      logStep("Processed checkout.session.completed event", { sessionId: session.id });
       break;
       
     case "customer.subscription.updated":

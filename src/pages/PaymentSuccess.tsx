@@ -6,6 +6,7 @@ import { CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -17,43 +18,70 @@ const PaymentSuccess = () => {
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
 
-    const updateSubscription = async () => {
+    const checkPaymentStatus = async () => {
       if (sessionId) {
-        // Registra o session_id no console para debug
         console.log('Stripe session ID:', sessionId);
         
         try {
-          // Atualiza os dados da assinatura imediatamente
-          await refreshSubscription();
-          
-          // Notifica o usuário
-          toast({
-            title: "Pagamento processado com sucesso!",
-            description: "Sua assinatura Premium foi ativada.",
-            variant: "default",
+          // Verify session through the API
+          const { data, error } = await supabase.functions.invoke('check-payment-status', {
+            body: { sessionId }
           });
           
-          // Redireciona para home após 5 segundos
+          if (error) throw error;
+          
+          if (data.status === 'complete') {
+            // Try to auto-login if this is a new user
+            if (data.email && data.password) {
+              try {
+                await supabase.auth.signInWithPassword({
+                  email: data.email,
+                  password: data.password
+                });
+              } catch (loginError) {
+                console.error('Could not auto-login:', loginError);
+              }
+            }
+            
+            // Atualiza os dados da assinatura
+            await refreshSubscription();
+            
+            // Notifica o usuário
+            toast({
+              title: "Pagamento processado com sucesso!",
+              description: "Sua assinatura Premium foi ativada.",
+              variant: "default",
+            });
+          } else {
+            console.log('Payment status:', data.status);
+          }
+          
+          // Redirect to home after delay
           redirectTimeout = setTimeout(() => {
             navigate('/');
           }, 5000);
         } catch (error) {
-          console.error('Erro ao atualizar assinatura:', error);
+          console.error('Erro ao verificar status do pagamento:', error);
           toast({
-            title: "Erro ao atualizar sua assinatura",
-            description: "Tente atualizar a página ou entre em contato com o suporte.",
-            variant: "destructive",
+            title: "Aviso",
+            description: "Estamos processando seu pagamento. Se o acesso não for liberado em alguns instantes, entre em contato com o suporte.",
+            variant: "default",
           });
+          
+          // Redirect anyway after slightly longer delay
+          redirectTimeout = setTimeout(() => {
+            navigate('/');
+          }, 8000);
         }
       } else {
-        // Sem session_id, redirecionamos mais rapidamente
+        // No session_id, redirect more quickly
         redirectTimeout = setTimeout(() => {
           navigate('/');
         }, 3000);
       }
     };
 
-    updateSubscription();
+    checkPaymentStatus();
     
     return () => {
       if (redirectTimeout) clearTimeout(redirectTimeout);
@@ -66,7 +94,7 @@ const PaymentSuccess = () => {
         <CardHeader className="flex flex-col items-center space-y-2 pb-2">
           <CheckCircle className="h-16 w-16 text-green-500" />
           <CardTitle className="text-2xl">Pagamento confirmado!</CardTitle>
-          <CardDescription>Obrigado por assinar o BibleGPT Pro</CardDescription>
+          <CardDescription>Obrigado por assinar o Discipler Pro</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4 pt-6">
           <p className="text-center text-muted-foreground">

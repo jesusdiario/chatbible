@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Page imports
 import Auth from "@/pages/Auth";
@@ -24,131 +25,119 @@ import BibliaOnline from "@/pages/BibliaOnline";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import NotFound from "@/pages/NotFound";
 
-// Protected Route component logic
-const ProtectedRoute = ({ 
-  children 
-}: { 
-  children: React.ReactNode
-}) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <LoadingSpinner />
-    </div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
 export const AppRoutes: React.FC = () => {
   const { user, loading } = useAuth();
 
   // If still loading auth state, show nothing
   if (loading) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (
     <Routes>
-      {/* Auth routes */}
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
-      <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+      {/* Auth routes - no subscription required */}
+      <Route 
+        path="/auth" 
+        element={user ? <Navigate to="/" replace /> : <Auth />} 
+      />
       
-      {/* Payment Success page */}
+      {/* Register route is hidden - registration now happens through checkout */}
+      {/* <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} /> */}
+      
+      {/* Payment routes - no auth required */}
       <Route path="/payment-success" element={<PaymentSuccess />} />
       
-      {/* Protected routes */}
+      {/* Landing page - no auth required */}
+      <Route path="/lp" element={<LandingPage />} />
+      
+      {/* All other routes - subscription required */}
       <Route path="/" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <Index />
         </ProtectedRoute>
       } />
       
       <Route path="/admin" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <Admin />
         </ProtectedRoute>
       } />
       
       <Route path="/admin/paginas" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <AdminPages />
         </ProtectedRoute>
       } />
       
       <Route path="/admin/livros" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <AdminBooks />
         </ProtectedRoute>
       } />
       
       <Route path="/livros-da-biblia" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <LivrosDaBiblia />
         </ProtectedRoute>
       } />
       
       <Route path="/temas-da-biblia" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <TemasDaBiblia />
         </ProtectedRoute>
       } />
       
       <Route path="/teologia-crista" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <TeologiaCrista />
         </ProtectedRoute>
       } />
       
       <Route path="/livros-da-biblia/:book" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <LivrosDaBibliaBook />
         </ProtectedRoute>
       } />
       
       <Route path="/livros-da-biblia/:book/:slug" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <LivrosDaBibliaBook />
         </ProtectedRoute>
       } />
       
       <Route path="/chat/:slug" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <ChatPage />
         </ProtectedRoute>
       } />
       
       <Route path="/history" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <ChatHistory />
         </ProtectedRoute>
       } />
       
       <Route path="/lexicon" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <Lexicon />
         </ProtectedRoute>
       } />
       
       <Route path="/profile" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <Profile />
         </ProtectedRoute>
       } />
       
       <Route path="/biblia-online" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiresSubscription={true}>
           <BibliaOnline />
         </ProtectedRoute>
       } />
-      
-      {/* Public routes */}
-      <Route path="/lp" element={<LandingPage />} />
       
       {/* 404 Route - must be last */}
       <Route path="*" element={<NotFound />} />
