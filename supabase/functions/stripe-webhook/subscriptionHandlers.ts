@@ -1,3 +1,4 @@
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@12.9.0";
 import { logStep } from "./utils.ts";
@@ -43,6 +44,29 @@ export async function handleSuccessfulSubscription(
       const userId = authData.user.id;
       logStep("User account created successfully", { userId });
       
+      // Determinar qual plano foi assinado
+      const priceId = session.line_items?.data[0]?.price?.id || session.metadata?.price_id;
+      
+      // Buscar informações do plano com base no stripe_price_id
+      let subscriptionTier = "Premium"; // Valor padrão
+      let subscriptionDetails = null;
+      
+      if (priceId) {
+        const { data: planData, error: planError } = await supabaseClient
+          .from("subscription_plans")
+          .select("*")
+          .eq("stripe_price_id", priceId)
+          .single();
+        
+        if (planData && !planError) {
+          subscriptionTier = planData.name;
+          subscriptionDetails = planData;
+          logStep("Found subscription plan", { tier: subscriptionTier, priceId });
+        } else {
+          logStep("Could not find plan for price ID", { priceId, error: planError?.message });
+        }
+      }
+      
       // Create subscriber record
       const { error: subscriberError } = await supabaseClient
         .from("subscribers")
@@ -51,7 +75,10 @@ export async function handleSuccessfulSubscription(
           email: email,
           stripe_customer_id: customerId,
           subscribed: true,
-          subscription_tier: "Premium", // Default tier
+          subscription_tier: subscriptionTier,
+          subscription_end: session.subscription?.current_period_end 
+            ? new Date(session.subscription.current_period_end * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days if not specified
           updated_at: new Date().toISOString()
         });
       
@@ -60,7 +87,7 @@ export async function handleSuccessfulSubscription(
         throw subscriberError;
       }
       
-      logStep("Subscriber record created successfully", { userId });
+      logStep("Subscriber record created successfully", { userId, subscriptionTier });
     } else {
       // For existing users, update their subscription status
       logStep("Updating subscription for existing user", { email });
@@ -80,6 +107,27 @@ export async function handleSuccessfulSubscription(
       
       const userId = userData.user.id;
       
+      // Determinar qual plano foi assinado
+      const priceId = session.line_items?.data[0]?.price?.id || session.metadata?.price_id;
+      
+      // Buscar informações do plano com base no stripe_price_id
+      let subscriptionTier = "Premium"; // Valor padrão
+      
+      if (priceId) {
+        const { data: planData, error: planError } = await supabaseClient
+          .from("subscription_plans")
+          .select("*")
+          .eq("stripe_price_id", priceId)
+          .single();
+        
+        if (planData && !planError) {
+          subscriptionTier = planData.name;
+          logStep("Found subscription plan for existing user", { tier: subscriptionTier, priceId });
+        } else {
+          logStep("Could not find plan for price ID", { priceId, error: planError?.message });
+        }
+      }
+      
       // Upsert subscriber data
       const { error: upsertError } = await supabaseClient
         .from("subscribers")
@@ -88,7 +136,10 @@ export async function handleSuccessfulSubscription(
           email: email,
           stripe_customer_id: customerId,
           subscribed: true,
-          subscription_tier: "Premium", // Default tier until we get more details
+          subscription_tier: subscriptionTier,
+          subscription_end: session.subscription?.current_period_end 
+            ? new Date(session.subscription.current_period_end * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days if not specified
           updated_at: new Date().toISOString()
         });
       
@@ -97,7 +148,7 @@ export async function handleSuccessfulSubscription(
         throw upsertError;
       }
       
-      logStep("Successfully updated subscriber", { userId, email });
+      logStep("Successfully updated subscriber", { userId, email, subscriptionTier });
     }
     
   } catch (error) {

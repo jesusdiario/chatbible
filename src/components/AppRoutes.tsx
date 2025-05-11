@@ -7,7 +7,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Page imports
 import Auth from "@/pages/Auth";
-import Register from "@/pages/Register";
 import Index from "@/pages/Index";
 import Admin from "@/pages/Admin";
 import AdminPages from "@/pages/AdminPages";
@@ -44,9 +43,6 @@ export const AppRoutes: React.FC = () => {
         path="/auth" 
         element={user ? <Navigate to="/" replace /> : <Auth />} 
       />
-      
-      {/* Register route is hidden - registration now happens through checkout */}
-      {/* <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} /> */}
       
       {/* Payment routes - no auth required */}
       <Route path="/payment-success" element={<PaymentSuccess />} />

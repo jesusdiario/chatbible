@@ -20,8 +20,9 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const state = location.state as { from?: any; noSubscription?: boolean };
 
-  // Verificar se o usuário foi redirecionado de um reset de senha
+  // Verificar se o usuário foi redirecionado de um reset de senha ou por falta de assinatura
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('reset') === 'true') {
@@ -30,7 +31,16 @@ const Auth = () => {
         description: "Sua senha foi alterada com sucesso. Faça login com sua nova senha."
       });
     }
-  }, [location, toast]);
+    
+    if (state?.noSubscription) {
+      toast({
+        title: "Assinatura necessária",
+        description: "Você precisa ter uma assinatura ativa para acessar esta área.",
+        variant: "destructive"
+      });
+      setSubscriptionModalOpen(true);
+    }
+  }, [location, toast, state]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,15 +64,28 @@ const Auth = () => {
       
       console.log("Login bem-sucedido:", data);
 
-      // Redirecionar direto para a página inicial
-      navigate("/");
+      // Redirecionar para a página anterior ou para a página inicial
+      const redirectTo = state?.from?.pathname || "/";
+      navigate(redirectTo, { replace: true });
     } catch (error: any) {
       console.error("Erro completo:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro durante a autenticação.",
-        variant: "destructive"
-      });
+      
+      // Verificar se o erro é devido a usuário não encontrado
+      if (error.message?.includes('Invalid login credentials')) {
+        toast({
+          title: "Usuário não encontrado",
+          description: "Este email não está cadastrado ou a senha está incorreta. É necessário ser assinante para acessar o sistema.",
+          variant: "destructive"
+        });
+        // Abrir modal de assinatura automaticamente
+        setSubscriptionModalOpen(true);
+      } else {
+        toast({
+          title: "Erro",
+          description: error.message || "Ocorreu um erro durante a autenticação.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -233,7 +256,7 @@ const Auth = () => {
         </div>
       </div>
       
-      {/* Subscription Modal */}
+      {/* Modal de Assinatura */}
       <SubscriptionModal 
         isOpen={subscriptionModalOpen}
         onClose={closeSubscriptionModal}

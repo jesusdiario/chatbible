@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
-      // Check if user is authenticated
+      // Verificar se o usuário está autenticado
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         throw new Error("Usuário não autenticado");
@@ -22,7 +23,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       console.log("Verificando assinatura para usuário:", userData.user.id, userData.user.email);
       
-      // Get subscription data from the subscribers table
+      // Buscar dados de assinatura na tabela subscribers
       const { data: subscriberData, error: subscriberError } = await supabase
         .from('subscribers')
         .select('*')
@@ -36,7 +37,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       if (subscriberError && subscriberError.code !== 'PGRST116') {
         console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function", subscriberError);
         
-        // Call edge function as a fallback
+        // Chamar edge function como fallback
         const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
         
         if (functionError) {
@@ -59,7 +60,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         return;
       }
       
-      // If found data in subscribers table
+      // Verificar se a assinatura é ativa e ainda está válida
       const isActive = subscriberData?.subscribed && 
                      (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
       
@@ -67,7 +68,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
                  "Tier:", subscriberData?.subscription_tier || "Gratuito",
                  "Término:", subscriberData?.subscription_end || "N/A");
       
-      // Get subscription plan details if available
+      // Buscar detalhes do plano de assinatura, se disponível
       let plan = null;
       if (subscriberData?.subscription_tier) {
         const { data: planData } = await supabase
@@ -82,16 +83,16 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         }
       }
       
-      // Check if subscription_end has changed, and if so, reset message count
+      // Verificar se o subscription_end mudou e, em caso afirmativo, resetar a contagem de mensagens
       const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
       const currentSubscriptionEnd = subscriberData?.subscription_end || '';
       
       if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
-        console.log('Subscription end date has changed, resetting message count');
+        console.log('Data de término da assinatura mudou, resetando contagem de mensagens');
         await resetMessageCount(userData.user.id);
       }
       
-      // Store current subscription end in localStorage for future comparison
+      // Armazenar subscription_end atual no localStorage para comparação futura
       localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
       
       setState(prev => ({
