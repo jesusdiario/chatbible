@@ -71,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       setUser(null);
       setSession(null);
+      console.log("AuthContext: Usuário desconectado com sucesso");
     } catch (error) {
       console.error('Error signing out:', error);
       toast({

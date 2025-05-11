@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useSubscriptionState } from './subscription/useSubscriptionState';
 import { useSubscriptionActions } from './subscription/useSubscriptionActions';
 import { useSubscriptionPlans } from './subscription/useSubscriptionPlans';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useSubscription = () => {
   const { state, setState } = useSubscriptionState();
@@ -14,6 +15,7 @@ export const useSubscription = () => {
     refreshSubscription
   } = useSubscriptionActions(setState);
   const plans = useSubscriptionPlans(state.subscriptionTier);
+  const { user } = useAuth();
   
   // Update messageLimit when we have plans and subscription tier
   useEffect(() => {
@@ -29,49 +31,59 @@ export const useSubscription = () => {
     }
   }, [plans, state.subscriptionTier, setState]);
 
-  // Check subscription when component mounts, but use cached value when available
+  // Check subscription when component mounts or user changes
   useEffect(() => {
     const checkSubscriptionWithCache = async () => {
+      if (!user) {
+        setState(prev => ({
+          ...prev,
+          subscribed: false,
+          subscriptionTier: null,
+          subscriptionEnd: null
+        }));
+        return;
+      }
+      
       // Tentar obter do localStorage primeiro
-      const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
-      const cachedSubscriptionTier = localStorage.getItem('user_subscription_tier');
+      const cachedSubscriptionStatus = localStorage.getItem(`user_subscription_status_${user.id}`);
+      const cachedSubscriptionTier = localStorage.getItem(`user_subscription_tier_${user.id}`);
+      const cachedSubscriptionEnd = localStorage.getItem(`subscription_end_${user.id}`);
       
       if (cachedSubscriptionStatus) {
         // Se temos valores em cache, usá-los para evitar chamadas desnecessárias
         setState(prev => ({
           ...prev,
           subscribed: cachedSubscriptionStatus === 'subscribed',
-          subscriptionTier: cachedSubscriptionTier || prev.subscriptionTier
+          subscriptionTier: cachedSubscriptionTier || prev.subscriptionTier,
+          subscriptionEnd: cachedSubscriptionEnd ? new Date(cachedSubscriptionEnd) : prev.subscriptionEnd
         }));
-        
-        // Ainda assim, atualizar em background para garantir dados atualizados
-        // mas sem bloquear a interface
-        setTimeout(() => {
-          checkSubscription().then(() => {
-            // Após verificação, atualizar cache
-            localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'free');
-            if (state.subscriptionTier) {
-              localStorage.setItem('user_subscription_tier', state.subscriptionTier);
-            }
-          });
-        }, 3000); // Delay para evitar chamadas imediatas
-      } else {
-        // Se não temos cache, fazer verificação normal
-        await checkSubscription();
-        // E salvar em cache
-        localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'free');
+      }
+      
+      // Sempre atualizar em background para garantir dados atualizados
+      const isActive = await checkSubscription();
+      
+      // Após verificação, atualizar cache
+      if (user?.id) {
+        localStorage.setItem(`user_subscription_status_${user.id}`, state.subscribed ? 'subscribed' : 'free');
         if (state.subscriptionTier) {
-          localStorage.setItem('user_subscription_tier', state.subscriptionTier);
+          localStorage.setItem(`user_subscription_tier_${user.id}`, state.subscriptionTier);
+        }
+        if (state.subscriptionEnd) {
+          localStorage.setItem(`subscription_end_${user.id}`, state.subscriptionEnd.toISOString());
         }
       }
+      
+      return isActive;
     };
     
-    checkSubscriptionWithCache();
-  }, []);
+    if (user) {
+      checkSubscriptionWithCache();
+    }
+  }, [user, checkSubscription, setState]);
 
   return {
     ...state,
-    isLoading: isProcessing,
+    isLoading: state.isLoading || isProcessing,
     plans,
     checkSubscription,
     startCheckout,

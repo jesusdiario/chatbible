@@ -4,6 +4,7 @@ import { UserSubscription } from '@/types/subscription';
 
 export const useSubscriptionState = () => {
   const [state, setState] = useState<UserSubscription>({
+    isLoading: false,
     subscribed: false,
     subscriptionTier: null,
     subscriptionEnd: null,

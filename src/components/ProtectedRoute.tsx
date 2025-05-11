@@ -65,7 +65,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Se uma assinatura for necessária, mas o usuário não tiver uma ou ela estiver expirada
-  if (requiresAuth && requiresSubscription && (!subscribed || !isSubscriptionValid)) {
+  if (requiresAuth && requiresSubscription && user && (!subscribed || !isSubscriptionValid)) {
     console.log("Usuário sem assinatura válida, redirecionando para /auth");
     return <Navigate to="/auth" state={{ noSubscription: true, from: location }} replace />;
   }

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +10,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
   const [isProcessing, setIsProcessing] = useState(false);
 
   const checkSubscription = async () => {
-    if (!setState) return;
+    if (!setState) return false;
     
     try {
       setState(prev => ({ ...prev, isLoading: true }));
@@ -18,7 +19,12 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         console.log("checkSubscription: Usuário não autenticado");
-        throw new Error("Usuário não autenticado");
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false,
+          subscribed: false
+        }));
+        return false;
       }
       
       console.log("Verificando assinatura para usuário:", userData.user.id, userData.user.email);
@@ -32,6 +38,8 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       if (subscriberData) {
         console.log("Dados de assinatura encontrados na tabela 'subscribers':", subscriberData);
+      } else {
+        console.log("Nenhum dado de assinatura encontrado para o usuário");
       }
       
       if (subscriberError && subscriberError.code !== 'PGRST116') {
