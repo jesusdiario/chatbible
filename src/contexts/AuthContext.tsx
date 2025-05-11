@@ -23,9 +23,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const initializeAuth = async () => {
       try {
+        setLoading(true);
+        console.log("AuthContext: Iniciando verificação da sessão...");
         const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
         
+        if (error) {
+          console.error('Error getting auth session:', error);
+          throw error;
+        }
+        
+        console.log("AuthContext: Sessão recuperada:", !!data.session);
         setSession(data.session);
         setUser(data.session?.user || null);
       } catch (error) {
@@ -44,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Subscribe to auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("AuthContext: Estado de autenticação alterado:", event);
       setSession(newSession);
       setUser(newSession?.user || null);
       setLoading(false);

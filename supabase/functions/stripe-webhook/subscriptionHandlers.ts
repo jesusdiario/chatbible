@@ -45,7 +45,7 @@ export async function handleSuccessfulSubscription(
       logStep("User account created successfully", { userId });
       
       // Determinar qual plano foi assinado
-      const priceId = session.line_items?.data[0]?.price?.id || session.metadata?.price_id;
+      const priceId = metadata?.price_id || session.line_items?.data[0]?.price?.id;
       
       // Buscar informações do plano com base no stripe_price_id
       let subscriptionTier = "Premium"; // Valor padrão
@@ -67,6 +67,15 @@ export async function handleSuccessfulSubscription(
         }
       }
       
+      // Determinar a data de término da assinatura
+      let subscriptionEnd = null;
+      if (session.subscription?.current_period_end) {
+        subscriptionEnd = new Date(session.subscription.current_period_end * 1000).toISOString();
+      } else {
+        // Default to 30 days if not specified
+        subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+      
       // Create subscriber record
       const { error: subscriberError } = await supabaseClient
         .from("subscribers")
@@ -76,9 +85,7 @@ export async function handleSuccessfulSubscription(
           stripe_customer_id: customerId,
           subscribed: true,
           subscription_tier: subscriptionTier,
-          subscription_end: session.subscription?.current_period_end 
-            ? new Date(session.subscription.current_period_end * 1000).toISOString()
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days if not specified
+          subscription_end: subscriptionEnd,
           updated_at: new Date().toISOString()
         });
       
@@ -128,6 +135,15 @@ export async function handleSuccessfulSubscription(
         }
       }
       
+      // Determinar a data de término da assinatura
+      let subscriptionEnd = null;
+      if (session.subscription?.current_period_end) {
+        subscriptionEnd = new Date(session.subscription.current_period_end * 1000).toISOString();
+      } else {
+        // Default to 30 days if not specified
+        subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+      
       // Upsert subscriber data
       const { error: upsertError } = await supabaseClient
         .from("subscribers")
@@ -137,9 +153,7 @@ export async function handleSuccessfulSubscription(
           stripe_customer_id: customerId,
           subscribed: true,
           subscription_tier: subscriptionTier,
-          subscription_end: session.subscription?.current_period_end 
-            ? new Date(session.subscription.current_period_end * 1000).toISOString()
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days if not specified
+          subscription_end: subscriptionEnd,
           updated_at: new Date().toISOString()
         });
       

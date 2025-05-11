@@ -26,7 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
 
   // Lista de rotas públicas que não exigem autenticação ou assinatura
-  const publicPaths = ['/auth', '/lp', '/payment-success', '/payment-canceled'];
+  const publicPaths = ['/auth', '/lp', '/payment-success', '/payment-canceled', '/register'];
   const isPublicPath = publicPaths.some(path => location.pathname.startsWith(path));
 
   // Verificar se a assinatura ainda está válida
@@ -39,6 +39,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [user, requiresSubscription, checkSubscription]);
 
+  // Logs para debug
+  console.log("ProtectedRoute - Path:", location.pathname, "isPublicPath:", isPublicPath);
+  console.log("ProtectedRoute - User:", !!user, "Subscribed:", subscribed, "Valid:", isSubscriptionValid);
+  
   // Exibir loading enquanto verifica autenticação e assinatura
   if (loading || (user && requiresSubscription && subscriptionLoading)) {
     return (
@@ -50,6 +54,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Se estivermos em uma rota pública, sempre renderizá-la
   if (isPublicPath) {
+    console.log("Renderizando rota pública:", location.pathname);
     return <>{children}</>;
   }
 
@@ -62,9 +67,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Se uma assinatura for necessária, mas o usuário não tiver uma ou ela estiver expirada
   if (requiresAuth && requiresSubscription && (!subscribed || !isSubscriptionValid)) {
     console.log("Usuário sem assinatura válida, redirecionando para /auth");
-    return <Navigate to="/auth" state={{ noSubscription: true }} replace />;
+    return <Navigate to="/auth" state={{ noSubscription: true, from: location }} replace />;
   }
 
+  console.log("Renderizando conteúdo protegido:", location.pathname);
   return <>{children}</>;
 };
 

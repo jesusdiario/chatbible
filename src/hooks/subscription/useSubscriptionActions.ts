@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +17,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       // Verificar se o usuário está autenticado
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
+        console.log("checkSubscription: Usuário não autenticado");
         throw new Error("Usuário não autenticado");
       }
       
@@ -47,6 +47,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         
         console.log("Dados de assinatura obtidos via Edge Function:", functionData);
         
+        // Atualizar o estado com os dados da assinatura
         setState(prev => ({
           ...prev,
           isLoading: false,
@@ -57,7 +58,11 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
           plan: functionData.subscription_data || null
         }));
         
-        return;
+        // Verificar se a assinatura está ativa e retornar
+        const isActive = functionData.subscribed && 
+                      (functionData.subscription_end ? new Date(functionData.subscription_end) > new Date() : false);
+        
+        return isActive;
       }
       
       // Verificar se a assinatura é ativa e ainda está válida
@@ -105,14 +110,18 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         plan: plan
       }));
       
+      return isActive;
+      
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
       if (setState) {
         setState(prev => ({ 
           ...prev, 
-          isLoading: false 
+          isLoading: false,
+          subscribed: false
         }));
       }
+      return false;
     }
   };
 

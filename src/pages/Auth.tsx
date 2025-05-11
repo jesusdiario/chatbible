@@ -24,6 +24,8 @@ const Auth = () => {
 
   // Verificar se o usuário foi redirecionado de um reset de senha ou por falta de assinatura
   useEffect(() => {
+    console.log("Auth - Estado da localização:", location.state);
+    
     const params = new URLSearchParams(location.search);
     if (params.get('reset') === 'true') {
       toast({
@@ -40,7 +42,18 @@ const Auth = () => {
       });
       setSubscriptionModalOpen(true);
     }
-  }, [location, toast, state]);
+
+    // Verificar se já temos uma sessão ativa
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!error && data.session) {
+        console.log("Sessão ativa detectada, redirecionando...");
+        navigate("/", { replace: true });
+      }
+    };
+
+    checkSession();
+  }, [location, toast, state, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +79,7 @@ const Auth = () => {
 
       // Redirecionar para a página anterior ou para a página inicial
       const redirectTo = state?.from?.pathname || "/";
+      console.log("Redirecionando para:", redirectTo);
       navigate(redirectTo, { replace: true });
     } catch (error: any) {
       console.error("Erro completo:", error);
