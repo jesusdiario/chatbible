@@ -107,12 +107,12 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {buttons.map(button => (
                 <Button
                   key={button.id}
                   variant="outline"
-                  className="flex items-center justify-center gap-2 h-14"
+                  className="flex items-center justify-center gap-2 h-14 w-full"
                   onClick={() => handleButtonClick(button)}
                 >
                   {getButtonIcon(button.button_icon)}
@@ -124,7 +124,7 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
               {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
                 <Button
                   variant="outline"
-                  className="flex items-center justify-center gap-2 h-14"
+                  className="flex items-center justify-center gap-2 h-14 w-full"
                   onClick={handleCopyVerses}
                 >
                   <Copy className="w-5 h-5" />
@@ -136,7 +136,7 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
               {clearSelection && (
                 <Button
                   variant="outline"
-                  className="flex items-center justify-center gap-2 h-14 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  className="flex items-center justify-center gap-2 h-14 w-full text-red-500 hover:text-red-600 hover:bg-red-50"
                   onClick={clearSelection}
                 >
                   <Trash2 className="w-5 h-5" />
