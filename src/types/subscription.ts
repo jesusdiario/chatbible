@@ -12,7 +12,6 @@ export interface SubscriptionPlan {
 }
 
 export interface UserSubscription {
-  isLoading?: boolean;
   subscribed: boolean;
   subscriptionTier: string | null;
   subscriptionEnd: Date | null;

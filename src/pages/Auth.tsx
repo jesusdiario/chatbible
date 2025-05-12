@@ -20,12 +20,9 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as { from?: any; noSubscription?: boolean };
 
-  // Verificar se o usuário foi redirecionado de um reset de senha ou por falta de assinatura
+  // Verificar se o usuário foi redirecionado de um reset de senha
   useEffect(() => {
-    console.log("Auth - Estado da localização:", location.state);
-    
     const params = new URLSearchParams(location.search);
     if (params.get('reset') === 'true') {
       toast({
@@ -33,27 +30,7 @@ const Auth = () => {
         description: "Sua senha foi alterada com sucesso. Faça login com sua nova senha."
       });
     }
-    
-    if (state?.noSubscription) {
-      toast({
-        title: "Assinatura necessária",
-        description: "Você precisa ter uma assinatura ativa para acessar esta área.",
-        variant: "destructive"
-      });
-      setSubscriptionModalOpen(true);
-    }
-
-    // Verificar se já temos uma sessão ativa
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (!error && data.session) {
-        console.log("Sessão ativa detectada, redirecionando...");
-        navigate("/", { replace: true });
-      }
-    };
-
-    checkSession();
-  }, [location, toast, state, navigate]);
+  }, [location, toast]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,29 +54,15 @@ const Auth = () => {
       
       console.log("Login bem-sucedido:", data);
 
-      // Redirecionar para a página anterior ou para a página inicial
-      const redirectTo = state?.from?.pathname || "/";
-      console.log("Redirecionando para:", redirectTo);
-      navigate(redirectTo, { replace: true });
+      // Redirecionar direto para a página inicial
+      navigate("/");
     } catch (error: any) {
       console.error("Erro completo:", error);
-      
-      // Verificar se o erro é devido a usuário não encontrado
-      if (error.message?.includes('Invalid login credentials')) {
-        toast({
-          title: "Usuário não encontrado",
-          description: "Este email não está cadastrado ou a senha está incorreta. É necessário ser assinante para acessar o sistema.",
-          variant: "destructive"
-        });
-        // Abrir modal de assinatura automaticamente
-        setSubscriptionModalOpen(true);
-      } else {
-        toast({
-          title: "Erro",
-          description: error.message || "Ocorreu um erro durante a autenticação.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Erro",
+        description: error.message || "Ocorreu um erro durante a autenticação.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -270,7 +233,7 @@ const Auth = () => {
         </div>
       </div>
       
-      {/* Modal de Assinatura */}
+      {/* Subscription Modal */}
       <SubscriptionModal 
         isOpen={subscriptionModalOpen}
         onClose={closeSubscriptionModal}

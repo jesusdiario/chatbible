@@ -17,33 +17,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiresSubscription = true
 }) => {
   const { user, loading } = useAuth();
-  const { 
-    subscribed, 
-    isLoading: subscriptionLoading, 
-    checkSubscription,
-    subscriptionEnd
-  } = useSubscription();
+  const { subscribed, isLoading: subscriptionLoading, checkSubscription } = useSubscription();
   const location = useLocation();
 
-  // Lista de rotas públicas que não exigem autenticação ou assinatura
-  const publicPaths = ['/auth', '/lp', '/payment-success', '/payment-canceled', '/register'];
-  const isPublicPath = publicPaths.some(path => location.pathname.startsWith(path));
-
-  // Verificar se a assinatura ainda está válida
-  const isSubscriptionValid = subscriptionEnd ? new Date(subscriptionEnd) > new Date() : false;
+  // Public paths that don't require auth or subscription
+  const publicPaths = ['/auth', '/register', '/lp', '/payment-success', '/payment-canceled'];
+  const isPublicPath = publicPaths.includes(location.pathname);
 
   useEffect(() => {
-    // Verificar status da assinatura se o usuário estiver autenticado
+    // Check subscription status if the user is authenticated
     if (user && requiresSubscription) {
       checkSubscription();
     }
   }, [user, requiresSubscription, checkSubscription]);
 
-  // Logs para debug
-  console.log("ProtectedRoute - Path:", location.pathname, "isPublicPath:", isPublicPath);
-  console.log("ProtectedRoute - User:", !!user, "Subscribed:", subscribed, "Valid:", isSubscriptionValid);
-  
-  // Exibir loading enquanto verifica autenticação e assinatura
   if (loading || (user && requiresSubscription && subscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -52,25 +39,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Se estivermos em uma rota pública, sempre renderizá-la
+  // If we're on a public path, always render it
   if (isPublicPath) {
-    console.log("Renderizando rota pública:", location.pathname);
     return <>{children}</>;
   }
 
-  // Se a autenticação for necessária mas o usuário não estiver logado
+  // If authentication is required but user isn't logged in
   if (requiresAuth && !user) {
-    console.log("Usuário não autenticado, redirecionando para /auth");
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
-  // Se uma assinatura for necessária, mas o usuário não tiver uma ou ela estiver expirada
-  if (requiresAuth && requiresSubscription && user && (!subscribed || !isSubscriptionValid)) {
-    console.log("Usuário sem assinatura válida, redirecionando para /auth");
-    return <Navigate to="/auth" state={{ noSubscription: true, from: location }} replace />;
+  // If subscription is required but user doesn't have one
+  if (requiresAuth && requiresSubscription && !subscribed) {
+    return <Navigate to="/auth" replace />;
   }
 
-  console.log("Renderizando conteúdo protegido:", location.pathname);
   return <>{children}</>;
 };
 
