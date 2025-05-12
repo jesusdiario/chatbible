@@ -7,6 +7,7 @@ import { BibleButton } from '../hooks/useVerseSelection';
 import { Button } from './ui/button';
 import { Loader2, Share2, Image, Copy, Save, BookOpen, PenSquare, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { ScrollArea } from './ui/scroll-area';
 
 interface VersesSelectionModalProps {
   open: boolean;
@@ -96,56 +97,58 @@ export const VersesSelectionModal: React.FC<VersesSelectionModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-2 mb-2 border-b">
           <DialogTitle className="text-center">{verseReference}</DialogTitle>
         </DialogHeader>
         
-        <div className="py-4">
-          {isLoadingButtons ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {buttons.map(button => (
-                <Button
-                  key={button.id}
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-14 w-full"
-                  onClick={() => handleButtonClick(button)}
-                >
-                  {getButtonIcon(button.button_icon)}
-                  <span>{button.button_name}</span>
-                </Button>
-              ))}
-              
-              {/* Botão de copiar sempre presente */}
-              {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
-                <Button
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-14 w-full"
-                  onClick={handleCopyVerses}
-                >
-                  <Copy className="w-5 h-5" />
-                  <span>Copiar</span>
-                </Button>
-              )}
-              
-              {/* Botão para limpar seleção */}
-              {clearSelection && (
-                <Button
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-14 w-full text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={clearSelection}
-                >
-                  <Trash2 className="w-5 h-5" />
-                  <span>Limpar seleção</span>
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+        <ScrollArea className="flex-1 pr-4 max-h-[60vh]">
+          <div className="py-2">
+            {isLoadingButtons ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {buttons.map(button => (
+                  <Button
+                    key={button.id}
+                    variant="outline"
+                    className="flex items-center justify-center gap-2 h-14 w-full"
+                    onClick={() => handleButtonClick(button)}
+                  >
+                    {getButtonIcon(button.button_icon)}
+                    <span>{button.button_name}</span>
+                  </Button>
+                ))}
+                
+                {/* Botão de copiar sempre presente */}
+                {!buttons.some(b => b.button_name.toLowerCase().includes('copiar')) && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center gap-2 h-14 w-full"
+                    onClick={handleCopyVerses}
+                  >
+                    <Copy className="w-5 h-5" />
+                    <span>Copiar</span>
+                  </Button>
+                )}
+                
+                {/* Botão para limpar seleção */}
+                {clearSelection && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center justify-center gap-2 h-14 w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={clearSelection}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    <span>Limpar seleção</span>
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
