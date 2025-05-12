@@ -21,21 +21,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('[AuthContext] Initializing auth...');
+    let authListenerUnsubscribe: (() => void) | undefined;
     
     // Set up auth state listener BEFORE checking session
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('[AuthContext] Auth state changed:', event);
-      
-      // Update session and user state
-      setSession(newSession);
-      setUser(newSession?.user || null);
-      setLoading(false);
-    });
+    const setupAuthListener = async () => {
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+        console.log('[AuthContext] Auth state changed:', event);
+        
+        // Update session and user state
+        setSession(newSession);
+        setUser(newSession?.user || null);
+        
+        // Só definimos loading como false quando temos um evento de auth state change
+        if (event !== 'INITIAL_SESSION') {
+          setLoading(false);
+        }
+      });
+
+      authListenerUnsubscribe = authListener.subscription.unsubscribe;
+    };
 
     // Get initial session
     const initializeAuth = async () => {
       try {
         console.log('[AuthContext] Getting initial session');
+        // Configuramos o listener primeiro
+        await setupAuthListener();
+        
+        // Depois verificamos a sessão
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -46,6 +59,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('[AuthContext] Initial session:', !!data.session);
         setSession(data.session);
         setUser(data.session?.user || null);
+        
+        // Garantir que loading é definido como false após a verificação inicial
+        setLoading(false);
       } catch (error) {
         console.error('[AuthContext] Error initializing auth:', error);
         toast({
@@ -53,7 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: 'Não foi possível carregar sua sessão',
           variant: 'destructive',
         });
-      } finally {
         setLoading(false);
       }
     };
@@ -62,8 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       console.log('[AuthContext] Cleaning up auth listener');
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe();
+      if (authListenerUnsubscribe) {
+        authListenerUnsubscribe();
       }
     };
   }, [toast]);

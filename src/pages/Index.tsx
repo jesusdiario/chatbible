@@ -17,7 +17,7 @@ interface LocationState {
 
 const Index = () => {
   const { user } = useAuth();
-  const { slug } = { slug: undefined }; // Para compatibilidade com BookChatContainer
+  const { slug } = { slug: FIXED_BOOK_SLUG }; // Para compatibilidade com BookChatContainer e garantir que temos um valor padrão
   const location = useLocation();
   const state = location.state as LocationState | null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,8 +30,8 @@ const Index = () => {
   const { bookDetails, loadingBook } = useBibleBook(FIXED_BOOK_SLUG);
 
   useEffect(() => {
-    console.log("[Index] loadingBook", loadingBook);
-  }, [loadingBook]);
+    console.log("[Index] loadingBook", loadingBook, "bookDetails", !!bookDetails);
+  }, [loadingBook, bookDetails]);
 
   const handleToggleSidebar = () => {
     setIsSidebarOpen((prev) => {
@@ -52,7 +52,7 @@ const Index = () => {
   }
 
   if (!bookDetails) {
-    console.warn("[Index] bookDetails not found");
+    console.warn("[Index] bookDetails not found for slug:", FIXED_BOOK_SLUG);
     return (
       <BookErrorState
         isSidebarOpen={isSidebarOpen}
@@ -62,6 +62,7 @@ const Index = () => {
   }
 
   // Render principal
+  console.log("[Index] Rendering main content with bookDetails:", bookDetails.title);
   return (
     <BookChatLayout
       isSidebarOpen={isSidebarOpen}

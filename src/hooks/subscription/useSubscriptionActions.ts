@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserSubscription } from "@/types/subscription";
@@ -8,7 +8,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const checkSubscription = async () => {
+  const checkSubscription = useCallback(async () => {
     if (!setState) return;
     
     try {
@@ -101,6 +101,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       console.log('[useSubscriptionActions] Edge function response:', functionData);
       
+      // IMPORTANTE: definir isLoading como false independentemente do resultado
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -115,6 +116,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       console.error('[useSubscriptionActions] Error checking subscription:', error);
       
       if (setState) {
+        // IMPORTANTE: garantir que isLoading seja false mesmo em caso de erro
         setState(prev => ({ 
           ...prev, 
           isLoading: false,
@@ -127,7 +129,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       // Don't show error toast to avoid bothering users
       // toast({ title: "Aviso", description: "Não foi possível verificar seu status de assinatura", variant: "destructive" });
     }
-  };
+  }, [setState, toast]);
 
   const startCheckout = async (priceId: string, email?: string, password?: string, name?: string, successUrl?: string, cancelUrl?: string) => {
     if (!setState) return;
