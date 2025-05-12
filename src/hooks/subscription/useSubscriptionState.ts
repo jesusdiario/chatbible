@@ -3,14 +3,12 @@ import { useState } from 'react';
 import { UserSubscription } from '@/types/subscription';
 
 export const useSubscriptionState = () => {
-  // Use uma versão inicial com isLoading: false para evitar triggers desnecessários
   const [state, setState] = useState<UserSubscription>({
     subscribed: false,
-    subscriptionTier: "Gratuito",
+    subscriptionTier: null,
     subscriptionEnd: null,
     messageLimit: 10, // Default for free plan
-    plan: null,
-    isLoading: false // Começamos com loading false e só ativamos quando necessário
+    plan: null
   });
 
   return { state, setState };

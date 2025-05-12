@@ -17,7 +17,6 @@ export interface UserSubscription {
   subscriptionEnd: Date | null;
   messageLimit: number;
   plan: SubscriptionPlan | null;
-  isLoading: boolean;
 }
 
 export interface MessageCountState {

@@ -22,39 +22,89 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { priceId, email, password, name, successUrl, cancelUrl } = await req.json();
-    logStep("Request received", { priceId, email, name, successUrl, cancelUrl });
-
-    if (!email) {
-      throw new Error('Email is required for checkout');
-    }
+    const { priceId, successUrl, cancelUrl } = await req.json();
+    logStep("Request received", { priceId, successUrl, cancelUrl });
 
     // Get STRIPE_SECRET_KEY from environment variable
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16'
     });
 
-    // Get supabase client
+    // Get authenticated user from request
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Check if the user already exists in Supabase
-    const { data: userExistsData, error: userExistsError } = await supabaseClient.auth.admin.getUserByEmail(email);
-    
-    if (userExistsError && userExistsError.message !== 'User not found') {
-      throw new Error('Error checking user existence: ' + userExistsError.message);
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing Authorization header');
     }
-    
-    // Determine if user already exists
-    const userExists = !!userExistsData?.user;
-    logStep("User existence check", { exists: userExists });
 
-    // Create a new Stripe checkout session
+    const token = authHeader.split(' ')[1];
+    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !userData.user) {
+      throw new Error('Authentication error: ' + (authError?.message || 'User not found'));
+    }
+
+    logStep("User authenticated", { userId: userData.user.id, email: userData.user.email });
+
+    // Check for existing Stripe customer or create new one
+    let customerId: string | undefined;
+    
+    // Check if customer exists in our database
+    const { data: subscriberData } = await supabaseClient
+      .from('subscribers')
+      .select('stripe_customer_id')
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
+
+    if (subscriberData?.stripe_customer_id) {
+      customerId = subscriberData.stripe_customer_id;
+      logStep("Using existing customer from subscribers table", { customerId });
+    } else {
+      // Check Stripe for customer with matching email
+      const customers = await stripe.customers.list({
+        email: userData.user.email,
+        limit: 1,
+      });
+
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found existing Stripe customer", { customerId });
+      } else {
+        // Create new customer
+        const newCustomer = await stripe.customers.create({
+          email: userData.user.email,
+          name: userData.user.user_metadata?.full_name || userData.user.email,
+          metadata: {
+            userId: userData.user.id,
+          },
+        });
+        customerId = newCustomer.id;
+        logStep("Created new Stripe customer", { customerId });
+      }
+
+      // Update our database with the Stripe customer ID
+      const { error: upsertError } = await supabaseClient
+        .from('subscribers')
+        .upsert({
+          user_id: userData.user.id,
+          email: userData.user.email,
+          stripe_customer_id: customerId,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (upsertError) {
+        logStep("Error upserting customer data", { error: upsertError.message });
+      }
+    }
+
+    // Create a checkout session
     const baseUrl = new URL(req.url).origin;
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      customer: customerId,
       line_items: [{
         price: priceId,
         quantity: 1
@@ -62,12 +112,11 @@ serve(async (req) => {
       mode: 'subscription',
       success_url: successUrl || `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${baseUrl}/`,
-      customer_creation: 'always',
-      metadata: {
-        email,
-        password: password || '', // Only used if creating a new account
-        name: name || email.split('@')[0],
-        create_account: userExists ? 'false' : 'true'
+      client_reference_id: userData.user.id, // IMPORTANTE: para associar o checkout ao usuário
+      subscription_data: {
+        metadata: {
+          userId: userData.user.id
+        }
       }
     });
 

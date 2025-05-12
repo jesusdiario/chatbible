@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserSubscription } from "@/types/subscription";
@@ -8,34 +9,21 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const checkSubscription = useCallback(async () => {
+  const checkSubscription = async () => {
     if (!setState) return;
     
     try {
-      console.log('[useSubscriptionActions] Checking subscription');
       setState(prev => ({ ...prev, isLoading: true }));
       
       // Check if user is authenticated
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.error('[useSubscriptionActions] Auth error:', userError);
-        throw new Error("Erro de autenticação");
-      }
-      
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        console.log('[useSubscriptionActions] No authenticated user found');
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false,
-          subscribed: false,
-          subscriptionTier: "Gratuito"
-        }));
-        return;
+        throw new Error("Usuário não autenticado");
       }
       
-      console.log('[useSubscriptionActions] Checking subscription for user:', userData.user.id);
+      console.log("Verificando assinatura para usuário:", userData.user.id, userData.user.email);
       
-      // First try to get data from subscribers table
+      // Get subscription data from the subscribers table
       const { data: subscriberData, error: subscriberError } = await supabase
         .from('subscribers')
         .select('*')
@@ -43,95 +31,92 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         .single();
       
       if (subscriberData) {
-        console.log('[useSubscriptionActions] Subscriber data found:', subscriberData);
+        console.log("Dados de assinatura encontrados na tabela 'subscribers':", subscriberData);
+      }
+      
+      if (subscriberError && subscriberError.code !== 'PGRST116') {
+        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function", subscriberError);
         
-        // Determine if subscription is active based on end date
-        const isActive = subscriberData.subscribed && 
-                       (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+        // Call edge function as a fallback
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
         
-        // Get subscription plan details
-        let plan = null;
-        if (subscriberData.subscription_tier) {
-          const { data: planData } = await supabase
-            .from('subscription_plans')
-            .select('*')
-            .eq('name', subscriberData.subscription_tier)
-            .single();
-            
-          if (planData) {
-            console.log('[useSubscriptionActions] Plan data:', planData);
-            plan = planData;
-          }
+        if (functionError) {
+          console.error("Erro ao verificar assinatura via Edge Function:", functionError);
+          throw functionError;
         }
         
-        // Check if subscription_end has changed, and if so, reset message count
-        const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
-        const currentSubscriptionEnd = subscriberData?.subscription_end || '';
-        
-        if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
-          console.log('[useSubscriptionActions] Subscription end date changed, resetting message count');
-          await resetMessageCount(userData.user.id);
-        }
-        
-        // Store current subscription end for future comparison
-        localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
+        console.log("Dados de assinatura obtidos via Edge Function:", functionData);
         
         setState(prev => ({
           ...prev,
           isLoading: false,
-          subscribed: isActive,
-          subscriptionTier: subscriberData.subscription_tier || "Gratuito",
-          subscriptionEnd: subscriberData.subscription_end ? new Date(subscriberData.subscription_end) : null,
-          messageLimit: plan?.message_limit || prev.messageLimit,
-          plan: plan
+          subscribed: functionData.subscribed || false,
+          subscriptionTier: functionData.subscription_tier || "Gratuito",
+          subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
+          messageLimit: functionData.message_limit || 10,
+          plan: functionData.subscription_data || null
         }));
         
         return;
       }
       
-      console.log('[useSubscriptionActions] No subscriber data found, checking via Edge Function');
+      // If found data in subscribers table
+      const isActive = subscriberData?.subscribed && 
+                     (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
       
-      // If no data in subscribers table, fallback to edge function
-      const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
+      console.log("Status da assinatura:", isActive ? "Ativa" : "Inativa", 
+                 "Tier:", subscriberData?.subscription_tier || "Gratuito",
+                 "Término:", subscriberData?.subscription_end || "N/A");
       
-      if (functionError) {
-        console.error('[useSubscriptionActions] Edge function error:', functionError);
-        throw new Error(`Erro ao verificar assinatura: ${functionError.message}`);
+      // Get subscription plan details if available
+      let plan = null;
+      if (subscriberData?.subscription_tier) {
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('name', subscriberData.subscription_tier)
+          .single();
+          
+        if (planData) {
+          console.log("Dados do plano encontrados:", planData);
+          plan = planData;
+        }
       }
       
-      console.log('[useSubscriptionActions] Edge function response:', functionData);
+      // Check if subscription_end has changed, and if so, reset message count
+      const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
+      const currentSubscriptionEnd = subscriberData?.subscription_end || '';
       
-      // IMPORTANTE: definir isLoading como false independentemente do resultado
+      if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
+        console.log('Subscription end date has changed, resetting message count');
+        await resetMessageCount(userData.user.id);
+      }
+      
+      // Store current subscription end in localStorage for future comparison
+      localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
-        subscribed: functionData.subscribed || false,
-        subscriptionTier: functionData.subscription_tier || "Gratuito",
-        subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
-        messageLimit: functionData.message_limit || 10,
-        plan: functionData.subscription_data || null
+        subscribed: isActive,
+        subscriptionTier: subscriberData?.subscription_tier || "Gratuito",
+        subscriptionEnd: subscriberData?.subscription_end ? new Date(subscriberData.subscription_end) : null,
+        messageLimit: plan?.message_limit || prev.messageLimit,
+        plan: plan
       }));
       
     } catch (error) {
-      console.error('[useSubscriptionActions] Error checking subscription:', error);
-      
+      console.error('Erro ao verificar assinatura:', error);
       if (setState) {
-        // IMPORTANTE: garantir que isLoading seja false mesmo em caso de erro
         setState(prev => ({ 
           ...prev, 
-          isLoading: false,
-          // Fallback to free tier on error
-          subscribed: false,
-          subscriptionTier: "Gratuito"
+          isLoading: false 
         }));
       }
-      
-      // Don't show error toast to avoid bothering users
-      // toast({ title: "Aviso", description: "Não foi possível verificar seu status de assinatura", variant: "destructive" });
     }
-  }, [setState, toast]);
+  };
 
-  const startCheckout = async (priceId: string, email?: string, password?: string, name?: string, successUrl?: string, cancelUrl?: string) => {
+  const startCheckout = async (priceId: string, successUrl?: string, cancelUrl?: string) => {
     if (!setState) return;
     
     try {
@@ -140,20 +125,28 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       
       console.log(`Iniciando checkout com priceId: ${priceId}`);
       
-      const payload: Record<string, any> = { 
-        priceId,
-        successUrl: successUrl || `${window.location.origin}/payment-success`, 
-        cancelUrl: cancelUrl || `${window.location.origin}/`
-      };
+      // Verificar autenticação do usuário antes de iniciar o checkout
+      const { data: userData, error: authError } = await supabase.auth.getUser();
       
-      // Add user creation fields if provided
-      if (email) payload.email = email;
-      if (password) payload.password = password;
-      if (name) payload.name = name;
+      if (authError || !userData.user) {
+        console.error('Usuário não autenticado:', authError);
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para assinar um plano",
+          variant: "destructive",
+        });
+        setState(prev => ({ ...prev, isLoading: false }));
+        setIsProcessing(false);
+        return;
+      }
       
       // Chamar a edge function para criar o checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: payload
+        body: { 
+          priceId, 
+          successUrl: successUrl || `${window.location.origin}/payment-success`, 
+          cancelUrl: cancelUrl || `${window.location.origin}/`
+        }
       });
 
       if (error) {
@@ -178,7 +171,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
       console.error('Erro ao iniciar checkout:', error);
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Não foi possível iniciar o processo de assinatura",
+        description: "Não foi possível iniciar o processo de assinatura",
         variant: "destructive",
       });
       setState(prev => ({ ...prev, isLoading: false }));
@@ -215,7 +208,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
   };
 
   const refreshSubscription = async () => {
-    console.log("[useSubscriptionActions] Refreshing subscription data");
+    console.log("Refreshing subscription data");
     return checkSubscription();
   };
 
