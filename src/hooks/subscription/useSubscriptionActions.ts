@@ -12,17 +12,30 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
     if (!setState) return;
     
     try {
+      console.log('[useSubscriptionActions] Checking subscription');
       setState(prev => ({ ...prev, isLoading: true }));
       
       // Check if user is authenticated
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error("Usuário não autenticado");
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('[useSubscriptionActions] Auth error:', userError);
+        throw new Error("Erro de autenticação");
       }
       
-      console.log("Verificando assinatura para usuário:", userData.user.id, userData.user.email);
+      if (!userData.user) {
+        console.log('[useSubscriptionActions] No authenticated user found');
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false,
+          subscribed: false,
+          subscriptionTier: "Gratuito"
+        }));
+        return;
+      }
       
-      // Get subscription data from the subscribers table
+      console.log('[useSubscriptionActions] Checking subscription for user:', userData.user.id);
+      
+      // First try to get data from subscribers table
       const { data: subscriberData, error: subscriberError } = await supabase
         .from('subscribers')
         .select('*')
@@ -30,88 +43,89 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
         .single();
       
       if (subscriberData) {
-        console.log("Dados de assinatura encontrados na tabela 'subscribers':", subscriberData);
-      }
-      
-      if (subscriberError && subscriberError.code !== 'PGRST116') {
-        console.log("Não foi possível encontrar dados de assinatura na tabela, verificando via Edge Function", subscriberError);
+        console.log('[useSubscriptionActions] Subscriber data found:', subscriberData);
         
-        // Call edge function as a fallback
-        const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
+        // Determine if subscription is active based on end date
+        const isActive = subscriberData.subscribed && 
+                       (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
         
-        if (functionError) {
-          console.error("Erro ao verificar assinatura via Edge Function:", functionError);
-          throw functionError;
+        // Get subscription plan details
+        let plan = null;
+        if (subscriberData.subscription_tier) {
+          const { data: planData } = await supabase
+            .from('subscription_plans')
+            .select('*')
+            .eq('name', subscriberData.subscription_tier)
+            .single();
+            
+          if (planData) {
+            console.log('[useSubscriptionActions] Plan data:', planData);
+            plan = planData;
+          }
         }
         
-        console.log("Dados de assinatura obtidos via Edge Function:", functionData);
+        // Check if subscription_end has changed, and if so, reset message count
+        const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
+        const currentSubscriptionEnd = subscriberData?.subscription_end || '';
+        
+        if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
+          console.log('[useSubscriptionActions] Subscription end date changed, resetting message count');
+          await resetMessageCount(userData.user.id);
+        }
+        
+        // Store current subscription end for future comparison
+        localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
         
         setState(prev => ({
           ...prev,
           isLoading: false,
-          subscribed: functionData.subscribed || false,
-          subscriptionTier: functionData.subscription_tier || "Gratuito",
-          subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
-          messageLimit: functionData.message_limit || 10,
-          plan: functionData.subscription_data || null
+          subscribed: isActive,
+          subscriptionTier: subscriberData.subscription_tier || "Gratuito",
+          subscriptionEnd: subscriberData.subscription_end ? new Date(subscriberData.subscription_end) : null,
+          messageLimit: plan?.message_limit || prev.messageLimit,
+          plan: plan
         }));
         
         return;
       }
       
-      // If found data in subscribers table
-      const isActive = subscriberData?.subscribed && 
-                     (subscriberData.subscription_end ? new Date(subscriberData.subscription_end) > new Date() : false);
+      console.log('[useSubscriptionActions] No subscriber data found, checking via Edge Function');
       
-      console.log("Status da assinatura:", isActive ? "Ativa" : "Inativa", 
-                 "Tier:", subscriberData?.subscription_tier || "Gratuito",
-                 "Término:", subscriberData?.subscription_end || "N/A");
+      // If no data in subscribers table, fallback to edge function
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('check-subscription');
       
-      // Get subscription plan details if available
-      let plan = null;
-      if (subscriberData?.subscription_tier) {
-        const { data: planData } = await supabase
-          .from('subscription_plans')
-          .select('*')
-          .eq('name', subscriberData.subscription_tier)
-          .single();
-          
-        if (planData) {
-          console.log("Dados do plano encontrados:", planData);
-          plan = planData;
-        }
+      if (functionError) {
+        console.error('[useSubscriptionActions] Edge function error:', functionError);
+        throw new Error(`Erro ao verificar assinatura: ${functionError.message}`);
       }
       
-      // Check if subscription_end has changed, and if so, reset message count
-      const storedSubscriptionEnd = localStorage.getItem(`subscription_end_${userData.user.id}`);
-      const currentSubscriptionEnd = subscriberData?.subscription_end || '';
-      
-      if (storedSubscriptionEnd && storedSubscriptionEnd !== currentSubscriptionEnd) {
-        console.log('Subscription end date has changed, resetting message count');
-        await resetMessageCount(userData.user.id);
-      }
-      
-      // Store current subscription end in localStorage for future comparison
-      localStorage.setItem(`subscription_end_${userData.user.id}`, currentSubscriptionEnd);
+      console.log('[useSubscriptionActions] Edge function response:', functionData);
       
       setState(prev => ({
         ...prev,
         isLoading: false,
-        subscribed: isActive,
-        subscriptionTier: subscriberData?.subscription_tier || "Gratuito",
-        subscriptionEnd: subscriberData?.subscription_end ? new Date(subscriberData.subscription_end) : null,
-        messageLimit: plan?.message_limit || prev.messageLimit,
-        plan: plan
+        subscribed: functionData.subscribed || false,
+        subscriptionTier: functionData.subscription_tier || "Gratuito",
+        subscriptionEnd: functionData.subscription_end ? new Date(functionData.subscription_end) : null,
+        messageLimit: functionData.message_limit || 10,
+        plan: functionData.subscription_data || null
       }));
       
     } catch (error) {
-      console.error('Erro ao verificar assinatura:', error);
+      console.error('[useSubscriptionActions] Error checking subscription:', error);
+      
       if (setState) {
         setState(prev => ({ 
           ...prev, 
-          isLoading: false 
+          isLoading: false,
+          // Fallback to free tier on error
+          subscribed: false,
+          subscriptionTier: "Gratuito"
         }));
       }
+      
+      // Don't show error toast to avoid bothering users
+      // toast({ title: "Aviso", description: "Não foi possível verificar seu status de assinatura", variant: "destructive" });
     }
   };
 
@@ -199,7 +213,7 @@ export const useSubscriptionActions = (setState?: (state: React.SetStateAction<U
   };
 
   const refreshSubscription = async () => {
-    console.log("Refreshing subscription data");
+    console.log("[useSubscriptionActions] Refreshing subscription data");
     return checkSubscription();
   };
 

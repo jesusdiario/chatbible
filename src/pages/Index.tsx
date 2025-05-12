@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import BookChatLayout from "@/components/BookChatLayout";
 import BookLoadingState from "@/components/BookLoadingState";
 import BookErrorState from "@/components/BookErrorState";
 import BookChatContainer from "@/components/BookChatContainer";
 import { useBibleBook } from "@/hooks/useBibleBook";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FIXED_BOOK_SLUG = "devocional-diario"; // slug único do livro
 
@@ -13,33 +15,34 @@ interface LocationState {
   systemPrompt?: string;
 }
 
-const DevocionalBook = () => {
-  const { slug } = useParams<{ slug?: string }>();
+const Index = () => {
+  const { user } = useAuth();
+  const { slug } = { slug: undefined }; // Para compatibilidade com BookChatContainer
   const location = useLocation();
   const state = location.state as LocationState | null;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Logs iniciais
   useEffect(() => {
-    console.log("[DevocionalBook] Mounted", { slug });
-  }, [slug]);
+    console.log("[Index] Mounted", { user: !!user, slug });
+  }, [slug, user]);
 
   const { bookDetails, loadingBook } = useBibleBook(FIXED_BOOK_SLUG);
 
   useEffect(() => {
-    console.log("[DevocionalBook] loadingBook", loadingBook);
+    console.log("[Index] loadingBook", loadingBook);
   }, [loadingBook]);
 
   const handleToggleSidebar = () => {
     setIsSidebarOpen((prev) => {
       const next = !prev;
-      console.log("[DevocionalBook] Sidebar toggled", next);
+      console.log("[Index] Sidebar toggled", next);
       return next;
     });
   };
 
   if (loadingBook) {
-    console.log("[DevocionalBook] Rendering loading state");
+    console.log("[Index] Rendering loading state");
     return (
       <BookLoadingState
         isSidebarOpen={isSidebarOpen}
@@ -49,7 +52,7 @@ const DevocionalBook = () => {
   }
 
   if (!bookDetails) {
-    console.warn("[DevocionalBook] bookDetails not found");
+    console.warn("[Index] bookDetails not found");
     return (
       <BookErrorState
         isSidebarOpen={isSidebarOpen}
@@ -79,4 +82,4 @@ const DevocionalBook = () => {
   );
 };
 
-export default DevocionalBook;
+export default Index;

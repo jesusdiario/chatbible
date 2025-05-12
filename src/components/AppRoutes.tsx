@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -27,9 +27,21 @@ import NotFound from "@/pages/NotFound";
 
 export const AppRoutes: React.FC = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Redirect logic for authenticated users
+  useEffect(() => {
+    // If user is logged in and on the auth page, redirect to home
+    if (user && location.pathname === "/auth") {
+      console.log("[AppRoutes] User is logged in and on auth page, redirecting to home");
+      navigate("/", { replace: true });
+    }
+  }, [user, location.pathname, navigate]);
 
-  // If still loading auth state, show nothing
+  // If still loading auth state, show spinner
   if (loading) {
+    console.log("[AppRoutes] Auth loading, showing spinner");
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
         <LoadingSpinner />
@@ -37,24 +49,21 @@ export const AppRoutes: React.FC = () => {
     );
   }
 
+  console.log("[AppRoutes] Rendering routes, auth state:", { isAuthenticated: !!user });
+
   return (
     <Routes>
-      {/* Auth routes - no subscription required */}
+      {/* Public routes - no subscription required */}
       <Route 
         path="/auth" 
         element={user ? <Navigate to="/" replace /> : <Auth />} 
       />
       
-      {/* Register route is hidden - registration now happens through checkout */}
-      {/* <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} /> */}
-      
-      {/* Payment routes - no auth required */}
-      <Route path="/payment-success" element={<PaymentSuccess />} />
-      
-      {/* Landing page - no auth required */}
       <Route path="/lp" element={<LandingPage />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-canceled" element={<LandingPage />} />
       
-      {/* All other routes - subscription required */}
+      {/* Protected routes - subscription required */}
       <Route path="/" element={
         <ProtectedRoute requiresSubscription={true}>
           <Index />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 import SubscriptionModal from "@/components/SubscriptionModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -20,8 +20,17 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
-  // Verificar se o usuário foi redirecionado de um reset de senha
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('[Auth] User already logged in, redirecting to home');
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  // Check if redirected from password reset
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('reset') === 'true') {
@@ -35,32 +44,40 @@ const Auth = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      console.log("Tentando autenticar com email:", email);
+      console.log("[Auth] Attempting login with email:", email);
 
       // Login
-      const {
-        error,
-        data
-      } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
-        console.error("Erro de autenticação:", error);
+        console.error("[Auth] Authentication error:", error);
         throw error;
       }
       
-      console.log("Login bem-sucedido:", data);
+      console.log("[Auth] Login successful:", data.session?.user?.email);
 
-      // Redirecionar direto para a página inicial
-      navigate("/");
+      // Explicitly redirect to home page after successful login
+      console.log("[Auth] Redirecting to home page");
+      navigate("/", { replace: true });
+      
     } catch (error: any) {
-      console.error("Erro completo:", error);
+      console.error("[Auth] Complete error:", error);
+      
+      let errorMessage = "Ocorreu um erro durante a autenticação.";
+      if (error.message === "Invalid login credentials") {
+        errorMessage = "Email ou senha incorretos.";
+      } else if (error.message === "Email not confirmed") {
+        errorMessage = "Por favor, confirme seu email antes de fazer login.";
+      }
+      
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro durante a autenticação.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -72,20 +89,20 @@ const Auth = () => {
     try {
       setGoogleLoading(true);
       const redirectUrl = `${window.location.origin}/`;
-      console.log("Iniciando login com Google, URL de redirecionamento:", redirectUrl);
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      console.log("[Auth] Starting Google login, redirect URL:", redirectUrl);
+      
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl
         }
       });
+      
       if (error) throw error;
-
-      // O redirecionamento será tratado pelo OAuth
+      // Redirect handled by OAuth
+      
     } catch (error: any) {
-      console.error("Erro no login com Google:", error);
+      console.error("[Auth] Google login error:", error);
       toast({
         title: "Erro de autenticação",
         description: error.message || "Ocorreu um erro ao tentar autenticar com Google.",
@@ -104,19 +121,23 @@ const Auth = () => {
       });
       return;
     }
+    
     try {
       setLoading(true);
-      const {
-        error
-      } = await supabase.auth.resetPasswordForEmail(email, {
+      console.log("[Auth] Sending password reset email to:", email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth?reset=true`
       });
+      
       if (error) throw error;
+      
       toast({
         title: "Email enviado",
         description: "Verifique seu email para instruções de redefinição de senha."
       });
     } catch (error: any) {
+      console.error("[Auth] Password reset error:", error);
       toast({
         title: "Erro",
         description: error.message || "Não foi possível enviar o email de redefinição.",

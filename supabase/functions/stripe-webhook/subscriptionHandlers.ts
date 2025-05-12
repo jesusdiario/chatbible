@@ -140,7 +140,7 @@ export async function handleSubscriptionUpdate(supabaseClient: any, subscription
     // Find subscriber by Stripe customer ID
     const { data: subscribers, error: subscribersError } = await supabaseClient
       .from("subscribers")
-      .select("user_id")
+      .select("user_id, email")
       .eq("stripe_customer_id", customerId);
     
     if (subscribersError) {
@@ -149,16 +149,50 @@ export async function handleSubscriptionUpdate(supabaseClient: any, subscription
     }
     
     if (!subscribers || subscribers.length === 0) {
-      logStep("No subscriber found for customer", { customerId });
+      logStep("No subscriber found for customer, trying to find by customer email", { customerId });
+      
+      // Try to get customer email from Stripe
+      try {
+        const stripe = Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "");
+        const customer = await stripe.customers.retrieve(customerId);
+        
+        if (customer && !customer.deleted && customer.email) {
+          // Try to find user by email
+          const { data: userData } = await supabaseClient.auth.admin.listUsers();
+          const matchingUser = userData.users.find(u => u.email === customer.email);
+          
+          if (matchingUser) {
+            logStep("Found user by email from Stripe", { email: customer.email });
+            
+            // Create subscriber record
+            await supabaseClient.from("subscribers").insert({
+              user_id: matchingUser.id,
+              email: customer.email,
+              stripe_customer_id: customerId,
+              subscribed: isActive,
+              subscription_tier: planData?.name || "Premium",
+              subscription_end: subscriptionEndDate,
+              updated_at: new Date().toISOString()
+            });
+            
+            logStep("Created new subscriber record from Stripe customer data", { userId: matchingUser.id });
+            return;
+          }
+        }
+      } catch (stripeError) {
+        logStep("Error retrieving customer from Stripe", { error: String(stripeError) });
+      }
+      
+      logStep("No subscriber or matching user found for customer", { customerId });
       return;
     }
     
     logStep("Found subscribers for customer", { 
       count: subscribers.length, 
-      subscribers: subscribers.map(s => s.user_id) 
+      subscribers: subscribers.map(s => ({ userId: s.user_id, email: s.email }))
     });
     
-    // Update subscriber record
+    // Update subscriber records
     for (const subscriber of subscribers) {
       const { error: updateError } = await supabaseClient
         .from("subscribers")

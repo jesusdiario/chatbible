@@ -20,16 +20,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('[AuthContext] Initializing auth...');
+    
+    // Set up auth state listener BEFORE checking session
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('[AuthContext] Auth state changed:', event);
+      
+      // Update session and user state
+      setSession(newSession);
+      setUser(newSession?.user || null);
+      setLoading(false);
+    });
+
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('[AuthContext] Getting initial session');
         const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
         
+        if (error) {
+          console.error('[AuthContext] Error getting session:', error);
+          throw error;
+        }
+        
+        console.log('[AuthContext] Initial session:', !!data.session);
         setSession(data.session);
         setUser(data.session?.user || null);
       } catch (error) {
-        console.error('Error getting auth session:', error);
+        console.error('[AuthContext] Error initializing auth:', error);
         toast({
           title: 'Erro',
           description: 'Não foi possível carregar sua sessão',
@@ -42,14 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth();
 
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user || null);
-      setLoading(false);
-    });
-
     return () => {
+      console.log('[AuthContext] Cleaning up auth listener');
       if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
       }
@@ -59,12 +71,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
+      console.log('[AuthContext] Signing out');
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error('[AuthContext] Error signing out:', error);
+        throw error;
+      }
+      
+      // Clear user data
       setUser(null);
       setSession(null);
+      
+      // Clear subscription cache
+      localStorage.removeItem('user_subscription_status');
+      localStorage.removeItem('user_subscription_tier');
+      
+      console.log('[AuthContext] Sign out successful');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('[AuthContext] Error during sign out:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível encerrar a sessão',
