@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBible } from '../hooks/useBible';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -185,7 +186,7 @@ export const BibleReader: React.FC = () => {
     }, 500);
   };
 
-  // Renderizar mensagem de erro ou conteúdo vazio
+  // Renderizar mensagem de erro ou estado de carregamento inicial
   const renderEmptyOrError = () => {
     if (error) {
       return (
@@ -195,9 +196,12 @@ export const BibleReader: React.FC = () => {
         </div>
       );
     }
+    
+    // Em vez de mostrar "Nenhum conteúdo disponível", mostramos uma mensagem de carregamento
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        Nenhum conteúdo disponível
+      <div className="flex flex-col justify-center items-center h-64">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-gray-500">Carregando livros e versículos...</p>
       </div>
     );
   };
