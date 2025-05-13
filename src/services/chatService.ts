@@ -37,14 +37,14 @@ export const sendChatMessage = async (
   // Estágios de carregamento para mostrar ao usuário
   const loadingStages = [
     "Aguarde...",
-    "Consultando a Bíblia...",
-    "Sola Scriptura...",
-    "Sola Fide...",
-    "Sola Gratia...",
-    "Solus Christus...",
-    "Soli Deo Gloria...",
-    "Revisão teológica...",
-    "Montando o texto..."
+    "Iniciando pesquisa...",
+    "Pesquisa aprofundada iniciada...",
+    "+ de 100 estudos encontrados!",
+    "Iniciando curadoria personalizada...",
+    "Iniciando revisão teológica reformada...",
+    "Iniciando ajuste de aprendizado adaptativo...",
+    "Iniciando construção do estudo...",
+    "Concluindo..."
   ];
   
   // Inicia a sequência de estágios de carregamento
