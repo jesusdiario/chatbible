@@ -112,13 +112,13 @@
   },
   "loading": {
     "stage1": "Aguarde...",
-    "stage2": "Consultando a Bíblia...",
-    "stage3": "Sola Scriptura...",
-    "stage4": "Sola Fide...",
-    "stage5": "Sola Gratia...",
-    "stage6": "Solus Christus...",
-    "stage7": "Soli Deo Gloria...",
-    "stage8": "Revisão teológica...",
-    "stage9": "Concluído!"
+    "stage2": "Iniciando pesquisa...",
+    "stage3": "Pesquisa aprofundada iniciada...",
+    "stage4": "+ de 100 estudos encontrados!",
+    "stage5": "Iniciando curadoria personalizada...",
+    "stage6": "Iniciando revisão teológica reformada...",
+    "stage7": "Iniciando ajuste de aprendizado adaptativo...",
+    "stage8": "Iniciando construção do estudo...",
+    "stage9": "Concluindo..."
   }
 }
