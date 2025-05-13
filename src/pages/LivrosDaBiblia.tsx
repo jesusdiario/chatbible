@@ -85,9 +85,22 @@ const LivrosDaBiblia = () => {
     return <LoadingState isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />;
   }
 
-  // Filter out "teologia" and "temas" categories
+  // Filter to include only the specific categories requested
+  const allowedCategories = [
+    'pentateuco', 
+    'historicos', 
+    'poeticos', 
+    'profeticos', 
+    'novo-testamento', 
+    'atos', 
+    'cartas-paulinas', 
+    'cartas-gerais', 
+    'revelacao', 
+    'apocalipse'
+  ];
+  
   const filteredCategories = categories.filter(
-    category => !["teologia", "temas"].includes(category.slug)
+    category => allowedCategories.includes(category.slug)
   );
 
   return (
