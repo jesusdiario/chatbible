@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import BookChatLayout from "@/components/BookChatLayout";
@@ -6,14 +7,14 @@ import BookErrorState from "@/components/BookErrorState";
 import BookChatContainer from "@/components/BookChatContainer";
 import { useBibleBook } from "@/hooks/useBibleBook";
 
-const FIXED_BOOK_SLUG = "devocional-diario"; // slug único do livro
+const FIXED_BOOK_SLUG = "sua-vida-em-cristo"; // Alterado de "devocional-diario" para "sua-vida-em-cristo"
 
 interface LocationState {
   initialPrompt?: string;
   systemPrompt?: string;
 }
 
-const DevocionalBook = () => {
+const SuaVidaEmCristo = () => {
   const { slug } = useParams<{ slug?: string }>();
   const location = useLocation();
   const state = location.state as LocationState | null;
@@ -21,25 +22,25 @@ const DevocionalBook = () => {
 
   // Logs iniciais
   useEffect(() => {
-    console.log("[DevocionalBook] Mounted", { slug });
+    console.log("[SuaVidaEmCristo] Mounted", { slug });
   }, [slug]);
 
   const { bookDetails, loadingBook } = useBibleBook(FIXED_BOOK_SLUG);
 
   useEffect(() => {
-    console.log("[DevocionalBook] loadingBook", loadingBook);
+    console.log("[SuaVidaEmCristo] loadingBook", loadingBook);
   }, [loadingBook]);
 
   const handleToggleSidebar = () => {
     setIsSidebarOpen((prev) => {
       const next = !prev;
-      console.log("[DevocionalBook] Sidebar toggled", next);
+      console.log("[SuaVidaEmCristo] Sidebar toggled", next);
       return next;
     });
   };
 
   if (loadingBook) {
-    console.log("[DevocionalBook] Rendering loading state");
+    console.log("[SuaVidaEmCristo] Rendering loading state");
     return (
       <BookLoadingState
         isSidebarOpen={isSidebarOpen}
@@ -49,7 +50,7 @@ const DevocionalBook = () => {
   }
 
   if (!bookDetails) {
-    console.warn("[DevocionalBook] bookDetails not found");
+    console.warn("[SuaVidaEmCristo] bookDetails not found");
     return (
       <BookErrorState
         isSidebarOpen={isSidebarOpen}
@@ -79,4 +80,4 @@ const DevocionalBook = () => {
   );
 };
 
-export default DevocionalBook;
+export default SuaVidaEmCristo;
