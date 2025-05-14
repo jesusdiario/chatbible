@@ -1,724 +1,875 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  BookOpen, 
-  MessageSquare, 
-  Star, 
-  Search, 
-  Users, 
-  BookOpen as BookIcon, 
-  BookOpen as BookOpenIcon, 
-  MessageSquare as MessageIcon, 
-  File as FileIcon, 
-  ArrowRight, 
-  Search as SearchIcon, 
-  Menu,
-  X,
-  ChevronRight,
-  ExternalLink,
-  ArrowDown
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { BookOpen, CheckCircle, MessageSquare, Users, Star, ShieldCheck, Rocket, Award } from 'lucide-react';
 
 const LandingPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
   return (
-    <div className="flex flex-col min-h-screen bg-[#131415] text-white">
-      {/* Header/Navigation */}
-      <header className={cn(
-        "fixed w-full z-50 transition-all duration-200", 
-        scrolled ? "bg-[#131415]/90 backdrop-blur-sm border-b border-white/5" : ""
-      )}>
+    <div className="bg-white min-h-screen flex flex-col text-stone-700">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-stone-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-blue-600 rounded-md flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tight">Discipler</span>
-              </Link>
-              
-              <nav className="hidden md:flex ml-10 space-x-8">
-                <Link to="/biblia-online" className="text-sm text-white/70 hover:text-white transition">Bíblia Online</Link>
-                <div className="relative group">
-                  <button className="text-sm text-white/70 hover:text-white inline-flex items-center transition">
-                    Conversar com a Palavra
-                    <ChevronRight className="ml-1 w-3 h-3 transform group-hover:rotate-90 transition-transform" />
-                  </button>
-                  <div className="absolute left-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
-                    <div className="py-2 bg-[#1c1d1f] rounded-md shadow-xl border border-white/5">
-                      <Link to="/livros-da-biblia" className="block px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5">Livros da Bíblia</Link>
-                      <Link to="/temas-da-biblia" className="block px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5">Temas Bíblicos</Link>
-                      <Link to="/teologia-crista" className="block px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5">Temas de Teologia</Link>
-                    </div>
-                  </div>
-                </div>
-                <Link to="/guias-de-estudo" className="text-sm text-white/70 hover:text-white transition">Guias de Estudo</Link>
-                <Link to="/comunidade" className="text-sm text-white/70 hover:text-white transition">Comunidade</Link>
-                <Link to="/blog" className="text-sm text-white/70 hover:text-white transition">Blog</Link>
-                <Link to="/precos" className="text-sm text-white/70 hover:text-white transition">Preços</Link>
-              </nav>
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex-shrink-0 flex items-center">
+              <img
+                src="/lovable-uploads/logo-jd-bible-chat.png"
+                alt="Bible Chat Logo"
+                className="h-8 w-auto"
+              />
+              <span className="ml-3 text-lg font-medium text-stone-800">Bible Chat</span>
             </div>
-
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-stone-600 hover:text-stone-900 text-sm">Recursos</a>
+              <a href="#benefits" className="text-stone-600 hover:text-stone-900 text-sm">Benefícios</a>
+              <a href="#testimonials" className="text-stone-600 hover:text-stone-900 text-sm">Depoimentos</a>
+              <a href="#pricing" className="text-stone-600 hover:text-stone-900 text-sm">Planos</a>
+            </div>
+            <div className="flex items-center">
               <Link to="/auth">
-                <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10">Login</Button>
+                <Button variant="minimalOutline" size="sm" className="mr-2">Entrar</Button>
               </Link>
               <Link to="/auth?signup=true">
-                <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white border-0">
-                  Comece a Estudar
-                </Button>
+                <Button variant="minimal" size="sm">Criar Conta</Button>
               </Link>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={toggleMenu} className="p-2 text-white focus:outline-none">
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
             </div>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-[#1c1d1f] border-t border-white/5">
-            <div className="px-4 pt-2 pb-4 space-y-1">
-              <Link to="/biblia-online" className="block px-3 py-2 text-base font-medium text-white hover:bg-white/5 rounded-md">Bíblia Online</Link>
-              <div className="px-3 py-2">
-                <div className="font-medium text-white">Conversar com a Palavra</div>
-                <div className="pl-3 mt-2 space-y-1">
-                  <Link to="/livros-da-biblia" className="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md">Livros da Bíblia</Link>
-                  <Link to="/temas-da-biblia" className="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md">Temas Bíblicos</Link>
-                  <Link to="/teologia-crista" className="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md">Temas de Teologia</Link>
-                </div>
-              </div>
-              <Link to="/guias-de-estudo" className="block px-3 py-2 text-base font-medium text-white hover:bg-white/5 rounded-md">Guias de Estudo</Link>
-              <Link to="/comunidade" className="block px-3 py-2 text-base font-medium text-white hover:bg-white/5 rounded-md">Comunidade</Link>
-              <Link to="/blog" className="block px-3 py-2 text-base font-medium text-white hover:bg-white/5 rounded-md">Blog</Link>
-              <Link to="/precos" className="block px-3 py-2 text-base font-medium text-white hover:bg-white/5 rounded-md">Preços</Link>
-              <div className="pt-4 space-y-2">
-                <Link to="/auth" className="block w-full px-4 py-2 text-center text-white border border-white/20 rounded-md hover:bg-white/5">Login</Link>
-                <Link to="/auth?signup=true" className="block w-full px-4 py-2 text-center text-white bg-gradient-to-r from-emerald-500 to-blue-600 rounded-md hover:from-emerald-600 hover:to-blue-700">Comece a Estudar</Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
-
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold leading-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent mb-6">
-              Desvende a Profundidade da Palavra, Transforme sua Jornada
+      {/* Hero Section */}
+      <section className="lp-section pt-24 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-stone-800 mb-6 leading-tight">
+              Dialogue com a Bíblia como nunca antes
             </h1>
-            <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-3xl mx-auto">
-              Sua plataforma completa para estudo bíblico aprofundado, com ferramentas de análise, conversas guiadas com as Escrituras e recursos teológicos interativos.
+            <p className="text-lg md:text-xl text-stone-600 mb-8 leading-relaxed">
+              Explore os textos sagrados através de conversas intuitivas, obtenha insights profundos e crie conteúdos inspiradores para seu ministério em segundos.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-              <Link to="/biblia-online">
-                <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white border-0 w-full sm:w-auto">
-                  Explorar a Bíblia Online
-                </Button>
-              </Link>
-              <Link to="/livros-da-biblia">
-                <Button size="lg" variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10 text-white w-full sm:w-auto">
-                  Converse com a Palavra
-                </Button>
-              </Link>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button variant="minimal" size="minimal">
+                Comece Gratuitamente
+              </Button>
+              <Button variant="minimalOutline" size="minimal">
+                Ver demonstração
+              </Button>
             </div>
-            
-            <div className="relative mt-16 max-w-4xl mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-blue-600/20 blur-2xl rounded-xl"></div>
-              <div className="relative bg-[#1c1d1f] border border-white/5 rounded-xl overflow-hidden shadow-2xl">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-blue-600"></div>
-                <div className="flex items-center p-3 bg-[#18191b] border-b border-white/5">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <img 
-                    src="https://via.placeholder.com/800x400/1c1d1f/5f5f5f?text=Demonstração+Discipler" 
-                    alt="Demonstração da plataforma Discipler" 
-                    className="w-full rounded shadow-lg"
-                  />
-                </div>
+          </div>
+          <div className="md:w-1/2 rounded-lg overflow-hidden shadow-md">
+            <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+              {/* Placeholder para vídeo ou imagem de demonstração */}
+              <div className="flex items-center justify-center h-full bg-stone-50 text-stone-400">
+                <img
+                  src="/lovable-uploads/a70bfdc8-5c4c-4f43-8597-b7a62b57f00e.png"
+                  alt="Bible Chat Interface"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Recommended by Section */}
-        <section className="py-12 bg-[#18191b]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-center text-sm font-medium text-white/50 mb-6 uppercase tracking-wider">
-              Recomendado Por
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-center">
-                  <div className="h-6 text-white/30">
-                    <span className="font-bold text-lg">LOGO {i+1}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Problema/Solução */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Transformando o estudo bíblico</h2>
+            <p className="lp-subheading">
+              Bible Chat resolve os principais desafios do estudo bíblico moderno
+            </p>
           </div>
-        </section>
 
-        {/* Main Features Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif font-bold mb-4">Ferramentas Avançadas para Seu Estudo Bíblico</h2>
-              <p className="text-lg text-white/70 max-w-3xl mx-auto">
-                Explore recursos poderosos que vão transformar a maneira como você estuda e compreende as Escrituras Sagradas.
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="bg-white p-8 rounded-lg shadow-sm border border-stone-100">
+              <h3 className="text-xl font-medium text-stone-800 mb-4">O Desafio</h3>
+              <p className="text-stone-600 mb-4">
+                Muitas pessoas sentem dificuldade em compreender textos bíblicos complexos, encontrar respostas específicas ou aplicar os ensinamentos ao cotidiano moderno.
               </p>
+              <ul className="space-y-3">
+                {["Falta de tempo para estudos aprofundados", "Dúvidas sem respostas imediatas", "Dificuldade em preparar material para aulas ou pregações"].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-red-500 mr-2">✕</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Feature Card 1 */}
-              <div className="bg-[#1c1d1f] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all group">
-                <div className="p-8">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-blue-600/20 flex items-center justify-center mb-6">
-                    <BookOpenIcon className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Explore a Bíblia Versículo a Versículo</h3>
-                  <p className="text-white/70 mb-6">
-                    Acesse múltiplas traduções, selecione textos e utilize ferramentas poderosas de estudo com um clique: Versículo Fácil, Linguagem Infantil, Evangelizar, Contexto Familiar, e muito mais.
-                  </p>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Análise Detalhada
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Múltiplas Ferramentas
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Interface Intuitiva
-                    </li>
-                  </ul>
-                  <Link to="/biblia-online" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 font-medium">
-                    Explorar Ferramenta
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="px-8 py-6 bg-[#18191b] border-t border-white/5">
-                  <div className="aspect-w-16 aspect-h-9 bg-[#212225] rounded overflow-hidden">
-                    <div className="flex items-center justify-center h-full p-4">
-                      <img src="https://via.placeholder.com/500x280/212225/5f5f5f?text=Demo+Bíblia+Online" alt="Demo Bíblia Online" className="rounded" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feature Card 2 */}
-              <div className="bg-[#1c1d1f] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all group">
-                <div className="p-8">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-blue-600/20 flex items-center justify-center mb-6">
-                    <MessageIcon className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Diálogos Iluminadores com Cada Livro</h3>
-                  <p className="text-white/70 mb-6">
-                    Faça perguntas diretamente aos livros da Bíblia, receba respostas contextuais e aprofunde sua compreensão com guias de estudo integrados.
-                  </p>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Respostas Contextualizadas
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Guias de Estudo
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Compreensão Facilitada
-                    </li>
-                  </ul>
-                  <Link to="/livros-da-biblia" className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium">
-                    Conversar Agora
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="px-8 py-6 bg-[#18191b] border-t border-white/5">
-                  <div className="bg-[#212225] rounded overflow-hidden">
-                    <div className="flex flex-col gap-4 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold">EU</span>
-                        </div>
-                        <div className="bg-[#2a2b2f] px-4 py-2 rounded-lg text-sm">
-                          O que o livro de Romanos ensina sobre a justificação pela fé?
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                          <BookIcon className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="bg-[#2a2b2f]/50 px-4 py-2 rounded-lg text-sm">
-                          Em Romanos, Paulo desenvolve sistematicamente a doutrina da justificação pela fé, especialmente nos capítulos 3 a 5. A justificação é apresentada como um ato jurídico divino onde Deus declara o pecador como justo com base na fé em Cristo e não nas obras da lei...
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feature Card 3 */}
-              <div className="bg-[#1c1d1f] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all group">
-                <div className="p-8">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-blue-600/20 flex items-center justify-center mb-6">
-                    <SearchIcon className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Navegue por Temas Centrais da Fé</h3>
-                  <p className="text-white/70 mb-6">
-                    Investigue temas bíblicos cruciais, faça perguntas específicas e conecte passagens relacionadas com o auxílio de guias de estudo temáticos.
-                  </p>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Estudo Temático Guiado
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Conexões Relevantes
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Aprofundamento Significativo
-                    </li>
-                  </ul>
-                  <Link to="/temas-da-biblia" className="inline-flex items-center text-purple-400 hover:text-purple-300 font-medium">
-                    Explorar Temas
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="px-8 py-6 bg-[#18191b] border-t border-white/5">
-                  <div className="bg-[#212225] rounded overflow-hidden">
-                    <div className="flex flex-col gap-4 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold">EU</span>
-                        </div>
-                        <div className="bg-[#2a2b2f] px-4 py-2 rounded-lg text-sm">
-                          O que a Bíblia ensina sobre a graça de Deus?
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                          <SearchIcon className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="bg-[#2a2b2f]/50 px-4 py-2 rounded-lg text-sm">
-                          A graça de Deus é um tema central que percorre toda a Bíblia. É o favor imerecido de Deus, Seu dom gratuito para a humanidade. Em Efésios 2:8-9, lemos que "pela graça sois salvos, por meio da fé, e isto não vem de vós, é dom de Deus; não vem das obras, para que ninguém se glorie"...
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feature Card 4 */}
-              <div className="bg-[#1c1d1f] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition-all group">
-                <div className="p-8">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-blue-600/20 flex items-center justify-center mb-6">
-                    <FileIcon className="w-6 h-6 text-amber-400" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">Fundamentos Teológicos ao Seu Alcance</h3>
-                  <p className="text-white/70 mb-6">
-                    Converse sobre doutrinas e conceitos teológicos, explore diferentes perspectivas e fortaleça sua base de conhecimento com guias de estudo especializados.
-                  </p>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Exploração Teológica
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Diversas Perspectivas
-                    </li>
-                    <li className="flex items-center text-sm text-white/70">
-                      <svg className="w-5 h-5 mr-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Guias Especializados
-                    </li>
-                  </ul>
-                  <Link to="/teologia-crista" className="inline-flex items-center text-amber-400 hover:text-amber-300 font-medium">
-                    Explorar Teologia
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="px-8 py-6 bg-[#18191b] border-t border-white/5">
-                  <div className="bg-[#212225] rounded overflow-hidden">
-                    <div className="flex flex-col gap-4 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold">EU</span>
-                        </div>
-                        <div className="bg-[#2a2b2f] px-4 py-2 rounded-lg text-sm">
-                          Explique a soberania de Deus e o livre arbítrio humano.
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center flex-shrink-0">
-                          <FileIcon className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="bg-[#2a2b2f]/50 px-4 py-2 rounded-lg text-sm">
-                          A relação entre a soberania divina e o livre arbítrio humano é uma das questões teológicas mais profundas. Diferentes tradições cristãs abordam este tema de formas distintas. Algumas enfatizam mais a soberania de Deus (perspectiva calvinista), enquanto outras dão maior ênfase à liberdade humana (perspectiva arminiana)...
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-white p-8 rounded-lg shadow-sm border border-stone-100">
+              <h3 className="text-xl font-medium text-stone-800 mb-4">Nossa Solução</h3>
+              <p className="text-stone-600 mb-4">
+                Bible Chat oferece uma experiência interativa com a Bíblia, permitindo conversas naturais que aprofundam seu conhecimento e inspiram sua jornada espiritual.
+              </p>
+              <ul className="space-y-3">
+                {["Respostas imediatas a qualquer dúvida bíblica", "Conteúdo personalizado para estudos e ensinamentos", "Compreensão clara de passagens complexas"].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Study Anywhere Section */}
-        <section className="py-20 bg-[#18191b]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif font-bold mb-4">Sua Jornada Bíblica, Onde Você Estiver</h2>
-              <p className="text-lg text-white/70 max-w-3xl mx-auto">
-                Discipler adapta-se perfeitamente a qualquer dispositivo, levando profundidade bíblica aonde você for.
-              </p>
-            </div>
-            
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-              <div className="text-center">
-                <div className="mb-6 p-6 bg-[#1c1d1f] rounded-xl border border-white/5 inline-flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium mb-1">Desktop</h3>
-                <p className="text-sm text-white/50">Estudo profundo e detalhado</p>
-              </div>
-              <div className="text-center">
-                <div className="mb-6 p-6 bg-[#1c1d1f] rounded-xl border border-white/5 inline-flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium mb-1">Tablet</h3>
-                <p className="text-sm text-white/50">Ideal para leituras extensas</p>
-              </div>
-              <div className="text-center">
-                <div className="mb-6 p-6 bg-[#1c1d1f] rounded-xl border border-white/5 inline-flex">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium mb-1">Mobile</h3>
-                <p className="text-sm text-white/50">Consultas rápidas em qualquer lugar</p>
-              </div>
-            </div>
+      {/* Benefícios */}
+      <section id="benefits" className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Benefícios Transformadores</h2>
+            <p className="lp-subheading">
+              Descubra como o Bible Chat pode revolucionar sua conexão com as Escrituras
+            </p>
           </div>
-        </section>
 
-        {/* Testimonials Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif font-bold mb-4">Vidas Transformadas pela Palavra</h2>
-              <p className="text-lg text-white/70 max-w-3xl mx-auto">
-                Descubra como Discipler tem auxiliado pessoas em suas jornadas espirituais.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  quote: "Discipler revolucionou minha abordagem ao ensino bíblico. As ferramentas de análise me permitem preparar estudos profundos em uma fração do tempo que levava antes.",
-                  name: "Pastor Carlos Rodrigues",
-                  role: "Igreja Batista Central"
-                },
-                {
-                  quote: "Como professora de escola dominical, encontrei no Discipler um aliado inestimável. A capacidade de adaptar textos bíblicos para a linguagem infantil é simplesmente fantástica.",
-                  name: "Mariana Silva",
-                  role: "Educadora Cristã"
-                },
-                {
-                  quote: "As conversas com os livros da Bíblia me ajudaram a entender contextos históricos que eu nunca tinha compreendido antes. Minha leitura bíblica ganhou profundidade e sentido.",
-                  name: "Ricardo Mendes",
-                  role: "Estudante de Teologia"
-                }
-              ].map((testimonial, i) => (
-                <div key={i} className="bg-[#1c1d1f] rounded-xl p-8 border border-white/5">
-                  <svg width="45" height="36" className="mb-6 text-white/20" viewBox="0 0 45 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.5 0L0 13H9L9 36H31.5L31.5 13L22.5 13L36 0L13.5 0Z" fill="currentColor"/>
-                  </svg>
-                  <p className="text-white/80 mb-6 italic">"{testimonial.quote}"</p>
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500/30 to-blue-600/30 flex items-center justify-center text-lg font-bold">
-                      {testimonial.name.charAt(0)}
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="font-medium">{testimonial.name}</h4>
-                      <p className="text-sm text-white/50">{testimonial.role}</p>
-                    </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <BookOpen className="h-6 w-6" />,
+                title: "Conhecimento Aprofundado",
+                description: "Acesse explicações detalhadas sobre qualquer texto bíblico, compreendendo contextos históricos e significados originais."
+              },
+              {
+                icon: <MessageSquare className="h-6 w-6" />,
+                title: "Diálogo Natural",
+                description: "Converse com a Bíblia como se estivesse falando com um mentor espiritual, fazendo perguntas em linguagem cotidiana."
+              },
+              {
+                icon: <Rocket className="h-6 w-6" />,
+                title: "Produtividade Ministerial",
+                description: "Crie esboços de sermões, planos de aula e estudos bíblicos em fração do tempo que levaria tradicionalmente."
+              },
+              {
+                icon: <Users className="h-6 w-6" />,
+                title: "Ensino Facilitado",
+                description: "Transforme conceitos bíblicos complexos em explicações acessíveis para diferentes faixas etárias e níveis de conhecimento."
+              },
+              {
+                icon: <ShieldCheck className="h-6 w-6" />,
+                title: "Confiabilidade Doutrinária",
+                description: "Conteúdo baseado em interpretações teologicamente sólidas, respeitando a integridade das Escrituras."
+              },
+              {
+                icon: <Star className="h-6 w-6" />,
+                title: "Experiência Personalizada",
+                description: "Estudos e respostas adaptados ao seu nível de conhecimento, interesses e necessidades específicas."
+              }
+            ].map((benefit, index) => (
+              <div key={index} className="lp-card flex flex-col items-start">
+                <div className="flex justify-center items-center w-12 h-12 rounded-full bg-blue-50 mb-6">
+                  <div className="text-chatgpt-accent">
+                    {benefit.icon}
                   </div>
                 </div>
-              ))}
+                <h3 className="text-xl font-medium text-stone-800 mb-3">{benefit.title}</h3>
+                <p className="text-stone-600">{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Cinco Pilares (Nova Seção) */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Os Cinco Pilares do Bible Chat</h2>
+            <p className="lp-subheading">
+              Fundamentado em princípios que garantem uma experiência transformadora
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-5 gap-6">
+            {[
+              {
+                number: "01",
+                title: "Fidelidade Bíblica",
+                description: "Respeito absoluto ao texto sagrado e sua interpretação contextualizada"
+              },
+              {
+                number: "02",
+                title: "Acessibilidade",
+                description: "Conteúdo teológico profundo em linguagem compreensível para todos"
+              },
+              {
+                number: "03",
+                title: "Aplicabilidade",
+                description: "Conexão direta entre o texto antigo e os desafios contemporâneos"
+              },
+              {
+                number: "04",
+                title: "Personalização",
+                description: "Experiência adaptada às necessidades específicas de cada usuário"
+              },
+              {
+                number: "05",
+                title: "Crescimento",
+                description: "Foco no desenvolvimento espiritual contínuo e transformador"
+              }
+            ].map((pilar, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                <div className="text-4xl font-light text-chatgpt-accent mb-4">{pilar.number}</div>
+                <h3 className="text-xl font-medium text-stone-800 mb-3">{pilar.title}</h3>
+                <p className="text-stone-600 text-sm">{pilar.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Crescimento Espiritual (Nova Seção) */}
+      <section className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+              <h2 className="text-3xl md:text-4xl font-medium text-stone-800 mb-6">Acelere seu crescimento espiritual</h2>
+              <p className="text-stone-600 mb-6">
+                O Bible Chat foi projetado para ajudar você a desenvolver uma compreensão mais profunda das Escrituras, permitindo um diálogo contínuo que fortalece sua fé e transforma seu entendimento.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  "Estabeleça um hábito diário de reflexão bíblica guiada",
+                  "Aprofunde sua compreensão teológica em seu próprio ritmo",
+                  "Conecte os ensinamentos bíblicos à sua realidade cotidiana",
+                  "Desenvolva uma visão mais ampla do plano divino através das Escrituras"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-chatgpt-accent mr-3 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            
-            <div className="mt-12 text-center">
-              <Link to="/comunidade">
-                <Button variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10">
-                  Faça Parte da Comunidade Discipler
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
+            <div className="md:w-1/2">
+              <img 
+                src="/lovable-uploads/5dc8a9a6-6f14-4883-b9e9-30341e4efc9c.png" 
+                alt="Crescimento espiritual" 
+                className="rounded-lg shadow-md"
+              />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Ready-Made Resources Section */}
-        <section className="py-20 bg-[#18191b]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif font-bold mb-4">Recursos Prontos para Impulsionar Seu Estudo</h2>
-              <p className="text-lg text-white/70 max-w-3xl mx-auto">
-                Comece instantaneamente com nossos guias e planos preparados por teólogos e educadores experientes.
+      {/* Impacto Ministerial (Nova Seção) */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row-reverse items-center">
+            <div className="md:w-1/2 mb-12 md:mb-0 md:pl-12">
+              <h2 className="text-3xl md:text-4xl font-medium text-stone-800 mb-6">Potencialize seu ministério</h2>
+              <p className="text-stone-600 mb-6">
+                Bible Chat oferece ferramentas poderosas para líderes, pastores e professores que desejam maximizar o impacto de seu ministério com recursos que economizam tempo e aprofundam conteúdos.
               </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Guia de Estudo: A Vida de Cristo nos Evangelhos",
-                  type: "guia",
-                  color: "from-blue-500/20 to-purple-600/20",
-                  textColor: "text-blue-400",
-                  icon: BookOpenIcon
-                },
-                {
-                  title: "Plano de Leitura: Os Salmos de Davi",
-                  type: "plano",
-                  color: "from-emerald-500/20 to-blue-600/20",
-                  textColor: "text-emerald-400",
-                  icon: FileIcon
-                },
-                {
-                  title: "Tópico em Destaque: Entendendo as Parábolas de Jesus",
-                  type: "tópico",
-                  color: "from-amber-500/20 to-red-600/20",
-                  textColor: "text-amber-400",
-                  icon: SearchIcon
-                }
-              ].map((resource, i) => (
-                <div key={i} className="bg-[#1c1d1f] rounded-xl overflow-hidden border border-white/5 hover:border-white/10 transition-all group">
-                  <div className="p-6">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${resource.textColor} bg-gradient-to-br ${resource.color}`}>
-                      {resource.type}
-                    </span>
-                    <h3 className="text-lg font-medium mb-4">{resource.title}</h3>
-                    <Link to="/guias-de-estudo" className={`inline-flex items-center ${resource.textColor} hover:underline font-medium`}>
-                      <span className="mr-2">Acessar</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  "Sermões impactantes",
+                  "Estudos bíblicos profundos",
+                  "Devocional personalizado",
+                  "Conteúdo para redes sociais",
+                  "Material para células",
+                  "Mentoria contextualizada",
+                  "Respostas apologéticas",
+                  "Aconselhamento bíblico"
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-chatgpt-accent mr-2 flex-shrink-0" />
+                    <span className="text-sm">{item}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            
-            <div className="mt-12 flex flex-col md:flex-row gap-4 justify-center">
-              <Link to="/guias-de-estudo">
-                <Button variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10">
-                  Ver Todos os Guias
-                </Button>
-              </Link>
-              <Link to="/planos-de-leitura">
-                <Button variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10">
-                  Explorar Planos de Leitura
-                </Button>
-              </Link>
+            <div className="md:w-1/2">
+              <img 
+                src="/lovable-uploads/b7516a63-b1e6-46bc-93c9-927bf0c2accf.png" 
+                alt="Impacto ministerial" 
+                className="rounded-lg shadow-md"
+              />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Main Demo Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif font-bold mb-4">Mergulhe Fundo: Veja o Discipler em Ação</h2>
-              <p className="text-lg text-white/70 max-w-3xl mx-auto">
-                Experimente nossa ferramenta principal e veja como o estudo bíblico pode ser transformador.
-              </p>
-            </div>
-            
-            <div className="bg-[#1c1d1f] rounded-xl overflow-hidden border border-white/5">
-              <div className="border-b border-white/5">
-                <div className="flex overflow-x-auto">
-                  {["Bíblia Online", "Versículo Fácil", "Exegese", "Léxico"].map((tab, i) => (
-                    <button key={i} className={`px-6 py-4 text-sm font-medium ${i === 0 ? 'text-emerald-500 border-b-2 border-emerald-500' : 'text-white/50'}`}>
-                      {tab}
-                    </button>
+      {/* Apoio ao Ensino (Nova Seção) */}
+      <section className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Suporte completo para educação bíblica</h2>
+            <p className="lp-subheading">
+              Ferramentas especializadas para diferentes contextos de ensino
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Escola Dominical",
+                features: [
+                  "Planos de aula estruturados",
+                  "Atividades interativas por faixa etária",
+                  "Material visual complementar",
+                  "Aplicações práticas contextualizadas"
+                ]
+              },
+              {
+                title: "Discipulado",
+                features: [
+                  "Roteiros progressivos de mentoria",
+                  "Questões para reflexão e debate",
+                  "Acompanhamento de desenvolvimento",
+                  "Conteúdo adaptado ao nível espiritual"
+                ]
+              },
+              {
+                title: "Pregação",
+                features: [
+                  "Estruturas de sermões temáticos",
+                  "Ilustrações e analogias relevantes",
+                  "Insights contextuais e históricos",
+                  "Aplicações contemporâneas da mensagem"
+                ]
+              }
+            ].map((item, index) => (
+              <div key={index} className="lp-card">
+                <h3 className="text-xl font-medium text-stone-800 mb-6 pb-4 border-b border-stone-100">{item.title}</h3>
+                <ul className="space-y-3">
+                  {item.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-chatgpt-accent mr-3 flex-shrink-0" />
+                      <span className="text-stone-600">{feature}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
-              <div className="p-8">
-                <div className="aspect-w-16 aspect-h-9 bg-[#212225] rounded overflow-hidden">
-                  <div className="flex items-center justify-center p-8">
-                    <img src="https://via.placeholder.com/1200x675/212225/5f5f5f?text=Demo+Ferramenta+Bíblica+Interativa" alt="Demonstração da ferramente Discipler" className="rounded shadow-lg max-w-full max-h-full" />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Transformação Pessoal (Nova Seção) */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center">
+            <h2 className="text-3xl md:text-4xl font-medium text-stone-800 mb-8">Experiências transformadoras</h2>
+            <p className="text-lg text-stone-600 max-w-3xl mb-12">
+              O Bible Chat não é apenas uma ferramenta, mas um companheiro para sua jornada espiritual, ajudando a promover mudanças significativas em diferentes áreas da sua vida:
+            </p>
+            
+            <div className="grid md:grid-cols-4 gap-6 w-full">
+              {[
+                {
+                  area: "Conhecimento",
+                  before: "Compreensão fragmentada dos textos",
+                  after: "Visão integrada e contextualizada"
+                },
+                {
+                  area: "Devoção",
+                  before: "Leitura ocasional e superficial",
+                  after: "Hábito consistente e profundo"
+                },
+                {
+                  area: "Aplicação",
+                  before: "Dificuldade em conectar texto e vida",
+                  after: "Implementação prática dos princípios"
+                },
+                {
+                  area: "Compartilhamento",
+                  before: "Insegurança ao explicar passagens",
+                  after: "Confiança para ensinar e inspirar outros"
+                }
+              ].map((item, index) => (
+                <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                  <h3 className="text-lg font-medium text-chatgpt-accent mb-4">{item.area}</h3>
+                  <div className="space-y-6">
+                    <div>
+                      <div className="text-sm text-stone-400 mb-1">Antes</div>
+                      <p className="text-stone-600">{item.before}</p>
+                    </div>
+                    <div className="h-0.5 w-full bg-stone-100"></div>
+                    <div>
+                      <div className="text-sm text-stone-400 mb-1">Depois</div>
+                      <p className="text-stone-700 font-medium">{item.after}</p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="mt-8 text-center">
-                  <Link to="/biblia-online">
-                    <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white">
-                      Experimentar Agora
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <section className="py-24 bg-[#18191b] relative">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-[100px]"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/20 rounded-full blur-[100px]"></div>
+      {/* Promessas / Garantias */}
+      <section className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Nosso Compromisso</h2>
+            <p className="lp-subheading">
+              O que você pode esperar ao utilizar o Bible Chat
+            </p>
           </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                Transforme Sua Jornada Bíblica Hoje Mesmo
-              </h2>
-              <p className="text-lg md:text-xl text-white/70 mb-10 max-w-3xl mx-auto">
-                Junte-se a milhares de pessoas que estão experimentando as Escrituras de forma profunda e transformadora.
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <ShieldCheck className="h-6 w-6" />,
+                title: "Fidelidade Bíblica",
+                description: "Compromisso com a integridade do texto sagrado e sua interpretação responsável."
+              },
+              {
+                icon: <Award className="h-6 w-6" />,
+                title: "Qualidade Teológica",
+                description: "Conteúdo baseado em sólidos princípios hermenêuticos e estudo acadêmico."
+              },
+              {
+                icon: <Star className="h-6 w-6" />,
+                title: "Experiência Transformadora",
+                description: "Interações que não apenas informam, mas inspiram crescimento espiritual."
+              }
+            ].map((promise, index) => (
+              <div key={index} className="lp-card flex flex-col items-start">
+                <div className="flex justify-center items-center w-12 h-12 rounded-full bg-blue-50 mb-6">
+                  <div className="text-chatgpt-accent">
+                    {promise.icon}
+                  </div>
+                </div>
+                <h3 className="text-xl font-medium text-stone-800 mb-3">{promise.title}</h3>
+                <p className="text-stone-600">{promise.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Facilidades */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+              <h2 className="text-3xl md:text-4xl font-medium text-stone-800 mb-6">Projetado para simplicidade</h2>
+              <p className="text-stone-600 mb-6">
+                Uma interface intuitiva que permite que você se concentre no que realmente importa: sua conexão com as Escrituras e seu crescimento espiritual.
               </p>
-              <Link to="/auth?signup=true">
-                <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white text-lg">
-                  Comece Gratuitamente
-                  <ArrowDown className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
+              <ul className="space-y-4">
+                {[
+                  "Acesso instantâneo a todos os 66 livros da Bíblia",
+                  "Histórico completo de suas conversas e estudos",
+                  "Templates prontos para diferentes necessidades ministeriais",
+                  "Exportação fácil de conteúdos para uso em outros formatos"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-chatgpt-accent mr-3 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="md:w-1/2">
+              <img 
+                src="/lovable-uploads/fb2119a5-5937-4cb3-9f11-bea6e009930f.png" 
+                alt="Interface do Bible Chat" 
+                className="rounded-lg shadow-md"
+              />
             </div>
           </div>
-        </section>
-      </main>
-      
-      {/* Footer */}
-      <footer className="bg-[#131415] border-t border-white/5">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-            <div className="col-span-2">
-              <Link to="/" className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-blue-600 rounded-md flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-white" />
+        </div>
+      </section>
+
+      {/* Demo Interativa */}
+      <section className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Experimente o Bible Chat</h2>
+            <p className="lp-subheading">
+              Veja como é simples obter respostas e insights bíblicos
+            </p>
+          </div>
+
+          <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden max-w-3xl mx-auto">
+            <div className="bg-stone-50 border-b border-stone-200 p-4 flex items-center">
+              <div className="w-3 h-3 rounded-full bg-red-400 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              <div className="ml-4 text-sm text-stone-500">Demonstração do Bible Chat</div>
+            </div>
+            <div className="p-6">
+              <div className="flex mb-6">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-chatgpt-accent mr-4">
+                  <MessageSquare className="h-4 w-4" />
                 </div>
-                <span className="text-xl font-bold tracking-tight">Discipler</span>
-              </Link>
-              <p className="text-sm text-white/50 mb-4">
-                Sua plataforma completa para estudo bíblico aprofundado, com ferramentas de análise e recursos teológicos interativos.
-              </p>
-              <div className="flex space-x-4">
-                {["twitter", "facebook", "instagram", "youtube"].map((social) => (
-                  <a key={social} href={`#${social}`} className="text-white/40 hover:text-white transition">
-                    <span className="sr-only">{social}</span>
-                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z" clipRule="evenodd" />
-                    </svg>
-                  </a>
-                ))}
+                <div className="bg-stone-100 rounded-lg p-4 text-stone-700 max-w-[80%]">
+                  <p>Olá! Como posso ajudar você com a Bíblia hoje?</p>
+                </div>
+              </div>
+              <div className="flex justify-end mb-6">
+                <div className="bg-chatgpt-accent text-white rounded-lg p-4 max-w-[80%]">
+                  <p>Pode me explicar a parábola do semeador?</p>
+                </div>
+              </div>
+              <div className="flex mb-6">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-chatgpt-accent mr-4">
+                  <MessageSquare className="h-4 w-4" />
+                </div>
+                <div className="bg-stone-100 rounded-lg p-4 text-stone-700 max-w-[80%]">
+                  <p>
+                    A parábola do semeador (Mateus 13:1-23, Marcos 4:1-20, Lucas 8:4-15) é uma história que Jesus contou sobre um agricultor que espalhou sementes em diferentes tipos de solo.
+                  </p>
+                  <p className="mt-2">
+                    As sementes representam a Palavra de Deus, e os diferentes solos simbolizam como as pessoas respondem à mensagem:
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    <li>• <strong>Beira do caminho:</strong> Pessoas que ouvem mas não entendem; o inimigo rouba a semente.</li>
+                    <li>• <strong>Solo pedregoso:</strong> Recebem com alegria mas sem raiz; desistem nas dificuldades.</li>
+                    <li>• <strong>Entre espinhos:</strong> A Palavra é sufocada por preocupações e riquezas.</li>
+                    <li>• <strong>Terra boa:</strong> Ouvem, entendem e produzem frutos abundantes.</li>
+                  </ul>
+                  <p className="mt-2">
+                    Essa parábola nos ensina sobre a importância de cultivar um coração receptivo à Palavra de Deus para que ela possa frutificar em nossas vidas.
+                  </p>
+                </div>
+              </div>
+              <div className="relative mt-8">
+                <input 
+                  type="text" 
+                  placeholder="Faça sua pergunta sobre a Bíblia..." 
+                  className="w-full border border-stone-200 rounded-full py-3 px-6 pr-12 focus:outline-none focus:ring-2 focus:ring-chatgpt-accent focus:border-transparent"
+                />
+                <button className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-chatgpt-accent text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </button>
               </div>
             </div>
-            
-            <div>
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Produto</h3>
-              <ul className="space-y-3">
-                {["Bíblia Online", "Conversar com Livros", "Conversar com Temas", "Teologia Interativa", "Guias de Estudo", "Ferramentas de Análise"].map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-white/50 hover:text-white transition">
-                      {link}
-                    </a>
+          </div>
+
+          <div className="text-center mt-10">
+            <p className="text-stone-500 mb-4">Experimente agora mesmo com acesso completo</p>
+            <Button variant="minimal" size="minimal">
+              Criar Conta Grátis
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Casos de Uso */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Como usar o Bible Chat</h2>
+            <p className="lp-subheading">
+              Diversas aplicações para enriquecer sua jornada espiritual
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Estudo Pessoal",
+                description: "Aprofunde seu conhecimento bíblico através de perguntas e reflexões direcionadas."
+              },
+              {
+                title: "Preparação de Sermões",
+                description: "Desenvolva esboços, encontre ilustrações e organize pontos principais para pregações."
+              },
+              {
+                title: "Ensino Infantil",
+                description: "Adapte histórias bíblicas para crianças com linguagem e aplicações adequadas."
+              },
+              {
+                title: "Grupos de Estudo",
+                description: "Crie roteiros para discussão em grupo com perguntas instigantes e aplicações práticas."
+              },
+              {
+                title: "Aconselhamento",
+                description: "Encontre princípios bíblicos para situações específicas de aconselhamento pastoral."
+              },
+              {
+                title: "Devocionais",
+                description: "Gere reflexões diárias baseadas em passagens específicas para seu crescimento espiritual."
+              }
+            ].map((useCase, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                <h3 className="text-xl font-medium text-stone-800 mb-3">{useCase.title}</h3>
+                <p className="text-stone-600">{useCase.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Depoimentos */}
+      <section id="testimonials" className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">O que nossos usuários dizem</h2>
+            <p className="lp-subheading">
+              Descubra como o Bible Chat tem transformado a relação das pessoas com as Escrituras
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "O Bible Chat revolucionou minha preparação de sermões. O que antes me tomava horas, agora consigo fazer em minutos, com insights muito mais profundos.",
+                author: "Pastor Carlos Silva",
+                role: "Igreja Batista Central"
+              },
+              {
+                quote: "Como professora da Escola Dominical, encontrei no Bible Chat um parceiro incrível. As explicações simples para crianças e as atividades sugeridas são perfeitas!",
+                author: "Márcia Oliveira",
+                role: "Educadora Cristã"
+              },
+              {
+                quote: "Meus estudos pessoais ganharam outra dimensão. Consigo explorar temas e passagens com uma profundidade que nunca imaginei ser possível.",
+                author: "Ricardo Mendes",
+                role: "Líder de Jovens"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                <div className="text-chatgpt-accent mb-4">
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 20H7.5C6.83696 20 6.20107 19.7366 5.73223 19.2678C5.26339 18.7989 5 18.163 5 17.5V12.5C5 11.837 5.26339 11.2011 5.73223 10.7322C6.20107 10.2634 6.83696 10 7.5 10H12.5C13.163 10 13.7989 10.2634 14.2678 10.7322C14.7366 11.2011 15 11.837 15 12.5V25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M32.5 20H27.5C26.837 20 26.2011 19.7366 25.7322 19.2678C25.2634 18.7989 25 18.163 25 17.5V12.5C25 11.837 25.2634 11.2011 25.7322 10.7322C26.2011 10.2634 26.837 10 27.5 10H32.5C33.163 10 33.799 10.2634 34.2678 10.7322C34.7366 11.2011 35 11.837 35 12.5V25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="lp-testimonial">{testimonial.quote}</p>
+                <p className="lp-testimonial-author">{testimonial.author}</p>
+                <p className="text-sm text-stone-500">{testimonial.role}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-stone-50 lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Perguntas Frequentes</h2>
+            <p className="lp-subheading">
+              Esclarecendo suas dúvidas sobre o Bible Chat
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            {[
+              {
+                question: "O Bible Chat substitui a leitura da Bíblia?",
+                answer: "Não. O Bible Chat é uma ferramenta complementar que visa enriquecer sua leitura e estudo bíblico, nunca substituí-los. Incentivamos sempre a leitura direta da Palavra de Deus como fonte primária."
+              },
+              {
+                question: "Qual tradução bíblica o Bible Chat utiliza?",
+                answer: "O Bible Chat tem acesso a diversas traduções, incluindo NVI, ARA, NTLH, ARC e outras. Você pode especificar sua tradução preferida durante as conversas."
+              },
+              {
+                question: "As respostas são teologicamente confiáveis?",
+                answer: "Sim. Nosso sistema é treinado com base em interpretações teológicas sólidas e tradicionais do texto bíblico, evitando posicionamentos extremos ou controversos."
+              },
+              {
+                question: "Posso usar o conteúdo gerado em minhas pregações?",
+                answer: "Absolutamente! Todo conteúdo gerado pelo Bible Chat pode ser utilizado livremente em seus sermões, aulas, estudos e publicações, sem necessidade de atribuição."
+              },
+              {
+                question: "Preciso ter conhecimento bíblico prévio?",
+                answer: "Não. O Bible Chat é projetado para atender pessoas em qualquer nível de conhecimento bíblico, desde iniciantes até estudiosos avançados."
+              }
+            ].map((item, index) => (
+              <div key={index} className="mb-6 bg-white rounded-lg p-6 shadow-sm border border-stone-100">
+                <h3 className="text-lg font-medium text-stone-800 mb-3">{item.question}</h3>
+                <p className="text-stone-600">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Preços */}
+      <section id="pricing" className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="lp-heading">Planos simples e acessíveis</h2>
+            <p className="lp-subheading">
+              Escolha o plano que melhor atende às suas necessidades
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Plano Gratuito */}
+            <div className="bg-white rounded-xl shadow-sm p-8 border border-stone-200">
+              <div className="text-lg text-stone-800 font-medium mb-4">Plano Gratuito</div>
+              <div className="text-4xl font-bold text-stone-800 mb-6">R$ 0<span className="text-lg font-normal text-stone-500">/mês</span></div>
+              <p className="text-stone-600 mb-6">Perfeito para quem está começando sua jornada de estudos bíblicos</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Acesso a 10 livros bíblicos",
+                  "50 mensagens por dia",
+                  "Histórico limitado a 7 dias",
+                  "Funcionalidades básicas de estudo"
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-stone-600">{feature}</span>
                   </li>
                 ))}
               </ul>
+              <Button variant="minimalOutline" className="w-full">Começar Grátis</Button>
             </div>
-            
-            <div>
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Recursos</h3>
-              <ul className="space-y-3">
-                {["Blog", "FAQ", "Suporte Técnico", "Planos de Leitura", "Glossário Teológico"].map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-white/50 hover:text-white transition">
-                      {link}
-                    </a>
+
+            {/* Plano Premium */}
+            <div className="bg-blue-50 rounded-xl shadow-md p-8 border border-blue-100 relative transform md:scale-105">
+              <div className="absolute -top-3 right-8 bg-chatgpt-accent text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
+              <div className="text-lg text-stone-800 font-medium mb-4">Plano Premium</div>
+              <div className="text-4xl font-bold text-stone-800 mb-6">R$ 19<span className="text-lg font-normal text-stone-500">/mês</span></div>
+              <p className="text-stone-600 mb-6">Acesso completo para uso individual intensivo</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Acesso a todos os 66 livros bíblicos",
+                  "Mensagens ilimitadas",
+                  "Histórico completo permanente",
+                  "Exportação em PDF e Word",
+                  "Geração de sermões e estudos",
+                  "Suporte prioritário"
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-chatgpt-accent mr-3 flex-shrink-0" />
+                    <span className="text-stone-600">{feature}</span>
                   </li>
                 ))}
               </ul>
+              <Button variant="minimal" className="w-full">Assinar Agora</Button>
             </div>
-            
-            <div>
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Empresa</h3>
-              <ul className="space-y-3">
-                {["Sobre Nós", "Nossa Missão", "Contato", "Termos de Serviço", "Política de Privacidade"].map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-white/50 hover:text-white transition">
-                      {link}
-                    </a>
+
+            {/* Plano Ministério */}
+            <div className="bg-white rounded-xl shadow-sm p-8 border border-stone-200">
+              <div className="text-lg text-stone-800 font-medium mb-4">Plano Ministério</div>
+              <div className="text-4xl font-bold text-stone-800 mb-6">R$ 49<span className="text-lg font-normal text-stone-500">/mês</span></div>
+              <p className="text-stone-600 mb-6">Ideal para equipes ministeriais e igrejas</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Tudo do plano Premium",
+                  "Até 5 usuários",
+                  "Biblioteca compartilhada",
+                  "Templates ministeriais exclusivos",
+                  "Treinamento personalizado",
+                  "API para integração com sistemas"
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-stone-600">{feature}</span>
                   </li>
                 ))}
+              </ul>
+              <Button variant="minimalOutline" className="w-full">Contatar Vendas</Button>
+            </div>
+          </div>
+
+          <div className="text-center mt-12 text-stone-500">
+            <p>Todos os planos incluem atualizações gratuitas. Garantia de reembolso em 14 dias.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Vídeo Depoimentos */}
+      <section className="bg-stone-900 text-white lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4">Histórias inspiradoras</h2>
+            <p className="text-xl text-stone-300 max-w-3xl mx-auto">
+              Veja como o Bible Chat tem transformado ministérios e vidas
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((video, index) => (
+              <div key={index} className="bg-stone-800 rounded-lg overflow-hidden">
+                <div className="aspect-w-16 aspect-h-9 bg-stone-700">
+                  <div className="flex items-center justify-center h-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white opacity-80" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-medium mb-2">Depoimento de Usuário {index + 1}</h3>
+                  <p className="text-stone-400 text-sm">"O Bible Chat transformou completamente a forma como eu estudo as Escrituras e preparo minhas aulas."</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="lp-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-2xl p-10 md:p-16 text-white text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Comece sua jornada bíblica transformadora hoje</h2>
+            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+              Junte-se a milhares de cristãos que estão aprofundando seu conhecimento bíblico e enriquecendo seus ministérios com Bible Chat.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button 
+                variant="default"
+                size="lg"
+                className="bg-white text-blue-700 hover:bg-blue-50"
+              >
+                Criar Conta Gratuita
+              </Button>
+              <Button 
+                variant="outline"
+                size="lg"
+                className="border-white text-white hover:bg-white/10"
+              >
+                Ver Demonstração
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-stone-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <img
+                src="/lovable-uploads/logo-jd-bible-chat.png"
+                alt="Bible Chat Logo"
+                className="h-8 w-auto mb-4"
+              />
+              <p className="text-stone-400 text-sm">
+                Revolucionando a maneira como cristãos estudam e aplicam a Palavra de Deus através da tecnologia.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">Produto</h3>
+              <ul className="space-y-2 text-stone-400">
+                <li><a href="#" className="hover:text-white">Recursos</a></li>
+                <li><a href="#" className="hover:text-white">Planos</a></li>
+                <li><a href="#" className="hover:text-white">Depoimentos</a></li>
+                <li><a href="#" className="hover:text-white">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">Suporte</h3>
+              <ul className="space-y-2 text-stone-400">
+                <li><a href="#" className="hover:text-white">Documentação</a></li>
+                <li><a href="#" className="hover:text-white">Tutoriais</a></li>
+                <li><a href="#" className="hover:text-white">Contato</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-4">Legal</h3>
+              <ul className="space-y-2 text-stone-400">
+                <li><a href="#" className="hover:text-white">Termos de Uso</a></li>
+                <li><a href="#" className="hover:text-white">Privacidade</a></li>
               </ul>
             </div>
           </div>
-          
-          <div className="mt-12 pt-8 border-t border-white/10">
-            <p className="text-sm text-white/40 text-center">
-              © {new Date().getFullYear()} Discipler. Todos os direitos reservados.
-            </p>
+          <div className="border-t border-stone-700 mt-12 pt-8 text-center text-stone-400 text-sm">
+            <p>© {new Date().getFullYear()} Bible Chat. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
