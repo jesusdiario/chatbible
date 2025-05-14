@@ -1,156 +1,110 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from '@/pages/LandingPage';
+import Auth from '@/pages/Auth';
+import ChatPage from '@/pages/ChatPage';
+import ChatHistory from '@/pages/ChatHistory';
+import BibliaOnline from '@/pages/BibliaOnline';
+import Onboarding from '@/pages/Onboarding';
+import AdminPages from '@/pages/AdminPages';
+import Admin from '@/pages/Admin';
+import AdminBooks from '@/pages/AdminBooks';
+import NotFound from '@/pages/NotFound';
+import PaymentSuccess from '@/pages/PaymentSuccess';
+import Profile from '@/pages/Profile';
+import Register from '@/pages/Register';
+import LivrosDaBiblia from '@/pages/LivrosDaBiblia';
+import LivrosDaBibliaBook from '@/pages/LivrosDaBibliaBook';
+import TemasDaBiblia from '@/pages/TemasDaBiblia';
+import TeologiaCrista from '@/pages/TeologiaCrista';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Page imports
-import Auth from "@/pages/Auth";
-import Register from "@/pages/Register";
-import Index from "@/pages/Index";
-import Admin from "@/pages/Admin";
-import AdminPages from "@/pages/AdminPages";
-import AdminBooks from "@/pages/AdminBooks";
-import LivrosDaBiblia from "@/pages/LivrosDaBiblia";
-import LivrosDaBibliaBook from "@/pages/LivrosDaBibliaBook";
-import TemasDaBiblia from "@/pages/TemasDaBiblia";
-import TeologiaCrista from "@/pages/TeologiaCrista";
-import Profile from "@/pages/Profile";
-import ChatHistory from "@/pages/ChatHistory";
-import ChatPage from "@/pages/ChatPage"; 
-import LandingPage from "@/pages/LandingPage";
-import Lexicon from "@/pages/Lexicon";
-import BibliaOnline from "@/pages/BibliaOnline";
-import PaymentSuccess from "@/pages/PaymentSuccess";
-import NotFound from "@/pages/NotFound";
-
-// Protected Route component logic
-const ProtectedRoute = ({ 
-  children 
-}: { 
-  children: React.ReactNode
-}) => {
-  const { user, loading } = useAuth();
+const AppRoutes = () => {
+  const auth = useAuth();
   
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <LoadingSpinner />
-    </div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-export const AppRoutes: React.FC = () => {
-  const { user, loading } = useAuth();
-
-  // If still loading auth state, show nothing
-  if (loading) {
-    return null;
-  }
+  // Check if the user is authenticated and loading state
+  const userAuthenticated = auth?.user !== null;
+  const authLoading = auth?.loading || false;
 
   return (
     <Routes>
-      {/* Auth routes */}
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
-      <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
-      
-      {/* Payment Success page */}
-      <Route path="/payment-success" element={<PaymentSuccess />} />
-      
-      {/* Protected routes */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Index />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin" element={
-        <ProtectedRoute>
-          <Admin />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin/paginas" element={
-        <ProtectedRoute>
-          <AdminPages />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admin/livros" element={
-        <ProtectedRoute>
-          <AdminBooks />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/livros-da-biblia" element={
-        <ProtectedRoute>
-          <LivrosDaBiblia />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/temas-da-biblia" element={
-        <ProtectedRoute>
-          <TemasDaBiblia />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/teologia-crista" element={
-        <ProtectedRoute>
-          <TeologiaCrista />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/livros-da-biblia/:book" element={
-        <ProtectedRoute>
-          <LivrosDaBibliaBook />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/livros-da-biblia/:book/:slug" element={
-        <ProtectedRoute>
-          <LivrosDaBibliaBook />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/chat/:slug" element={
-        <ProtectedRoute>
-          <ChatPage />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/history" element={
-        <ProtectedRoute>
-          <ChatHistory />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/lexicon" element={
-        <ProtectedRoute>
-          <Lexicon />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/profile" element={
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/biblia-online" element={
-        <ProtectedRoute>
-          <BibliaOnline />
-        </ProtectedRoute>
-      } />
-      
-      {/* Public routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/lp" element={<LandingPage />} />
-      
-      {/* 404 Route - must be last */}
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/biblia-online/*" element={<BibliaOnline />} />
+      <Route 
+        path="/chat" 
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/chat/:id" 
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/history" 
+        element={
+          <ProtectedRoute>
+            <ChatHistory />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/onboarding" 
+        element={
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <Admin />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/pages" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminPages />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/books" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminBooks />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/livros-da-biblia" element={<LivrosDaBiblia />} />
+      <Route path="/livros-da-biblia/:book" element={<LivrosDaBibliaBook />} />
+      <Route path="/temas-da-biblia" element={<TemasDaBiblia />} />
+      <Route path="/teologia-crista" element={<TeologiaCrista />} />
+      <Route path="/contato" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
