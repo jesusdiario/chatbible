@@ -3,3 +3,9 @@ project_id = "qdukcxetdfidgxcuwjdo"
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.manage-assistants]
+verify_jwt = true
+
+[functions.assistant-chat]
+verify_jwt = true

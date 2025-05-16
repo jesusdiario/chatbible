@@ -32,8 +32,6 @@ export const sendChatMessage = async (
     data: { session }
   } = await supabase.auth.getSession();
 
-  const systemPrompt = promptOverride ?? await getPromptForBook(book);
-
   // Estágios de carregamento para mostrar ao usuário
   const loadingStages = [
     "Aguarde...",
@@ -59,6 +57,71 @@ export const sendChatMessage = async (
       clearInterval(stageInterval);
     }
   }, 1000); // Muda o estágio a cada 1 segundo
+
+  // Tenta usar o Assistant primeiro se tiver book definido
+  if (book && !promptOverride) {
+    try {
+      console.log(`Tentando usar assistant para book: ${book}`);
+      
+      // Chama a edge function assistant-chat
+      const response = await fetch(
+        `https://qdukcxetdfidgxcuwjdo.functions.supabase.co/assistant-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session && { Authorization: `Bearer ${session.access_token}` })
+          },
+          body: JSON.stringify({ 
+            messages: newMessages,
+            bookSlug: book
+          })
+        }
+      );
+      
+      const responseData = await response.json();
+      
+      // Se não tiver assistant ou algum erro ocorrer, usa o fluxo normal com prompt
+      if (responseData.usePrompt) {
+        console.log('Usando o fluxo normal com prompt_text');
+        // Continua com o fluxo normal abaixo
+      } else if (response.ok) {
+        // Se tiver resposta de sucesso do assistant, processa
+        let assistantFull = responseData.content || '';
+        const assistantMessage: Message = { role: 'assistant', content: assistantFull };
+        
+        // Limpa o intervalo dos estágios e marca como concluído
+        clearInterval(stageInterval);
+        if (onLoadingStageChange) {
+          onLoadingStageChange("Concluído!");
+          setTimeout(() => {
+            if (onChunk) {
+              onChunk(assistantFull);
+            }
+          }, 1000);
+        }
+        
+        // Persiste as mensagens finais
+        if (userId && slugToUse) {
+          await persistChatMessages(userId, slugToUse, [...newMessages, assistantMessage], book);
+        }
+        
+        return {
+          messages: [...newMessages, assistantMessage],
+          slug: slugToUse
+        };
+      } else {
+        console.error('Erro no assistant-chat, usando o fluxo normal:', responseData.error);
+        // Continua com o fluxo normal abaixo
+      }
+    } catch (err) {
+      console.error('Erro ao tentar usar assistant-chat:', err);
+      // Continua com o fluxo normal abaixo
+    }
+  }
+
+  // Fluxo normal com a edge function chat original
+  const systemPrompt = promptOverride ?? await getPromptForBook(book);
 
   const response = await fetch(
     'https://qdukcxetdfidgxcuwjdo.functions.supabase.co/chat',

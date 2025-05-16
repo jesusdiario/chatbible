@@ -196,6 +196,7 @@ export type Database = {
       }
       bible_prompts: {
         Row: {
+          assistant_id: string | null
           book_slug: string
           created_at: string | null
           id: string
@@ -203,6 +204,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assistant_id?: string | null
           book_slug: string
           created_at?: string | null
           id?: string
@@ -210,6 +212,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assistant_id?: string | null
           book_slug?: string
           created_at?: string | null
           id?: string
