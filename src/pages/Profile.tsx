@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileLayout from "@/components/profile/ProfileLayout";
@@ -75,7 +76,6 @@ const Profile = () => {
       <div className="space-y-8">
         <AccountSection user={user} />
         <LanguageSection />
-        {/* Uso removido */}
         <SubscriptionSection />
       </div>
     </ProfileLayout>

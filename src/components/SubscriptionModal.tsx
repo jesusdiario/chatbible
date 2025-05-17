@@ -46,7 +46,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
       <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-1 hover:bg-slate-800"
+          className="absolute right-4 top-4 rounded-full p-1 hover:bg-slate-100 hover:text-slate-900"
           disabled={isProcessing}
         >
           <X className="h-5 w-5" />
@@ -54,13 +54,13 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
         
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-semibold mb-2">Assine o Discipler</h2>
-          <p className="text-slate-400">Acesse todos os recursos!</p>
+          <p className="text-slate-500">Acesse todos os recursos!</p>
         </div>
         
         {plans.length > 0 ? (
           <div className="space-y-6">
             {plans.map((plan) => (
-              <div key={plan.id} className="mb-6 rounded-lg border border-slate-700 p-6">
+              <div key={plan.id} className="mb-6 rounded-lg border border-slate-200 p-6 hover:border-primary/50 transition-all">
                 <div className="mb-4 flex items-baseline justify-center">
                   <span className="text-3xl font-bold">
                     {new Intl.NumberFormat('pt-BR', { 
@@ -68,9 +68,14 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                       currency: plan.price_currency 
                     }).format(plan.price_amount / 100)}
                   </span>
-                  <span className="ml-1 text-slate-400">
+                  <span className="ml-1 text-slate-500">
                     {plan.stripe_price_id.includes('month') ? '/mês' : '/ano'}
                   </span>
+                </div>
+                
+                <div className="text-center mb-4">
+                  <h3 className="font-medium text-lg">{plan.name}</h3>
+                  {plan.description && <p className="text-sm text-slate-500">{plan.description}</p>}
                 </div>
                 
                 <ul className="mb-6 space-y-3">
@@ -108,7 +113,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
           </div>
         )}
         
-        <p className="text-xs text-center text-accent">
+        <p className="text-xs text-center text-slate-400 mt-6">
           A assinatura será renovada automaticamente. Você pode cancelar a qualquer momento. 
           Pagamento processado com segurança via Stripe.
         </p>

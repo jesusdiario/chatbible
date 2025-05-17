@@ -35,7 +35,9 @@ export const useSubscription = () => {
       await checkSubscription();
       
       // Atualizar cache após verificação
-      localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'unsubscribed');
+      if (state.subscribed !== undefined) {
+        localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'unsubscribed');
+      }
       if (state.subscriptionTier) {
         localStorage.setItem('user_subscription_tier', state.subscriptionTier);
       }
