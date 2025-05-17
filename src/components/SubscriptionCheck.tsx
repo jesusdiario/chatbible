@@ -55,7 +55,7 @@ const SubscriptionCheck = ({ children }: { children: React.ReactNode }) => {
           // Redirecionar para checkout
           const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
             body: { 
-              priceId: 'price_1RPq1TLyyMwTutR9kBDPgSjM',
+              priceId: 'price_1RMpm9LyyMwTutR9fh87jm5M',
               successUrl: `${window.location.origin}/payment-success`,
               cancelUrl: `${window.location.origin}/auth`
             }
