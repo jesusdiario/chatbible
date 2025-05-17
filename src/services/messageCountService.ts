@@ -2,13 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-// Default message limits by plan
-const MESSAGE_LIMITS = {
-  FREE: 10,
-  STANDARD: 50,
-  PREMIUM: 200
-};
-
 export interface MessageCountState {
   count: number;
   limit: number;
@@ -21,7 +14,7 @@ export interface MessageCountState {
 
 /**
  * Fetches the current message count for the user
- * DISABLED: Temporarily returns simulated values to prevent excessive DB calls
+ * Todos os usuários autenticados têm acesso irrestrito, não há mais verificação de limite
  */
 export const getMessageCount = async (): Promise<MessageCountState | null> => {
   try {
@@ -31,24 +24,20 @@ export const getMessageCount = async (): Promise<MessageCountState | null> => {
       return null;
     }
 
-    // DISABLED: Real DB queries
-    // Return simulated data to avoid API calls
-    
-    // Verificar se o usuário tem assinatura usando localStorage
-    const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
-    const isSubscribed = cachedSubscriptionStatus === 'subscribed';
+    // Verificar se o usuário está autenticado
+    const isAuthenticated = !!session.user.id;
     
     const now = new Date();
     const nextMonth = getNextMonthDate(now);
     
-    // Valores simulados para evitar chamadas ao banco
+    // Usuários autenticados têm limite "infinito"
     return {
       count: 0,
-      limit: isSubscribed ? 10000 : MESSAGE_LIMITS.FREE,
+      limit: 10000, // Valor arbitrário alto
       lastReset: now,
       nextReset: nextMonth,
       percentUsed: 0,
-      canSendMessage: true,
+      canSendMessage: isAuthenticated, // Só pode enviar mensagem se estiver autenticado
       daysUntilReset: 30
     };
   } catch (err) {
@@ -70,38 +59,29 @@ const getNextMonthDate = (date: Date): Date => {
 
 /**
  * Checks if a user has exceeded their message limit
- * DISABLED: Always returns false to prevent excessive DB calls
+ * Usuários autenticados nunca excedem o limite
  */
 export const checkMessageLimitExceeded = async (): Promise<boolean> => {
-  // DISABLED: Chamadas reais ao banco
-  // Sempre retorna false para permitir o envio de mensagens
-  return false;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    // Se estiver autenticado, nunca excede o limite
+    return !session?.user;
+  } catch (err) {
+    console.error("Error in checkMessageLimitExceeded:", err);
+    return true; // Em caso de erro, é mais seguro bloquear
+  }
 };
 
 /**
  * Increments the message count for the user
- * DISABLED: Always returns true without making DB calls
+ * Não há mais incremento de contador, apenas verificação de autenticação
  */
 export const incrementMessageCount = async (): Promise<boolean> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (!session?.user) {
-      return false;
-    }
-    
-    // DISABLED: Verificação e incremento real
-    // Verificar se o usuário tem assinatura usando localStorage
-    const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
-    
-    // Se o usuário tem assinatura, sempre pode enviar mensagem
-    if (cachedSubscriptionStatus === 'subscribed') {
-      return true;
-    }
-    
-    // Para usuários gratuitos, permitir envio sem incrementar o contador de verdade
-    // Em uma implementação futura, podemos reabilitar a contagem real
-    return true;
+    // Se estiver autenticado, sempre pode enviar mensagem
+    return !!session?.user;
   } catch (err) {
     console.error("Error in incrementMessageCount:", err);
     return false;
@@ -110,10 +90,9 @@ export const incrementMessageCount = async (): Promise<boolean> => {
 
 /**
  * Reset message count for a user 
- * DISABLED: Does nothing to prevent DB calls
+ * Função mantida para compatibilidade com código existente
  */
 export const resetMessageCount = async (userId: string): Promise<boolean> => {
-  // DISABLED: Chamadas reais ao banco
-  // Simular sucesso sem fazer nada
+  // Não faz nada, apenas retorna sucesso
   return true;
 };

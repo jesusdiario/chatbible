@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import SubscriptionCheck from '@/components/SubscriptionCheck';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -25,6 +26,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (requiresAuth && !user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Adiciona verificação de assinatura apenas para usuários autenticados
+  if (requiresAuth && user) {
+    return <SubscriptionCheck>{children}</SubscriptionCheck>;
   }
 
   return <>{children}</>;

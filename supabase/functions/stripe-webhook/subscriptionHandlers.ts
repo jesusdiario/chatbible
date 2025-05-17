@@ -11,59 +11,98 @@ export async function handleSuccessfulSubscription(
 ) {
   // Get customer ID from session
   const customerId = session.customer;
+  const stripeEmail = session.customer_details?.email;
   
   try {
-    // Get user by ID
-    const { data: userData, error: userError } = await supabaseClient.auth
-      .admin
-      .getUserById(userId);
+    logStep("Handling subscription success", { userId, customerId, email: stripeEmail });
     
-    if (userError) {
-      logStep("Error fetching user data", { error: userError.message, userId });
-      throw userError;
-    }
-    
-    // Get or create subscriber record
-    let email = userData.user?.email;
-    if (!email) {
-      logStep("Email not found in user data, fetching from Stripe", { userId });
-      // Fallback to fetching from Stripe
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-        apiVersion: "2022-11-15",
-      });
-      const customer = await stripe.customers.retrieve(customerId);
-      email = typeof customer !== 'string' && 'email' in customer ? customer.email : null;
-      logStep("Retrieved email from Stripe", { email });
-    }
-    
-    if (!email) {
-      logStep("Could not determine user email", { userId, customerId });
-      throw new Error("Could not determine user email");
-    }
-    
-    // Check if a subscription already exists for this user
-    const { data: existingSubscriber } = await supabaseClient
-      .from("subscribers")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
+    // Se o userId for "anonymous", precisamos criar um novo usuário ou associar a um existente
+    if (userId === "anonymous" && stripeEmail) {
+      // Verifica se já existe um usuário com esse email
+      const { data: existingUsers, error: userSearchError } = await supabaseClient
+        .from('auth.users')
+        .select('id')
+        .eq('email', stripeEmail)
+        .maybeSingle();
+        
+      if (userSearchError) {
+        logStep("Error searching for user by email", { error: userSearchError.message });
+      }
       
-    logStep("Checking for existing subscriber", { 
-      exists: !!existingSubscriber, 
-      email, 
-      userId 
+      // Se o usuário não existe, vamos criar um novo
+      if (!existingUsers) {
+        // Gerar uma senha aleatória
+        const randomPassword = Math.random().toString(36).slice(-10);
+        
+        // Criar um novo usuário
+        const { data: newUser, error: signUpError } = await supabaseClient.auth
+          .admin
+          .createUser({
+            email: stripeEmail,
+            password: randomPassword,
+            email_confirm: true,
+          });
+        
+        if (signUpError) {
+          logStep("Error creating new user", { error: signUpError.message });
+          throw signUpError;
+        } else {
+          // Atualizar o userId para o recém-criado
+          userId = newUser.id;
+          logStep("Created new user for subscriber", { newUserId: userId });
+          
+          // Enviar email com instruções para redefinir a senha
+          await supabaseClient.auth
+            .admin
+            .generateLink({
+              type: 'recovery',
+              email: stripeEmail
+            });
+          
+          logStep("Sent password reset email to new user", { email: stripeEmail });
+        }
+      } else {
+        userId = existingUsers.id;
+        logStep("Found existing user", { userId });
+      }
+    }
+    
+    // Obter os detalhes da assinatura
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+      apiVersion: "2022-11-15",
     });
+    
+    // Obter a assinatura associada ao checkout
+    const subscriptionId = session.subscription;
+    let subscriptionData = null;
+    let subscriptionEndDate = null;
+    let subscriptionTier = "Premium"; // Default
+    
+    if (subscriptionId) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      subscriptionEndDate = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Determinar o tipo de assinatura (mensal ou anual) com base no plano
+      const interval = subscription.items.data[0].plan.interval;
+      subscriptionTier = interval === 'year' ? 'Premium Anual' : 'Premium Mensal';
+      
+      logStep("Retrieved subscription details", { 
+        tier: subscriptionTier, 
+        endDate: subscriptionEndDate,
+        interval
+      });
+    }
     
     // Upsert subscriber data
     const { data: updatedData, error: upsertError } = await supabaseClient
       .from("subscribers")
       .upsert({
         user_id: userId,
-        email: email,
+        email: stripeEmail,
         stripe_customer_id: customerId,
         subscribed: true,
-        // Default to "Premium" until we get more details in subscription.updated event
-        subscription_tier: "Premium",
+        subscription_tier: subscriptionTier,
+        subscription_end: subscriptionEndDate,
         updated_at: new Date().toISOString()
       }, { onConflict: "user_id" });
     
@@ -72,7 +111,7 @@ export async function handleSuccessfulSubscription(
       throw upsertError;
     }
     
-    logStep("Successfully upserted subscriber", { userId, email });
+    logStep("Successfully upserted subscriber", { userId, email: stripeEmail });
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -99,17 +138,10 @@ export async function handleSubscriptionUpdate(supabaseClient: any, subscription
     // Get the price ID to determine subscription tier
     const priceId = subscription.items.data[0].price.id;
     
-    // Get the subscription tier from price ID
-    const { data: planData, error: planError } = await supabaseClient
-      .from("subscription_plans")
-      .select("name")
-      .eq("stripe_price_id", priceId)
-      .single();
-    
-    if (planError) {
-      logStep("Error getting plan data", { error: planError.message, priceId });
-      // Continue with default tier if we can't find the plan
-    }
+    // Get the interval (monthly or yearly)
+    const interval = subscription.items.data[0].plan.interval;
+    const subscriptionTier = interval === 'year' ? 'Premium Anual' : 'Premium Mensal';
+    logStep("Determined subscription tier based on interval", { interval, tier: subscriptionTier });
     
     // Find subscriber by Stripe customer ID
     const { data: subscribers, error: subscribersError } = await supabaseClient
@@ -138,7 +170,7 @@ export async function handleSubscriptionUpdate(supabaseClient: any, subscription
         .from("subscribers")
         .update({
           subscribed: isActive,
-          subscription_tier: planData?.name || "Premium", // Fallback to Premium
+          subscription_tier: subscriptionTier,
           subscription_end: subscriptionEndDate,
           updated_at: new Date().toISOString()
         })
@@ -152,7 +184,7 @@ export async function handleSubscriptionUpdate(supabaseClient: any, subscription
       } else {
         logStep("Successfully updated subscriber", { 
           userId: subscriber.user_id, 
-          tier: planData?.name || "Premium" 
+          tier: subscriptionTier
         });
       }
     }

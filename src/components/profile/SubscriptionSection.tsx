@@ -54,17 +54,15 @@ const SubscriptionSection = () => {
             <CardTitle>Detalhes da Assinatura</CardTitle>
             <CardDescription>Informações sobre seu plano atual</CardDescription>
           </div>
-          {subscribed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshSubscription}
-              disabled={isLoading}
-              className="h-8"
-            >
-              Atualizar
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshSubscription}
+            disabled={isLoading}
+            className="h-8"
+          >
+            Atualizar
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {isLoading ? (
@@ -78,11 +76,11 @@ const SubscriptionSection = () => {
                 {subscribed ? (
                   <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>
                 ) : (
-                  <Badge variant="secondary">Plano Gratuito</Badge>
+                  <Badge variant="destructive">Inativo</Badge>
                 )}
               </div>
 
-              {subscribed && (
+              {subscribed ? (
                 <>
                   <div className="grid gap-1">
                     <div className="flex justify-between">
@@ -98,7 +96,7 @@ const SubscriptionSection = () => {
                             style: 'currency', 
                             currency: plan.price_currency || 'BRL' 
                           }).format(plan.price_amount / 100)}
-                          /mês
+                          {subscriptionTier?.includes('Anual') ? '/ano' : '/mês'}
                         </span>
                       </div>
                     )}
@@ -139,6 +137,12 @@ const SubscriptionSection = () => {
                     </div>
                   )}
                 </>
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="mb-4 text-muted-foreground">
+                    Você não possui uma assinatura ativa. Assine agora para acessar todas as funcionalidades!
+                  </p>
+                </div>
               )}
               
               <Button 
@@ -146,7 +150,7 @@ const SubscriptionSection = () => {
                 disabled={isProcessing}
                 className="w-full mt-4"
               >
-                {isProcessing ? "Processando..." : subscribed ? "Gerenciar assinatura" : "Assinar plano premium"}
+                {isProcessing ? "Processando..." : subscribed ? "Gerenciar assinatura" : "Assinar agora"}
               </Button>
             </>
           )}

@@ -30,81 +30,76 @@ serve(async (req) => {
       apiVersion: '2023-10-16'
     });
 
-    // Get authenticated user from request
+    // Get Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
+    let userId: string | undefined;
+    let userEmail: string | undefined;
+
+    // Tenta obter usuário autenticado (se disponível)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing Authorization header');
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
+
+      if (!authError && userData.user) {
+        userId = userData.user.id;
+        userEmail = userData.user.email;
+        logStep("User authenticated", { userId, email: userEmail });
+      }
     }
 
-    const token = authHeader.split(' ')[1];
-    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !userData.user) {
-      throw new Error('Authentication error: ' + (authError?.message || 'User not found'));
-    }
-
-    logStep("User authenticated", { userId: userData.user.id, email: userData.user.email });
-
-    // Check for existing Stripe customer or create new one
+    // Configurar o customer_id apenas se o usuário estiver autenticado
     let customerId: string | undefined;
     
-    // Check if customer exists in our database
-    const { data: subscriberData } = await supabaseClient
-      .from('subscribers')
-      .select('stripe_customer_id')
-      .eq('user_id', userData.user.id)
-      .maybeSingle();
-
-    if (subscriberData?.stripe_customer_id) {
-      customerId = subscriberData.stripe_customer_id;
-      logStep("Using existing customer from subscribers table", { customerId });
-    } else {
-      // Check Stripe for customer with matching email
+    if (userEmail) {
+      // Verifica se já existe um cliente no Stripe
       const customers = await stripe.customers.list({
-        email: userData.user.email,
+        email: userEmail,
         limit: 1,
       });
 
       if (customers.data.length > 0) {
         customerId = customers.data[0].id;
-        logStep("Found existing Stripe customer", { customerId });
+        logStep("Using existing customer from Stripe", { customerId });
       } else {
-        // Create new customer
+        // Cria um novo cliente no Stripe
         const newCustomer = await stripe.customers.create({
-          email: userData.user.email,
-          name: userData.user.user_metadata?.full_name || userData.user.email,
+          email: userEmail,
           metadata: {
-            userId: userData.user.id,
+            userId: userId,
           },
         });
         customerId = newCustomer.id;
         logStep("Created new Stripe customer", { customerId });
       }
 
-      // Update our database with the Stripe customer ID
-      const { error: upsertError } = await supabaseClient
-        .from('subscribers')
-        .upsert({
-          user_id: userData.user.id,
-          email: userData.user.email,
-          stripe_customer_id: customerId,
-          updated_at: new Date().toISOString(),
-        });
+      // Se o usuário está autenticado, atualiza o banco de dados
+      if (userId) {
+        const { error: upsertError } = await supabaseClient
+          .from('subscribers')
+          .upsert({
+            user_id: userId,
+            email: userEmail,
+            stripe_customer_id: customerId,
+            updated_at: new Date().toISOString(),
+          });
 
-      if (upsertError) {
-        logStep("Error upserting customer data", { error: upsertError.message });
+        if (upsertError) {
+          logStep("Error upserting customer data", { error: upsertError.message });
+        }
       }
     }
 
-    // Create a checkout session
+    // Criar sessão de checkout
     const baseUrl = new URL(req.url).origin;
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      customer_email: !customerId ? userEmail : undefined,
+      allow_promotion_codes: true,
       line_items: [{
         price: priceId,
         quantity: 1
@@ -112,11 +107,8 @@ serve(async (req) => {
       mode: 'subscription',
       success_url: successUrl || `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${baseUrl}/`,
-      client_reference_id: userData.user.id, // IMPORTANTE: para associar o checkout ao usuário
-      subscription_data: {
-        metadata: {
-          userId: userData.user.id
-        }
+      metadata: {
+        userId: userId || "anonymous"
       }
     });
 

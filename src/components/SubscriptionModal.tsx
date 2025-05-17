@@ -53,13 +53,13 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
         </button>
         
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-semibold mb-2">Upgrade Discipler Pro</h2>
-          <p className="text-slate-400">Usufrua Sem Limites!</p>
+          <h2 className="text-2xl font-semibold mb-2">Assine o Discipler</h2>
+          <p className="text-slate-400">Acesse todos os recursos!</p>
         </div>
         
         {plans.length > 0 ? (
           <div className="space-y-6">
-            {plans.filter(plan => plan.stripe_price_id !== 'free_plan').map((plan) => (
+            {plans.map((plan) => (
               <div key={plan.id} className="mb-6 rounded-lg border border-slate-700 p-6">
                 <div className="mb-4 flex items-baseline justify-center">
                   <span className="text-3xl font-bold">
@@ -68,7 +68,9 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                       currency: plan.price_currency 
                     }).format(plan.price_amount / 100)}
                   </span>
-                  <span className="ml-1 text-slate-400">/mês</span>
+                  <span className="ml-1 text-slate-400">
+                    {plan.stripe_price_id.includes('month') ? '/mês' : '/ano'}
+                  </span>
                 </div>
                 
                 <ul className="mb-6 space-y-3">
@@ -78,10 +80,6 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                       <span>{feature}</span>
                     </li>
                   ))}
-                  <li className="flex items-start">
-                    <Check className="mr-2 h-5 w-5 text-green-500 shrink-0" />
-                    <span>Renovação Mensal</span>
-                  </li>
                 </ul>
                 
                 <Button 

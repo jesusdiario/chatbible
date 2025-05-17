@@ -29,44 +29,19 @@ export const useSubscription = () => {
     }
   }, [plans, state.subscriptionTier, setState]);
 
-  // Check subscription when component mounts, but use cached value when available
+  // Check subscription when component mounts
   useEffect(() => {
-    const checkSubscriptionWithCache = async () => {
-      // Tentar obter do localStorage primeiro
-      const cachedSubscriptionStatus = localStorage.getItem('user_subscription_status');
-      const cachedSubscriptionTier = localStorage.getItem('user_subscription_tier');
+    const checkSubscriptionStatus = async () => {
+      await checkSubscription();
       
-      if (cachedSubscriptionStatus) {
-        // Se temos valores em cache, usá-los para evitar chamadas desnecessárias
-        setState(prev => ({
-          ...prev,
-          subscribed: cachedSubscriptionStatus === 'subscribed',
-          subscriptionTier: cachedSubscriptionTier || prev.subscriptionTier
-        }));
-        
-        // Ainda assim, atualizar em background para garantir dados atualizados
-        // mas sem bloquear a interface
-        setTimeout(() => {
-          checkSubscription().then(() => {
-            // Após verificação, atualizar cache
-            localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'free');
-            if (state.subscriptionTier) {
-              localStorage.setItem('user_subscription_tier', state.subscriptionTier);
-            }
-          });
-        }, 3000); // Delay para evitar chamadas imediatas
-      } else {
-        // Se não temos cache, fazer verificação normal
-        await checkSubscription();
-        // E salvar em cache
-        localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'free');
-        if (state.subscriptionTier) {
-          localStorage.setItem('user_subscription_tier', state.subscriptionTier);
-        }
+      // Atualizar cache após verificação
+      localStorage.setItem('user_subscription_status', state.subscribed ? 'subscribed' : 'unsubscribed');
+      if (state.subscriptionTier) {
+        localStorage.setItem('user_subscription_tier', state.subscriptionTier);
       }
     };
     
-    checkSubscriptionWithCache();
+    checkSubscriptionStatus();
   }, []);
 
   return {
